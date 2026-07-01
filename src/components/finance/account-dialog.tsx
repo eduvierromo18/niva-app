@@ -1,10 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, Field, inputClass } from "@/components/ui/dialog";
-import { findBank } from "@/config/banks";
-import { BankSelect } from "@/components/finance/BankSelect";
+import { defaultBankOptions, findBank } from "@/config/banks";
+import { AuroraBankLogo, AuroraButton, AuroraInput, AuroraModal, AuroraSelect } from "@/components/aurora";
 
 export type AccountFormValue = {
   name: string;
@@ -67,58 +65,76 @@ export function AccountDialog({
   }
 
   return (
-    <Dialog
+    <AuroraModal
       open={open}
       title={initialValue ? "Editar cuenta" : "Agregar cuenta"}
-      description="Carga o ajusta una cuenta manual para registrar saldos y actividad."
       onClose={onClose}
+      footer={null}
+      className="max-w-2xl"
     >
       <form className="grid gap-4" onSubmit={submit}>
-        <Field label="Nombre">
-          <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} placeholder="Ej. Cuenta BBVA" />
-        </Field>
-        <Field label="Alias visible">
-          <input className={inputClass} value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="Ej. Nomina, ahorro, diaria" />
-        </Field>
+        <p className="text-sm leading-6 text-[#6B7280]">Carga o ajusta una cuenta manual para registrar saldos y actividad.</p>
+        <AuroraInput label="Nombre" value={name} onChange={(event) => setName(event.target.value)} placeholder="Ej. Cuenta BBVA" />
+        <AuroraInput label="Alias visible" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="Ej. Nomina, ahorro, diaria" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Tipo">
-            <select
-              className={inputClass}
-              value={type}
-              onChange={(event) => {
-                setType(event.target.value);
-                if (event.target.value !== "Banco") {
-                  setBankName("");
-                  setBankCustomName("");
-                }
-              }}
-            >
-              <option>Banco</option>
-              <option>Efectivo</option>
-              <option>Ahorro</option>
-              <option>Tarjeta</option>
-              <option>Inversion</option>
-            </select>
-          </Field>
-          <Field label="Saldo inicial">
-            <input className={inputClass} type="number" value={balance} onChange={(event) => setBalance(event.target.value)} />
-          </Field>
+          <AuroraSelect
+            label="Tipo"
+            value={type}
+            onChange={(event) => {
+              setType(event.target.value);
+              if (event.target.value !== "Banco") {
+                setBankName("");
+                setBankCustomName("");
+              }
+            }}
+            options={[
+              { label: "Banco", value: "Banco" },
+              { label: "Efectivo", value: "Efectivo" },
+              { label: "Ahorro", value: "Ahorro" },
+              { label: "Tarjeta", value: "Tarjeta" },
+              { label: "Inversion", value: "Inversion" },
+            ]}
+          />
+          <AuroraInput label="Saldo inicial" type="number" value={balance} onChange={(event) => setBalance(event.target.value)} />
         </div>
         {type === "Banco" ? (
-          <BankSelect
-            bankName={bankName}
-            bankCustomName={bankCustomName}
-            onChange={(value) => {
-              setBankName(value.bank_name);
-              setBankCustomName(value.bank_custom_name);
-            }}
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <AuroraSelect
+                label="Banco"
+                value={bankName}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setBankName(value);
+                  setBankCustomName(value === "other" ? bankCustomName : "");
+                }}
+                options={[
+                  { label: "Seleccionar banco opcional", value: "" },
+                  ...defaultBankOptions.map((bank) => ({ label: bank.name, value: bank.id })),
+                ]}
+              />
+              {bankName ? (
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#374151]">
+                  <AuroraBankLogo bankName={bankName} bankCustomName={bankCustomName} size="sm" />
+                  {findBank(bankName, bankCustomName).name}
+                </span>
+              ) : null}
+            </div>
+            {bankName === "other" ? (
+              <AuroraInput
+                label="Nombre del banco"
+                value={bankCustomName}
+                onChange={(event) => setBankCustomName(event.target.value)}
+                placeholder="Ej. Banregio, Santander, HSBC"
+              />
+            ) : null}
+          </div>
         ) : null}
         <div className="flex justify-end gap-3 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button type="submit">Guardar cuenta</Button>
+          <AuroraButton type="button" variant="secondary" onClick={onClose}>Cancelar</AuroraButton>
+          <AuroraButton type="submit">Guardar cuenta</AuroraButton>
         </div>
       </form>
-    </Dialog>
+    </AuroraModal>
   );
 }

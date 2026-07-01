@@ -19,7 +19,7 @@ export function NetWorthChart() {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Evolucion del patrimonio</CardTitle>
+        <CardTitle>Evolucion de tu dinero</CardTitle>
         <span className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 dark:border-zinc-800">Este mes</span>
       </CardHeader>
       <CardContent>

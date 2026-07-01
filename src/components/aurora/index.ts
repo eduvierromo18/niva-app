@@ -37,3 +37,5 @@ export { AuroraTabs } from "@/components/aurora/navigation/AuroraTabs";
 
 export { AuroraBottomSheet } from "@/components/aurora/overlays/AuroraBottomSheet";
 export { AuroraModal } from "@/components/aurora/overlays/AuroraModal";
+
+export { AuroraBankLogo } from "@/components/aurora/media/AuroraBankLogo";

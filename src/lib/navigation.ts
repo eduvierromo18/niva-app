@@ -13,7 +13,7 @@ import {
 
 export const appNavigation = [
   { title: "Home", href: "/dashboard", icon: Gauge, group: "primary" },
-  { title: "Tu dinero", href: "/accounts", icon: WalletCards, group: "primary" },
+  { title: "Cuentas", href: "/accounts", icon: WalletCards, group: "primary" },
   { title: "Actividad", href: "/movements", icon: ReceiptText, group: "primary" },
   { title: "Analisis", href: "/categories", icon: ChartPie, group: "primary" },
   { title: "Objetivos", href: "/goals", icon: Flag, group: "primary" },
