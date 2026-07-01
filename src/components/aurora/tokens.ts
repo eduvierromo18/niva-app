@@ -1,0 +1,55 @@
+export const auroraTokens = {
+  colors: {
+    primary: "#2563EB",
+    success: "#10B981",
+    warning: "#F59E0B",
+    danger: "#EF4444",
+    neutral700: "#374151",
+    neutral500: "#6B7280",
+    neutral300: "#D1D5DB",
+    neutral100: "#F3F4F6",
+    white: "#FFFFFF",
+  },
+  typography: {
+    h1: "text-[32px] font-bold leading-tight",
+    h2: "text-2xl font-semibold leading-tight",
+    h3: "text-xl font-semibold leading-snug",
+    body1: "text-base font-normal leading-7",
+    body2: "text-sm font-normal leading-6",
+    caption: "text-xs font-medium leading-5",
+  },
+  radius: {
+    xs: "rounded",
+    sm: "rounded-lg",
+    md: "rounded-xl",
+    lg: "rounded-[20px]",
+    xl: "rounded-3xl",
+    full: "rounded-full",
+  },
+  shadow: {
+    sm: "shadow-[0_1px_2px_rgba(0,0,0,0.05)]",
+    md: "shadow-[0_4px_12px_rgba(0,0,0,0.06)]",
+    lg: "shadow-[0_12px_24px_rgba(0,0,0,0.08)]",
+    xl: "shadow-[0_24px_48px_rgba(0,0,0,0.10)]",
+  },
+  spacing: {
+    4: "1",
+    8: "2",
+    12: "3",
+    16: "4",
+    24: "6",
+    32: "8",
+    48: "12",
+    64: "16",
+  },
+  transition: "transition-all duration-200 ease-out",
+} as const;
+
+export const auroraStyles = {
+  page: "min-h-screen bg-[#F8FAFC] text-[#111827]",
+  container: "mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8",
+  surface: "rounded-[20px] border border-[#E5E7EB] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.06)]",
+  card: "rounded-xl border border-[#E5E7EB] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-200 ease-out",
+  focus: "outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2",
+  mutedText: "text-[#6B7280]",
+} as const;

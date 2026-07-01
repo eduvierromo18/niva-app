@@ -1,0 +1,107 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bell, ChevronDown, Menu, Plus } from "lucide-react";
+import { AuroraContainer, AuroraIconButton, AuroraPage, AuroraSidebar, AuroraSurface, AuroraTopbar } from "@/components/aurora";
+import { appNavigation } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
+
+const sidebarGroupOrder = ["primary", "workspace", "support"];
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const currentPageIndex = appNavigation.findIndex((item) => item.href === pathname);
+  const currentPage = appNavigation[currentPageIndex] ?? appNavigation[0];
+  const sidebarItems = appNavigation.map((item, index) => ({
+    href: item.href,
+    label: item.title,
+    icon: <item.icon className="h-4 w-4" />,
+    active: index === currentPageIndex,
+    group: item.group,
+  }));
+  const sidebarGroups = sidebarGroupOrder.map((group) => ({
+    items: sidebarItems.filter((item) => item.group === group),
+  }));
+  const mobileItems = appNavigation.filter((item) => item.group === "primary").slice(0, 4);
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] text-[#111827]">
+      <AuroraPage contained={false} className="px-4 pb-24 pt-4 sm:px-5 sm:pt-5 lg:px-6 lg:pb-8 lg:pt-6">
+        <div className="grid gap-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <AuroraSidebar
+            items={sidebarItems}
+            groups={sidebarGroups}
+            className="fixed left-6 top-6 hidden h-[calc(100vh-3rem)] max-w-64 lg:flex"
+            footer={
+              <div className="rounded-2xl border border-[#DBEAFE] bg-[#EFF6FF] p-4">
+                <p className="text-sm font-bold text-[#111827]">Aurora Premium</p>
+                <p className="mt-1 text-xs leading-5 text-[#6B7280]">Version Premium activa</p>
+              </div>
+            }
+          />
+
+          <div className="hidden lg:block" />
+
+          <AuroraContainer className="max-w-none px-0">
+            <AuroraTopbar
+              title={currentPage.title}
+              subtitle="Aurora Personal Finance"
+              searchPlaceholder="Buscar registros, cuentas o categorias..."
+              actions={
+                <div className="flex shrink-0 items-center gap-2">
+                  <Link
+                    href="/movements"
+                    className="hidden h-10 items-center gap-2 rounded-lg bg-[#2563EB] px-4 text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.26)] transition-all duration-200 ease-out hover:bg-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2 sm:inline-flex"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Nuevo registro
+                  </Link>
+                  <AuroraIconButton icon={<Bell className="h-4 w-4" />} label="Notificaciones" />
+                  <Link href="/settings" className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-[#F3F4F6]">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111827] text-sm font-bold text-white">
+                      LR
+                    </div>
+                    <span className="hidden max-w-40 truncate text-sm font-semibold text-[#111827] sm:inline">Luis Eduvier Romo</span>
+                    <ChevronDown className="hidden h-4 w-4 text-[#6B7280] sm:block" />
+                  </Link>
+                </div>
+              }
+            />
+            <AuroraSurface className="mt-5 min-w-0 p-3 sm:p-5">
+              <AuroraContainer className="max-w-none px-0">{children}</AuroraContainer>
+            </AuroraSurface>
+          </AuroraContainer>
+        </div>
+      </AuroraPage>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[#E5E7EB] bg-white/95 px-2 py-2 backdrop-blur-xl lg:hidden">
+        <div className="grid grid-cols-5 gap-1">
+          {mobileItems.map((item) => (
+            <Link
+              key={`${item.href}-${item.title}`}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[11px] font-semibold text-[#6B7280]",
+                pathname === item.href && "bg-[#EFF6FF] text-[#2563EB]",
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.title}
+            </Link>
+          ))}
+          <Link
+            href="/settings"
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[11px] font-semibold text-[#6B7280]",
+              pathname === "/settings" && "bg-[#EFF6FF] text-[#2563EB]",
+            )}
+          >
+            <Menu className="h-5 w-5" />
+            Mas
+          </Link>
+        </div>
+      </nav>
+    </div>
+  );
+}
