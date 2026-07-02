@@ -6,6 +6,8 @@ Brand defines how Niva presents itself: identity, voice, naming, visual characte
 
 ## Chapters
 
+- [Brand Essence](brand-essence.md)
+- [Brand Personality](brand-personality.md)
 - [Visual DNA](visual-dna.md)
 - [Personality](personality.md)
 - [Voice](voice.md)
@@ -20,4 +22,3 @@ Brand defines how Niva presents itself: identity, voice, naming, visual characte
 - [The Constitution](../00-the-constitution/README.md)
 - [NDL](../02-ndl/README.md)
 - [Design System](../03-design-system/README.md)
-

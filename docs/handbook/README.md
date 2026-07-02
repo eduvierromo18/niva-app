@@ -12,7 +12,7 @@ Niva is a personal financial control center. The Handbook keeps the product cohe
 
 - Start with [Version](VERSION.md) for status and ownership.
 - Read [The Constitution](00-the-constitution/README.md) to understand the product foundation.
-- Use [Brand](01-brand/README.md) for identity, voice, naming, and visual DNA.
+- Use [Brand](01-brand/README.md) for brand essence, personality, identity, voice, naming, and visual DNA.
 - Use [NDL](02-ndl/README.md) for experience principles and interface language.
 - Use [Design System](03-design-system/README.md) for reusable visual and component rules.
 - Use [Product](04-product/README.md) for module-level specifications.
