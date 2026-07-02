@@ -1,3 +1,16 @@
+---
+title: Niva Handbook
+version: 0.1.0
+status: Review
+owner: Product Team
+last_updated: 2026-07-02
+related_chapters:
+  - 00-the-constitution/README.md
+  - 01-brand/README.md
+  - 03-design-system/README.md
+related_product_specs: []
+---
+
 # Niva Handbook
 
 The Niva Handbook is the official source of truth for the product.
@@ -12,9 +25,9 @@ Niva is a personal financial control center. The Handbook keeps the product cohe
 
 - Start with [Version](VERSION.md) for status and ownership.
 - Read [The Constitution](00-the-constitution/README.md) to understand the product foundation.
-- Use [Brand](01-brand/README.md) for brand architecture, essence, personality, identity, voice, naming, and visual DNA.
+- Use [Brand](01-brand/README.md) for brand architecture, essence, personality, vocabulary, identity, voice, naming, and visual DNA.
 - Use [NDL](02-ndl/README.md) for experience principles and interface language.
-- Use [Design System](03-design-system/README.md) for reusable visual and component rules.
+- Use [Design System](03-design-system/README.md) for reusable visual, component, and product language token rules.
 - Use [Product](04-product/README.md) for module-level specifications.
 - Use [Engineering](05-engineering/README.md) for architecture and implementation constraints.
 - Use [Decisions](06-decisions/README.md) for ADRs and decision records.
