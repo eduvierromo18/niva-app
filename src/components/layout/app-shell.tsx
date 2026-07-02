@@ -20,9 +20,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     active: index === currentPageIndex,
     group: item.group,
   }));
-  const sidebarGroups = sidebarGroupOrder.map((group) => ({
-    items: sidebarItems.filter((item) => item.group === group),
-  }));
+  const sidebarGroups = sidebarGroupOrder
+    .map((group) => ({
+      items: sidebarItems.filter((item) => item.group === group),
+    }))
+    .filter((group) => group.items.length > 0);
   const mobileItems = appNavigation.filter((item) => item.group === "primary").slice(0, 4);
 
   return (
@@ -34,9 +36,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             groups={sidebarGroups}
             className="fixed left-6 top-6 hidden h-[calc(100vh-3rem)] max-w-64 lg:flex"
             footer={
-              <div className="rounded-2xl border border-[#DBEAFE] bg-[#EFF6FF] p-4">
-                <p className="text-sm font-bold text-[#111827]">Aurora Premium</p>
-                <p className="mt-1 text-xs leading-5 text-[#6B7280]">Version Premium activa</p>
+              <div className="rounded-2xl border border-[#BBF7D0] bg-[#ECFDF5] p-4">
+                <p className="text-sm font-bold text-[#111827]">Niva</p>
+                <p className="mt-1 text-xs leading-5 text-[#6B7280]">Tu dinero, claro y al día.</p>
               </div>
             }
           />
@@ -46,13 +48,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <AuroraContainer className="max-w-none px-0">
             <AuroraTopbar
               title={currentPage.title}
-              subtitle="Aurora Personal Finance"
-              searchPlaceholder="Buscar registros, cuentas o categorias..."
+              subtitle="Niva"
+              searchPlaceholder="Buscar registros, cuentas o categorías..."
               actions={
                 <div className="flex shrink-0 items-center gap-2">
                   <Link
                     href="/movements"
-                    className="hidden h-10 items-center gap-2 rounded-lg bg-[#2563EB] px-4 text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.26)] transition-all duration-200 ease-out hover:bg-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2 sm:inline-flex"
+                    className="hidden h-10 items-center gap-2 rounded-lg bg-[#047857] px-4 text-sm font-bold text-white shadow-[0_4px_12px_rgba(4,120,87,0.22)] transition-all duration-200 ease-out hover:bg-[#065F46] focus:outline-none focus:ring-2 focus:ring-[#047857] focus:ring-offset-2 sm:inline-flex"
                   >
                     <Plus className="h-4 w-4" />
                     Nuevo registro
@@ -98,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           >
             <Menu className="h-5 w-5" />
-            Mas
+            Más
           </Link>
         </div>
       </nav>

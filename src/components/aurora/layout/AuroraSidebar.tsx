@@ -26,10 +26,10 @@ export function AuroraSidebar({ items, groups, footer, className }: AuroraSideba
   return (
     <aside className={cn("flex h-full min-h-[520px] w-full max-w-64 flex-col rounded-[24px] border border-[#E5E7EB] bg-white p-4 shadow-[0_12px_24px_rgba(0,0,0,0.08)]", className)}>
       <div className="flex items-center gap-3 px-2 py-2">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#42D3FF] via-[#2563EB] to-[#7C3AED] text-lg font-bold text-white">A</span>
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#10B981] via-[#2563EB] to-[#7C3AED] text-lg font-bold text-white">N</span>
         <div>
-          <p className="text-lg font-bold leading-tight text-[#111827]">Aurora</p>
-          <p className="text-xs font-medium text-[#6B7280]">Personal Finance</p>
+          <p className="text-lg font-bold leading-tight text-[#111827]">Niva</p>
+          <p className="text-xs font-medium text-[#6B7280]">Finanzas personales</p>
         </div>
       </div>
       <nav className="mt-8 space-y-3">

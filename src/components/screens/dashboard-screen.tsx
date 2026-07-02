@@ -48,10 +48,22 @@ function formatDelta(delta: number) {
 }
 
 function formatDueLabel(days: number) {
-  if (days < 0) return `Vencido hace ${Math.abs(days)} dias`;
+  if (days < 0) return `Vencido hace ${Math.abs(days)} días`;
   if (days === 0) return "Vence hoy";
-  if (days === 1) return "Vence manana";
-  return `Vence en ${days} dias`;
+  if (days === 1) return "Vence mañana";
+  return `Vence en ${days} días`;
+}
+
+function amountToneForMovement(type: string) {
+  if (type === "Ingreso") return "positive" as const;
+  if (type === "Gasto") return "negative" as const;
+  return "neutral" as const;
+}
+
+function scheduledAmountTone(type: string) {
+  if (type === "income") return "text-[#047857]";
+  if (type === "transfer") return "text-[#2563EB]";
+  return "text-[#DC2626]";
 }
 
 export function DashboardScreen() {
@@ -99,7 +111,7 @@ export function DashboardScreen() {
             <AuroraBadge tone="success">Inicio</AuroraBadge>
             <h1 className="mt-5 text-4xl font-bold tracking-tight text-[#111827] sm:text-5xl">Tu dinero</h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[#6B7280]">
-              Hola, Luis. Tu dinero esta estable y listo para cubrir los pagos cercanos sin tocar tu reserva.
+              Hola, Luis. Tu dinero está estable y listo para cubrir los pagos cercanos sin tocar tu reserva.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={() => openMovement("Gasto")}>
@@ -115,7 +127,7 @@ export function DashboardScreen() {
             <p className="text-sm font-bold text-[#2563EB]">Tu dinero</p>
             <p className="mt-3 text-4xl font-bold tracking-tight text-[#111827]">{formatCurrency(netWorth)}</p>
             <p className="mt-3 text-sm leading-6 text-[#6B7280]">
-              {formatCurrency(availableToday)} disponible hoy sin considerar tarjetas de credito.
+              {formatCurrency(availableToday)} disponible hoy sin considerar tarjetas de crédito.
             </p>
             <Link href="/accounts" className="mt-5 inline-flex text-sm font-bold text-[#2563EB]">
               Ver detalle
@@ -162,7 +174,7 @@ export function DashboardScreen() {
         </div>
       </AuroraSection>
 
-      <AuroraSection title="Acciones rapidas">
+      <AuroraSection title="Acciones rápidas">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { icon: ArrowDownLeft, label: "Registro", description: "Registra gasto o ingreso", onClick: () => openMovement("Gasto") },
@@ -209,7 +221,7 @@ export function DashboardScreen() {
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <AuroraCard
-          title="Proximos pagos"
+          title="Próximos pagos"
           action={<Link href="/programados" className="text-sm font-bold text-[#2563EB]">Ver todos</Link>}
           className="rounded-[20px]"
         >
@@ -226,7 +238,7 @@ export function DashboardScreen() {
                     <p className="truncate text-sm font-bold text-[#111827]">{item.name}</p>
                     <p className={cn("mt-1 text-xs font-semibold", days <= 5 ? "text-[#B45309]" : "text-[#6B7280]")}>{formatDueLabel(days)}</p>
                   </div>
-                  <p className={cn("shrink-0 text-sm font-bold", isIncome ? "text-[#047857]" : "text-[#111827]")}>
+                  <p className={cn("shrink-0 text-sm font-bold", scheduledAmountTone(item.type))}>
                     {isIncome ? "+" : ""}
                     {formatCurrency(item.amount)}
                   </p>
@@ -249,6 +261,7 @@ export function DashboardScreen() {
                 title={movement.description}
                 description={`${movement.account} - ${movement.category}`}
                 amount={formatCurrency(movement.amount)}
+                amountTone={amountToneForMovement(movement.type)}
                 icon={movement.type === "Ingreso" ? <WalletCards className="h-4 w-4" /> : <ReceiptText className="h-4 w-4" />}
                 className="shadow-none"
               />
@@ -263,7 +276,7 @@ export function DashboardScreen() {
             icon={<Sparkles className="h-5 w-5" />}
             tone="warning"
             title="Restaurantes subieron"
-            description="Gastaste 18% mas que el mes pasado en comida fuera de casa."
+            description="Gastaste 18% más que el mes pasado en comida fuera de casa."
             className="rounded-[20px]"
           />
           <AuroraInsightCard

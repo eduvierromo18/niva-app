@@ -134,7 +134,7 @@ export function MovementsScreen() {
                 onClick={() => setTypeFilter(filter)}
                 className={cn(
                   "h-10 shrink-0 rounded-lg px-4 text-sm font-bold transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2",
-                  typeFilter === filter ? "bg-[#2563EB] text-white shadow-[0_4px_12px_rgba(37,99,235,0.26)]" : "bg-white text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]",
+                  typeFilter === filter ? "bg-[#047857] text-white shadow-[0_4px_12px_rgba(4,120,87,0.22)]" : "bg-white text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]",
                 )}
               >
                 {filter}
@@ -147,8 +147,8 @@ export function MovementsScreen() {
       <AuroraSection title="Actividad reciente">
         {filteredMovements.length === 0 ? (
           <AuroraEmptyState
-            title="No hay registros"
-            description="Crea un nuevo registro o ajusta los filtros para consultar tu actividad."
+            title="Aún no aparece actividad"
+            description="Crea un registro o ajusta los filtros para ver tus movimientos."
             actionLabel="Nuevo registro"
             icon={<ReceiptText className="h-8 w-8" />}
             onAction={openNewMovement}

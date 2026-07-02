@@ -93,6 +93,12 @@ function getConnectedBanksCount(accounts: FinanceAccount[]) {
   ).size;
 }
 
+function moneyTextColor(value: number) {
+  if (value > 0) return "text-[#047857]";
+  if (value < 0) return "text-[#DC2626]";
+  return "text-[#111827]";
+}
+
 export function AccountsScreen() {
   const [open, setOpen] = useState(false);
   const [accounts, setAccounts] = useState(initialAccounts);
@@ -201,7 +207,7 @@ export function AccountsScreen() {
       />
 
       <AuroraHero
-        greeting="Asi esta tu dinero."
+        greeting="Así está tu dinero."
         label="Tu dinero disponible"
         value={formatCurrency(availableMoney)}
         delta={generalStatus}
@@ -223,7 +229,7 @@ export function AccountsScreen() {
         }
       />
 
-      <AuroraSection title="Por tipo" description="Una lectura rapida de donde esta tu dinero.">
+      <AuroraSection title="Por tipo" description="Una lectura rápida de dónde está tu dinero.">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {typeCards.map((item) => {
             const Icon = item.icon;
@@ -243,14 +249,14 @@ export function AccountsScreen() {
                   <AuroraBadge tone={item.tone}>{countLabel(item.count)}</AuroraBadge>
                 </div>
                 <p className="mt-5 text-sm font-bold text-[#6B7280]">{item.label}</p>
-                <p className="mt-2 text-2xl font-bold text-[#111827]">{formatCurrency(item.total)}</p>
+                <p className={cn("mt-2 text-2xl font-bold", moneyTextColor(item.total))}>{formatCurrency(item.total)}</p>
               </AuroraCard>
             );
           })}
         </div>
       </AuroraSection>
 
-      <AuroraSection title="Por institucion" description="Cada grupo muestra sus cuentas, saldo y estado sin ruido.">
+      <AuroraSection title="Por institución" description="Cada grupo muestra sus cuentas, saldo y estado sin ruido.">
         <div className="grid gap-5 xl:grid-cols-2">
           {institutionGroups.map((group) => {
             const groupName = group.bankName ? getBankDisplayName(group.bankName) : group.label;
@@ -274,7 +280,7 @@ export function AccountsScreen() {
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-xl font-bold text-[#111827]">{formatCurrency(group.total)}</p>
+                      <p className={cn("text-xl font-bold", moneyTextColor(group.total))}>{formatCurrency(group.total)}</p>
                       <AuroraBadge tone={group.status.tone} className="mt-2">{group.status.label}</AuroraBadge>
                     </div>
                   </div>
@@ -298,7 +304,7 @@ export function AccountsScreen() {
                             typeLabel={account.type}
                             statusLabel={accountStatus.label}
                             statusTone={accountStatus.tone}
-                            lastEntry={lastMovement ? `Ultimo registro: ${lastMovement.description} - ${lastMovement.date}` : "Ultimo registro: sin movimientos recientes"}
+                            lastEntry={lastMovement ? `Último registro: ${lastMovement.description} - ${lastMovement.date}` : "Último registro: sin movimientos recientes"}
                             status={account.balance >= 0 ? "active" : "muted"}
                             icon={isBankLike ? <AuroraBankLogo bankName={account.bank_name ?? group.bankName} bankCustomName={account.bank_custom_name} size="md" className="h-12 w-12 border-0 shadow-none" /> : <Icon className="h-5 w-5" />}
                             className="relative rounded-[20px] bg-[#F9FAFB] shadow-none"
@@ -333,7 +339,7 @@ export function AccountsScreen() {
                   ) : (
                     <AuroraEmptyState
                       title="Sin cuentas registradas"
-                      description="Cuando agregues una cuenta de esta institucion aparecera aqui."
+                      description="Cuando agregues una cuenta de esta institución aparecerá aquí."
                       icon={<WalletCards className="h-8 w-8" />}
                       className="border-dashed bg-[#F9FAFB] shadow-none"
                     />
@@ -353,7 +359,7 @@ export function AccountsScreen() {
             </div>
             <div>
               <p className="text-sm font-bold text-[#B45309]">Hay cuentas por revisar</p>
-              <p className="mt-1 text-sm leading-6 text-[#6B7280]">Todo organizado empieza por saber que cuenta necesita atencion.</p>
+              <p className="mt-1 text-sm leading-6 text-[#6B7280]">Todo organizado empieza por saber qué cuenta necesita atención.</p>
             </div>
           </div>
         </AuroraCard>
