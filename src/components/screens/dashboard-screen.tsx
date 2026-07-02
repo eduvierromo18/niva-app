@@ -2,15 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
-  ArrowDownLeft,
-  ArrowRightLeft,
-  CalendarClock,
   CheckCircle2,
   Clock3,
   Lightbulb,
-  PiggyBank,
   Plus,
   ReceiptText,
   Sparkles,
@@ -33,6 +28,7 @@ import {
 } from "@/components/aurora";
 
 const today = new Date("2026-06-29T00:00:00");
+const compactCardClass = "min-h-[148px] rounded-[20px]";
 
 function daysUntil(date: string) {
   const due = new Date(`${date}T00:00:00`);
@@ -67,7 +63,6 @@ function scheduledAmountTone(type: string) {
 }
 
 export function DashboardScreen() {
-  const router = useRouter();
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [movementDialogOpen, setMovementDialogOpen] = useState(false);
   const [movementType, setMovementType] = useState("Gasto");
@@ -75,13 +70,20 @@ export function DashboardScreen() {
   const [movements, setMovements] = useState(initialMovements);
 
   const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const reservedBalance = accounts
+    .filter((account) => account.alias === "Reserva" || account.name.toLowerCase().includes("ahorro"))
+    .reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
   const availableToday = accounts
     .filter((account) => account.type !== "Tarjeta")
     .reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
+  const spendableToday = Math.max(availableToday - reservedBalance, 0);
   const upcomingScheduled = scheduledTransactions
     .filter((item) => item.status === "active")
     .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
     .slice(0, 4);
+  const upcomingExpenses = upcomingScheduled
+    .filter((item) => item.type !== "income")
+    .reduce((sum, item) => sum + item.amount, 0);
 
   function addAccount(account: AccountFormValue) {
     setAccounts((current) => [
@@ -104,61 +106,79 @@ export function DashboardScreen() {
   }
 
   return (
-    <div className="space-y-10">
-      <AuroraCard className="rounded-[20px] p-6 sm:p-8">
-        <div className="grid gap-8 xl:grid-cols-[1fr_320px] xl:items-end">
-          <div>
-            <AuroraBadge tone="success">Inicio</AuroraBadge>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-[#111827] sm:text-5xl">Tu dinero</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[#6B7280]">
-              Hola, Luis. Tu dinero está estable y listo para cubrir los pagos cercanos sin tocar tu reserva.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={() => openMovement("Gasto")}>
+    <div className="space-y-8">
+      <AuroraCard className="overflow-hidden rounded-[20px] p-0">
+        <div className="grid min-w-0 gap-0 lg:grid-cols-[1.05fr_1fr]">
+          <div className="flex min-h-[250px] min-w-0 flex-col justify-between p-6 sm:p-7">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <AuroraBadge tone="success">Estado saludable</AuroraBadge>
+                <span className="text-xs font-semibold text-[#6B7280]">Última actualización: hoy</span>
+              </div>
+              <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">Tu dinero</h1>
+              <p className="mt-3 max-w-xl break-words text-sm leading-6 text-[#6B7280]">
+                Vista tranquila de lo que tienes, lo que puedes usar y lo que conviene mantener reservado.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <AuroraButton type="button" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openMovement("Gasto")}>
                 Nuevo registro
               </AuroraButton>
-              <AuroraButton type="button" variant="secondary" icon={<Plus className="h-4 w-4" />} onClick={() => setAccountDialogOpen(true)}>
+              <AuroraButton type="button" size="sm" variant="secondary" icon={<Plus className="h-4 w-4" />} onClick={() => setAccountDialogOpen(true)}>
                 Nueva cuenta
               </AuroraButton>
             </div>
           </div>
 
-          <div className="rounded-[20px] border border-[#DBEAFE] bg-[#EFF6FF] p-6">
-            <p className="text-sm font-bold text-[#2563EB]">Tu dinero</p>
-            <p className="mt-3 text-4xl font-bold tracking-tight text-[#111827]">{formatCurrency(netWorth)}</p>
-            <p className="mt-3 text-sm leading-6 text-[#6B7280]">
-              {formatCurrency(availableToday)} disponible hoy sin considerar tarjetas de crédito.
-            </p>
-            <Link href="/accounts" className="mt-5 inline-flex text-sm font-bold text-[#2563EB]">
-              Ver detalle
-            </Link>
+          <div className="grid min-w-0 border-t border-[#E5E7EB] bg-[#F9FAFB] sm:grid-cols-3 lg:border-l lg:border-t-0">
+            {[
+              { label: "Total", value: formatCurrency(netWorth), detail: "En todas tus cuentas", tone: "text-[#2563EB]" },
+              { label: "Para gastar", value: formatCurrency(spendableToday), detail: "Sin tocar reserva", tone: "text-[#047857]" },
+              { label: "Reservado", value: formatCurrency(reservedBalance), detail: "Ahorro separado", tone: "text-[#6B7280]" },
+            ].map((item, index) => (
+              <div key={item.label} className={cn("flex min-h-[126px] flex-col justify-between p-5", index > 0 && "border-t border-[#E5E7EB] sm:border-l sm:border-t-0")}>
+                <p className="text-xs font-bold uppercase text-[#6B7280]">{item.label}</p>
+                <div>
+                  <p className={cn("whitespace-nowrap text-[22px] font-bold tracking-tight sm:text-2xl", item.tone)}>{item.value}</p>
+                  <p className="mt-2 text-xs font-medium leading-5 text-[#6B7280]">{item.detail}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </AuroraCard>
 
-      <AuroraCard className="rounded-[20px] border-[#A7F3D0] p-6">
-        <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-center">
+      <AuroraCard className="rounded-[20px] border-[#A7F3D0] bg-[#F7FEFB] p-5 sm:p-6">
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="flex gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#ECFDF5] text-[#047857]">
-              <CheckCircle2 className="h-6 w-6" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#ECFDF5] text-[#047857]">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#047857]">Enfoque de hoy</p>
-              <h2 className="mt-2 text-2xl font-bold text-[#111827]">Cubrir pagos cercanos sin mover tu reserva</h2>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#6B7280]">
-                Tienes pagos programados esta semana. Tu dinero disponible permite cubrirlos si mantienes los gastos variables bajo control.
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-bold text-[#047857]">Enfoque de hoy</p>
+                <AuroraBadge tone="success">Sin alertas</AuroraBadge>
+              </div>
+              <h2 className="mt-2 text-xl font-bold text-[#111827]">Cubrir pagos cercanos sin mover tu reserva</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6B7280]">
+                Hay {formatCurrency(upcomingExpenses)} programados en los próximos días. Tu margen para gastar se mantiene claro.
               </p>
             </div>
           </div>
-          <div className="rounded-[20px] bg-[#ECFDF5] p-5">
-            <p className="text-xs font-bold uppercase text-[#047857]">Tu dinero disponible</p>
-            <p className="mt-3 text-3xl font-bold text-[#111827]">{formatCurrency(availableToday)}</p>
-            <p className="mt-2 text-xs leading-5 text-[#6B7280]">Lectura diaria para decidir con calma.</p>
+          <div className="grid grid-cols-2 gap-3 lg:w-[300px]">
+            <div className="rounded-[16px] border border-[#D1FAE5] bg-white p-4">
+              <p className="text-xs font-bold uppercase text-[#047857]">Todo al día</p>
+              <p className="mt-2 text-sm font-semibold text-[#111827]">Pagos visibles</p>
+            </div>
+            <div className="rounded-[16px] border border-[#DBEAFE] bg-white p-4">
+              <p className="text-xs font-bold uppercase text-[#2563EB]">Margen</p>
+              <p className="mt-2 text-sm font-semibold text-[#111827]">{formatCurrency(spendableToday)}</p>
+            </div>
           </div>
         </div>
       </AuroraCard>
 
-      <AuroraSection title="Resumen del mes">
+      <AuroraSection title="Resumen financiero" className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {metrics.map((metric) => (
             <AuroraStatCard
@@ -168,33 +188,8 @@ export function DashboardScreen() {
               delta={formatDelta(metric.delta)}
               trend={metric.trend}
               icon={<metric.icon className="h-5 w-5" />}
-              className="rounded-[20px]"
+              className={compactCardClass}
             />
-          ))}
-        </div>
-      </AuroraSection>
-
-      <AuroraSection title="Acciones rápidas">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            { icon: ArrowDownLeft, label: "Registro", description: "Registra gasto o ingreso", onClick: () => openMovement("Gasto") },
-            { icon: ArrowRightLeft, label: "Transferencia", description: "Entre tus cuentas", onClick: () => openMovement("Transferencia") },
-            { icon: CalendarClock, label: "Programado", description: "Pagos recurrentes", onClick: () => router.push("/programados") },
-            { icon: PiggyBank, label: "Cuenta", description: "Agrega un saldo", onClick: () => setAccountDialogOpen(true) },
-          ].map((action) => (
-            <button key={action.label} type="button" onClick={action.onClick} className="text-left">
-              <AuroraCard className="h-full rounded-[20px] p-5">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#2563EB]">
-                    <action.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-base font-bold text-[#111827]">{action.label}</p>
-                    <p className="mt-1 text-sm leading-6 text-[#6B7280]">{action.description}</p>
-                  </div>
-                </div>
-              </AuroraCard>
-            </button>
           ))}
         </div>
       </AuroraSection>
@@ -202,6 +197,7 @@ export function DashboardScreen() {
       <AuroraSection
         title="Mis cuentas"
         action={<Link href="/accounts" className="text-sm font-bold text-[#2563EB]">Ver detalle</Link>}
+        className="space-y-4"
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {accounts.map((account) => (
@@ -213,15 +209,38 @@ export function DashboardScreen() {
               meta={account.type}
               icon={<account.icon className="h-5 w-5" />}
               status={account.balance >= 0 ? "active" : "muted"}
-              className="rounded-[20px]"
+              statusLabel={account.balance >= 0 ? "Al día" : "Por revisar"}
+              statusTone={account.balance >= 0 ? "success" : "neutral"}
+              className={compactCardClass}
             />
           ))}
         </div>
       </AuroraSection>
 
-      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+      <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
         <AuroraCard
-          title="Próximos pagos"
+          title="Actividad reciente"
+          action={<AuroraButton type="button" size="sm" variant="ghost" onClick={() => openMovement("Gasto")}>Nuevo</AuroraButton>}
+          className="rounded-[20px]"
+        >
+          <div className="space-y-3">
+            {movements.slice(0, 5).map((movement, index) => (
+              <AuroraTimelineCard
+                key={`${movement.date}-${movement.description}-${index}`}
+                date={movement.date}
+                title={movement.description}
+                description={`${movement.account} - ${movement.category}`}
+                amount={formatCurrency(movement.amount)}
+                amountTone={amountToneForMovement(movement.type)}
+                icon={movement.type === "Ingreso" ? <WalletCards className="h-4 w-4" /> : <ReceiptText className="h-4 w-4" />}
+                className="shadow-none"
+              />
+            ))}
+          </div>
+        </AuroraCard>
+
+        <AuroraCard
+          title="Programados próximos"
           action={<Link href="/programados" className="text-sm font-bold text-[#2563EB]">Ver todos</Link>}
           className="rounded-[20px]"
         >
@@ -247,30 +266,24 @@ export function DashboardScreen() {
             })}
           </div>
         </AuroraCard>
-
-        <AuroraCard
-          title="Actividad reciente"
-          action={<AuroraButton type="button" size="sm" variant="ghost" onClick={() => openMovement("Gasto")}>Nuevo</AuroraButton>}
-          className="rounded-[20px]"
-        >
-          <div className="space-y-3">
-            {movements.slice(0, 5).map((movement, index) => (
-              <AuroraTimelineCard
-                key={`${movement.date}-${movement.description}-${index}`}
-                date={movement.date}
-                title={movement.description}
-                description={`${movement.account} - ${movement.category}`}
-                amount={formatCurrency(movement.amount)}
-                amountTone={amountToneForMovement(movement.type)}
-                icon={movement.type === "Ingreso" ? <WalletCards className="h-4 w-4" /> : <ReceiptText className="h-4 w-4" />}
-                className="shadow-none"
-              />
-            ))}
-          </div>
-        </AuroraCard>
       </section>
 
-      <AuroraSection title="Insights">
+      <AuroraSection title="Objetivos" className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-3">
+          {goals.slice(0, 3).map((goal) => (
+            <AuroraGoalCard
+              key={goal.name}
+              title={goal.name}
+              current={formatCurrency(goal.current)}
+              target={formatCurrency(goal.target)}
+              progress={Math.round((goal.current / goal.target) * 100)}
+              className="rounded-[20px]"
+            />
+          ))}
+        </div>
+      </AuroraSection>
+
+      <AuroraSection title="Insights" className="space-y-4">
         <div className="grid gap-4 lg:grid-cols-2">
           <AuroraInsightCard
             icon={<Sparkles className="h-5 w-5" />}
@@ -286,21 +299,6 @@ export function DashboardScreen() {
             description="Tu balance mensual positivo cubre una parte relevante de gastos fijos."
             className="rounded-[20px]"
           />
-        </div>
-      </AuroraSection>
-
-      <AuroraSection title="Metas">
-        <div className="grid gap-4 md:grid-cols-3">
-          {goals.slice(0, 3).map((goal) => (
-            <AuroraGoalCard
-              key={goal.name}
-              title={goal.name}
-              current={formatCurrency(goal.current)}
-              target={formatCurrency(goal.target)}
-              progress={Math.round((goal.current / goal.target) * 100)}
-              className="rounded-[20px]"
-            />
-          ))}
         </div>
       </AuroraSection>
 
