@@ -1,5 +1,11 @@
 # Handbook Changelog
 
+## 0.1.2
+
+- Added Brand Architecture.
+- Updated Brand navigation.
+- Added brand decision flow.
+
 ## 0.1.1
 
 - Added Brand Essence.
