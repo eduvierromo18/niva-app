@@ -56,13 +56,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               searchPlaceholder="Buscar registros, cuentas o categorías..."
               actions={
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <Link
-                    href="/movements"
-                    className="hidden h-10 items-center gap-2 rounded-lg bg-[#047857] px-4 text-sm font-bold text-white shadow-[0_4px_12px_rgba(4,120,87,0.22)] transition-all duration-200 ease-out hover:bg-[#065F46] focus:outline-none focus:ring-2 focus:ring-[#047857] focus:ring-offset-2 sm:inline-flex"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Nuevo registro
-                  </Link>
+                  {!isHome ? (
+                    <Link
+                      href="/movements"
+                      className="hidden h-10 items-center gap-2 rounded-lg bg-[#047857] px-4 text-sm font-bold text-white shadow-[0_4px_12px_rgba(4,120,87,0.22)] transition-all duration-200 ease-out hover:bg-[#065F46] focus:outline-none focus:ring-2 focus:ring-[#047857] focus:ring-offset-2 sm:inline-flex"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Nuevo registro
+                    </Link>
+                  ) : null}
                   <AuroraIconButton icon={<Bell className="h-4 w-4" />} label="Notificaciones" />
                   <Link href="/settings" className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-[#F3F4F6]">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111827] text-sm font-bold text-white">
@@ -74,9 +76,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               }
             />
-            <AuroraSurface className="mt-5 min-w-0 overflow-hidden p-3 sm:p-5">
-              <AuroraContainer className="max-w-none px-0">{children}</AuroraContainer>
-            </AuroraSurface>
+            {isHome ? (
+              <div className="mt-8 min-w-0">{children}</div>
+            ) : (
+              <AuroraSurface className="mt-5 min-w-0 overflow-hidden p-3 sm:p-5">
+                <AuroraContainer className="max-w-none px-0">{children}</AuroraContainer>
+              </AuroraSurface>
+            )}
           </AuroraContainer>
         </div>
       </AuroraPage>
