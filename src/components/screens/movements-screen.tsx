@@ -5,20 +5,33 @@ import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Pencil, Plus, ReceiptText,
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
 import { movements as initialMovements } from "@/lib/finance-data";
 import { cn, formatCurrency } from "@/lib/utils";
-import {
-  AuroraBadge,
-  AuroraButton,
-  AuroraCard,
-  AuroraEmptyState,
-  AuroraIconButton,
-  AuroraSearch,
-  AuroraSection,
-  AuroraSurface,
-  AuroraTimelineCard,
-} from "@/components/aurora";
+import { AuroraButton, AuroraEmptyState, AuroraIconButton, AuroraSearch } from "@/components/aurora";
 
 const filters = ["Todos", "Gastos", "Ingresos", "Transferencias"];
-const groupOrder = ["Hoy", "Ayer", "Esta semana", "Este mes"];
+const timelineGroups = [
+  { key: "today", label: "Today" },
+  { key: "yesterday", label: "Yesterday" },
+  { key: "this-week", label: "This Week" },
+  { key: "earlier", label: "Earlier" },
+] as const;
+
+type TimelineGroupKey = (typeof timelineGroups)[number]["key"];
+type TimelineMovement = MovementFormValue & { merchant?: string };
+
+const monthIndex: Record<string, number> = {
+  ene: 0,
+  feb: 1,
+  mar: 2,
+  abr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  ago: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dic: 11,
+};
 
 function movementMatchesFilter(type: string, filter: string) {
   if (filter === "Todos") return true;
@@ -28,37 +41,90 @@ function movementMatchesFilter(type: string, filter: string) {
 }
 
 function iconForType(type: string) {
-  if (type === "Ingreso") return <ArrowUpRight className="h-5 w-5" />;
-  if (type === "Transferencia") return <ArrowRightLeft className="h-5 w-5" />;
-  return <ArrowDownLeft className="h-5 w-5" />;
+  if (type === "Ingreso") return <ArrowUpRight className="h-4 w-4" />;
+  if (type === "Transferencia") return <ArrowRightLeft className="h-4 w-4" />;
+  return <ArrowDownLeft className="h-4 w-4" />;
 }
 
-function badgeTone(type: string) {
-  if (type === "Ingreso") return "success" as const;
-  if (type === "Transferencia") return "info" as const;
-  return "neutral" as const;
+function normalizeToday() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
 }
 
-function groupForDate(date: string) {
-  if (date === "Hoy") return "Hoy";
-  if (date === "Ayer") return "Ayer";
+function parseMovementDate(date: string) {
+  const normalized = date.trim().toLowerCase();
+  const today = normalizeToday();
 
-  const dayMatch = date.match(/^(\d{1,2})\s+Jun$/);
-  if (dayMatch && Number(dayMatch[1]) >= 29) return "Esta semana";
-  return "Este mes";
-}
-
-function formatDescription(movement: MovementFormValue) {
-  if (movement.type === "Transferencia" && movement.destinationAccount) {
-    return `${movement.account} a ${movement.destinationAccount}`;
+  if (normalized === "hoy" || normalized === "today") return today;
+  if (normalized === "ayer" || normalized === "yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return yesterday;
   }
-  return `${movement.account} - ${movement.category}`;
+
+  const dayMonthMatch = normalized.match(/^(\d{1,2})\s+([a-záéíóúñ]{3})/i);
+  if (!dayMonthMatch) return null;
+
+  const monthKey = dayMonthMatch[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const month = monthIndex[monthKey];
+  if (month === undefined) return null;
+
+  const parsed = new Date(today.getFullYear(), month, Number(dayMonthMatch[1]));
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
 }
 
-function amountTone(movement: MovementFormValue) {
+function groupForDate(date: string): TimelineGroupKey {
+  const movementDate = parseMovementDate(date);
+  if (!movementDate) return "earlier";
+
+  const today = normalizeToday();
+  const diffDays = Math.round((today.getTime() - movementDate.getTime()) / 86400000);
+  if (diffDays <= 0) return "today";
+  if (diffDays === 1) return "yesterday";
+  if (diffDays <= 6) return "this-week";
+  return "earlier";
+}
+
+function relativeTime(date: string) {
+  const movementDate = parseMovementDate(date);
+  if (!movementDate) return date;
+
+  const today = normalizeToday();
+  const diffDays = Math.round((today.getTime() - movementDate.getTime()) / 86400000);
+  if (diffDays <= 0) return "today";
+  if (diffDays === 1) return "yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return "last week";
+  return date;
+}
+
+function movementCounter(count: number) {
+  return `${count} ${count === 1 ? "event" : "events"}`;
+}
+
+function titleForMovement(movement: TimelineMovement) {
+  return movement.merchant || movement.description;
+}
+
+function detailForMovement(movement: TimelineMovement) {
+  if (movement.merchant && movement.merchant !== movement.description) return movement.description;
+  if (movement.type === "Transferencia" && movement.destinationAccount) return `${movement.account} to ${movement.destinationAccount}`;
+  return movement.category;
+}
+
+function amountTone(movement: TimelineMovement) {
   if (movement.type === "Ingreso") return "positive" as const;
   if (movement.type === "Gasto") return "negative" as const;
   return "neutral" as const;
+}
+
+function signedAmount(movement: TimelineMovement) {
+  const formatted = formatCurrency(Math.abs(movement.amount));
+  if (movement.type === "Ingreso") return `+${formatted}`;
+  if (movement.type === "Gasto") return `-${formatted}`;
+  return formatted;
 }
 
 export function MovementsScreen() {
@@ -82,11 +148,14 @@ export function MovementsScreen() {
   }, [movements, search, typeFilter]);
 
   const groupedMovements = useMemo(() => {
-    return filteredMovements.reduce<Record<string, typeof filteredMovements>>((groups, movement) => {
-      const group = groupForDate(movement.date);
-      groups[group] = [...(groups[group] ?? []), movement];
-      return groups;
-    }, {});
+    return filteredMovements.reduce<Record<TimelineGroupKey, typeof filteredMovements>>(
+      (groups, movement) => {
+        const group = groupForDate(movement.date);
+        groups[group] = [...groups[group], movement];
+        return groups;
+      },
+      { today: [], yesterday: [], "this-week": [], earlier: [] },
+    );
   }, [filteredMovements]);
 
   function openNewMovement() {
@@ -104,114 +173,153 @@ export function MovementsScreen() {
     setEditingIndex(null);
   }
 
-  function originalIndex(movement: MovementFormValue) {
+  function originalIndex(movement: TimelineMovement) {
     return movements.findIndex((item) => item === movement);
   }
 
   return (
-    <div className="space-y-8 pb-20 md:pb-0">
-      <AuroraCard className="rounded-[20px] p-6 sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <AuroraBadge tone="info">Actividad</AuroraBadge>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-[#111827]">Actividad</h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-[#6B7280]">Registra y consulta tu actividad diaria.</p>
-          </div>
-          <AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={openNewMovement} className="w-full sm:w-auto">
-            Nuevo registro
-          </AuroraButton>
+    <div className="space-y-7 pb-20 md:pb-0">
+      <header className="flex flex-col gap-5 border-b border-[#E5E7EB]/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280]">Financial timeline</p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#111827] sm:text-5xl">Activity</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B7280]">A chronological story of income, expenses, and transfers.</p>
         </div>
-      </AuroraCard>
+        <AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={openNewMovement} className="w-full sm:w-auto">
+          Nuevo registro
+        </AuroraButton>
+      </header>
 
-      <AuroraSurface elevated className="overflow-hidden p-4 sm:p-5">
-        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
-          <AuroraSearch value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar registros..." className="bg-[#F9FAFB] shadow-none" />
-          <div className="flex min-w-0 max-w-full flex-wrap gap-2">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setTypeFilter(filter)}
-                className={cn(
-                  "h-10 shrink-0 rounded-lg px-4 text-sm font-bold transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2",
-                  typeFilter === filter ? "bg-[#047857] text-white shadow-[0_4px_12px_rgba(4,120,87,0.22)]" : "bg-white text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]",
-                )}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-col gap-3 rounded-xl bg-[#F9FAFB] p-2 sm:flex-row sm:items-center sm:justify-between">
+        <AuroraSearch
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search activity..."
+          className="h-10 border-transparent bg-white shadow-none"
+        />
+        <div className="flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-lg bg-white p-1">
+          {filters.map((filter) => (
+            <button
+              key={filter}
+              type="button"
+              onClick={() => setTypeFilter(filter)}
+              className={cn(
+                "h-9 shrink-0 rounded-md px-3 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]",
+                typeFilter === filter ? "bg-[#111827] text-white" : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]",
+              )}
+            >
+              {filter}
+            </button>
+          ))}
         </div>
-      </AuroraSurface>
+      </div>
 
-      <AuroraSection title="Actividad reciente">
+      <section aria-label="Activity timeline">
         {filteredMovements.length === 0 ? (
           <AuroraEmptyState
-            title="Aún no aparece actividad"
+            title="Aun no aparece actividad"
             description="Crea un registro o ajusta los filtros para ver tus movimientos."
             actionLabel="Nuevo registro"
             icon={<ReceiptText className="h-8 w-8" />}
             onAction={openNewMovement}
           />
         ) : (
-          <div className="space-y-8">
-            {groupOrder.map((group) => {
-              const rows = groupedMovements[group] ?? [];
+          <div className="space-y-10">
+            {timelineGroups.map((group) => {
+              const rows = groupedMovements[group.key];
               if (rows.length === 0) return null;
 
               return (
-                <section key={group} className="grid gap-4 lg:grid-cols-[132px_minmax(0,1fr)]">
-                  <div className="pt-3">
-                    <p className="text-sm font-bold text-[#111827]">{group}</p>
-                    <p className="mt-1 text-xs font-semibold text-[#9CA3AF]">{rows.length} {rows.length === 1 ? "registro" : "registros"}</p>
+                <section key={group.key} className="grid gap-5 lg:grid-cols-[9rem_minmax(0,1fr)]">
+                  <div className="lg:sticky lg:top-6 lg:self-start">
+                    <h2 className="text-sm font-bold uppercase tracking-wide text-[#111827]">{group.label}</h2>
+                    <p className="mt-1 text-xs font-semibold text-[#9CA3AF]">{movementCounter(rows.length)}</p>
                   </div>
-                  <div className="space-y-3">
+
+                  <ol className="relative space-y-1 pl-7 before:absolute before:bottom-6 before:left-[7px] before:top-4 before:w-px before:bg-[#E5E7EB]">
                     {rows.map((movement) => {
                       const index = originalIndex(movement);
+                      const tone = amountTone(movement);
                       return (
-                        <AuroraTimelineCard
-                          key={`${movement.date}-${movement.description}-${index}`}
-                          date={movement.date}
-                          title={movement.description}
-                          description={formatDescription(movement)}
-                          meta={movement.type === "Transferencia" ? "Transferencia entre cuentas" : movement.category}
-                          amount={formatCurrency(movement.amount)}
-                          amountTone={amountTone(movement)}
-                          icon={iconForType(movement.type)}
-                          badge={<AuroraBadge tone={badgeTone(movement.type)}>{movement.type}</AuroraBadge>}
-                          action={
-                            <div className="hidden items-center gap-1 sm:flex">
-                              <AuroraIconButton
-                                icon={<Pencil className="h-4 w-4" />}
-                                label="Editar registro"
-                                variant="ghost"
-                                onClick={() => {
-                                  setEditingIndex(index);
-                                  setOpen(true);
-                                }}
-                              />
-                              <AuroraIconButton
-                                icon={<Trash2 className="h-4 w-4" />}
-                                label="Eliminar registro"
-                                variant="ghost"
-                                onClick={() => setMovements((current) => current.filter((_, itemIndex) => itemIndex !== index))}
-                              />
+                        <li key={`${movement.date}-${movement.description}-${index}`} className="relative pb-7 last:pb-0">
+                          <span
+                            className={cn(
+                              "absolute -left-7 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white ring-4 ring-[#F8FAFC]",
+                              tone === "positive" && "text-[#047857]",
+                              tone === "negative" && "text-[#DC2626]",
+                              tone === "neutral" && "text-[#2563EB]",
+                            )}
+                            aria-hidden="true"
+                          >
+                            <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                          </span>
+
+                          <article className="group grid gap-3 rounded-xl px-0 py-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                            <div className="min-w-0">
+                              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                                <span
+                                  className={cn(
+                                    "inline-flex h-7 w-7 items-center justify-center rounded-full",
+                                    tone === "positive" && "bg-[#ECFDF5] text-[#047857]",
+                                    tone === "negative" && "bg-[#FEF2F2] text-[#DC2626]",
+                                    tone === "neutral" && "bg-[#EFF6FF] text-[#2563EB]",
+                                  )}
+                                >
+                                  {iconForType(movement.type)}
+                                </span>
+                                <h3 className="min-w-0 text-lg font-bold leading-7 text-[#111827]">{titleForMovement(movement)}</h3>
+                                <span className="text-xs font-semibold uppercase tracking-wide text-[#9CA3AF]">{relativeTime(movement.date)}</span>
+                              </div>
+
+                              <p className="mt-2 text-sm leading-6 text-[#4B5563]">{detailForMovement(movement)}</p>
+                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[#6B7280]">
+                                <span>{movement.account}</span>
+                                {movement.destinationAccount ? <span>to {movement.destinationAccount}</span> : null}
+                                <span className="text-[#D1D5DB]">/</span>
+                                <span>{movement.category}</span>
+                              </div>
                             </div>
-                          }
-                        />
+
+                            <div className="flex items-center justify-between gap-3 sm:justify-end">
+                              <p
+                                className={cn(
+                                  "text-right text-xl font-bold tabular-nums tracking-normal",
+                                  tone === "positive" && "text-[#047857]",
+                                  tone === "negative" && "text-[#DC2626]",
+                                  tone === "neutral" && "text-[#111827]",
+                                )}
+                              >
+                                {signedAmount(movement)}
+                              </p>
+                              <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                                <AuroraIconButton
+                                  icon={<Pencil className="h-4 w-4" />}
+                                  label="Editar registro"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingIndex(index);
+                                    setOpen(true);
+                                  }}
+                                />
+                                <AuroraIconButton
+                                  icon={<Trash2 className="h-4 w-4" />}
+                                  label="Eliminar registro"
+                                  variant="ghost"
+                                  onClick={() => setMovements((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                                />
+                              </div>
+                            </div>
+                          </article>
+                        </li>
                       );
                     })}
-                  </div>
+                  </ol>
                 </section>
               );
             })}
           </div>
         )}
-      </AuroraSection>
-
-      <AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={openNewMovement} className="fixed bottom-16 left-4 right-4 z-40 rounded-full px-5 shadow-[0_12px_24px_rgba(37,99,235,0.28)] md:hidden">
-        Nuevo registro
-      </AuroraButton>
+      </section>
 
       <MovementDialog
         open={open}
