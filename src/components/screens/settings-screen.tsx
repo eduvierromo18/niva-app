@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useMemo, useState } from "react";
 import { Copy, KeyRound, RefreshCw, ShieldCheck, UserPlus } from "lucide-react";
@@ -37,7 +37,7 @@ export function SettingsScreen() {
   const [inviteName, setInviteName] = useState("");
   const [role, setRole] = useState("Invitado");
   const [credentials, setCredentials] = useState<Credential[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
+  const [, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const initials = useMemo(() => fullName.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase(), [fullName]);
@@ -168,9 +168,9 @@ export function SettingsScreen() {
                 {createError}
               </div>
             ) : null}
-            <Button type="submit" disabled={isCreating}>
+            <Button type="submit" disabled>
               <UserPlus className="h-4 w-4" />
-              {isCreating ? "Creando usuario..." : "Generar usuario y contrasena"}
+              Invitaciones disponibles proximamente
             </Button>
           </form>
 
@@ -214,10 +214,12 @@ export function SettingsScreen() {
           </div>
           <div className="mt-5 flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-zinc-900 dark:text-zinc-300">
             <KeyRound className="mt-0.5 h-4 w-4 shrink-0" />
-            Cuando conectemos Supabase, estas credenciales se convertiran en invitaciones reales con Auth, RLS y permisos por usuario.
+            Las invitaciones permanecen deshabilitadas hasta implementar roles verificables, enlaces de activacion y auditoria.
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
+

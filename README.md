@@ -1,4 +1,4 @@
-# Niva
+﻿# Niva
 
 Tu espacio financiero.
 
@@ -33,13 +33,11 @@ Crear `.env.local` a partir de `.env.example`:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 Notas:
 
 - `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` son variables publicas usadas por el cliente.
-- `SUPABASE_SERVICE_ROLE_KEY` es solo de servidor. No debe tener prefijo `NEXT_PUBLIC_`.
 - No versionar `.env`, `.env.local` ni archivos equivalentes con secretos.
 
 ## Scripts
@@ -111,3 +109,4 @@ Repositorio sugerido: `niva`.
 Alternativa si ya existe: `niva-personal-finance`.
 
 Este proyecto incluye un workflow de CI para ejecutar instalacion limpia, lint y build en `main` y pull requests.
+
