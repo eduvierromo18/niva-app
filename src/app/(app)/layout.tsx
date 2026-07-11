@@ -1,6 +1,12 @@
+﻿import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
+import { createClient } from "@/lib/supabase/server";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export const dynamic = "force-dynamic";
+
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) redirect("/login");
   return <AppShell>{children}</AppShell>;
 }
-

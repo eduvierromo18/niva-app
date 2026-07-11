@@ -37,3 +37,6 @@ coverage/
 Thumbs.db
 .vscode/
 .idea/
+
+# supabase local metadata
+supabase/.temp/

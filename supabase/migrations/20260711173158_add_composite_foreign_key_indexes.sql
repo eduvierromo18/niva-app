@@ -1,0 +1,11 @@
+﻿create index categories_parent_owner_idx on public.categories(parent_id, user_id);
+create index movements_account_owner_idx on public.movements(account_id, user_id);
+create index movements_from_account_owner_idx on public.movements(from_account_id, user_id);
+create index movements_to_account_owner_idx on public.movements(to_account_id, user_id);
+create index movements_category_owner_idx on public.movements(category_id, user_id);
+create index monthly_budgets_category_owner_idx on public.monthly_budgets(category_id, user_id);
+create index savings_goals_account_owner_idx on public.savings_goals(account_id, user_id);
+create index liabilities_account_owner_idx on public.liabilities(account_id, user_id);
+create index scheduled_transactions_account_owner_idx on public.scheduled_transactions(account_id, user_id);
+create index scheduled_transactions_destination_account_owner_idx on public.scheduled_transactions(destination_account_id, user_id);
+create index scheduled_transactions_category_owner_idx on public.scheduled_transactions(category_id, user_id);
