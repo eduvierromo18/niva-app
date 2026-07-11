@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { AuroraButton, AuroraInput, AuroraModal, AuroraSelect } from "@/components/aurora";
+import { NivaAlert, NivaButton, NivaInput, NivaModal, NivaSelect } from "@/design-system";
 import { accounts as defaultAccounts } from "@/lib/finance-data";
 import type { FinanceAccount } from "@/lib/finance-types";
 
@@ -97,7 +97,7 @@ export function MovementDialog({
   }
 
   return (
-    <AuroraModal
+    <NivaModal
       open={open}
       title={initialValue ? "Editar registro" : "Nuevo registro"}
       onClose={onClose}
@@ -106,19 +106,19 @@ export function MovementDialog({
     >
       <form className="grid gap-4" onSubmit={submit}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <AuroraSelect label="Tipo" value={type} onChange={(event) => setType(event.target.value)} options={typeOptions} />
-          <AuroraInput label="Monto" type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" autoFocus />
+          <NivaSelect label="Tipo" value={type} onChange={(event) => setType(event.target.value)} options={typeOptions} />
+          <NivaInput label="Monto" type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" autoFocus />
         </div>
 
         {type === "Transferencia" ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            <AuroraSelect
+            <NivaSelect
               label="Cuenta origen"
               value={account}
               onChange={(event) => setAccount(event.target.value)}
               options={accountOptions.filter((item) => item.value !== destinationAccount)}
             />
-            <AuroraSelect
+            <NivaSelect
               label="Cuenta destino"
               value={destinationAccount}
               onChange={(event) => setDestinationAccount(event.target.value)}
@@ -127,23 +127,23 @@ export function MovementDialog({
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            <AuroraSelect label="Cuenta" value={account} onChange={(event) => setAccount(event.target.value)} options={accountOptions} />
-            <AuroraSelect label="Categoria" value={category} onChange={(event) => setCategory(event.target.value)} options={categoryOptions} />
+            <NivaSelect label="Cuenta" value={account} onChange={(event) => setAccount(event.target.value)} options={accountOptions} />
+            <NivaSelect label="Categoria" value={category} onChange={(event) => setCategory(event.target.value)} options={categoryOptions} />
           </div>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <AuroraInput label="Descripcion" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Ej. Supermercado" />
-          <AuroraInput label="Fecha" value={date} onChange={(event) => setDate(event.target.value)} placeholder="Hoy" />
+          <NivaInput label="Descripcion" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Ej. Supermercado" />
+          <NivaInput label="Fecha" value={date} onChange={(event) => setDate(event.target.value)} placeholder="Hoy" />
         </div>
 
-        {error ? <div className="rounded-[20px] bg-[#FEF2F2] p-3 text-sm font-semibold text-[#DC2626]">{error}</div> : null}
+        {error ? <NivaAlert tone="danger" title={error} /> : null}
 
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-          <AuroraButton type="button" variant="secondary" onClick={onClose}>Cancelar</AuroraButton>
-          <AuroraButton type="submit">Guardar</AuroraButton>
+          <NivaButton type="button" variant="secondary" onClick={onClose}>Cancelar</NivaButton>
+          <NivaButton type="submit">Guardar</NivaButton>
         </div>
       </form>
-    </AuroraModal>
+    </NivaModal>
   );
 }

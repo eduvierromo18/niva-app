@@ -3,15 +3,26 @@ import type { BankCatalogItem } from "@/config/banks";
 
 export type BankName = BankCatalogItem["id"] | string;
 
+export type AccountType = "Banco" | "Efectivo" | "Ahorro" | "Tarjeta" | "Inversion" | "Deuda";
+
 export type FinanceAccount = {
   id?: string;
   name: string;
   alias?: string;
-  type: string;
+  type: AccountType;
   balance: number;
   color: string;
   icon: LucideIcon;
   bank_name?: BankName | string;
+  bank_custom_name?: string;
+};
+
+export type AccountFormValue = {
+  name: string;
+  alias?: string;
+  type: AccountType;
+  balance: number;
+  bank_name?: string;
   bank_custom_name?: string;
 };
 

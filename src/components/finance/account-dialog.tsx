@@ -1,17 +1,21 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useId, useState } from "react";
 import { defaultBankOptions, findBank } from "@/config/banks";
-import { AuroraBankLogo, AuroraButton, AuroraInput, AuroraModal, AuroraSelect } from "@/components/aurora";
+import { NivaAlert, NivaBankLogo, NivaButton, NivaInput, NivaModal, NivaSelect } from "@/design-system";
+import type { AccountFormValue, AccountType } from "@/lib/finance-types";
 
-export type AccountFormValue = {
-  name: string;
-  alias?: string;
-  type: string;
-  balance: number;
-  bank_name?: string;
-  bank_custom_name?: string;
-};
+export type { AccountFormValue } from "@/lib/finance-types";
+
+type AccountDialogErrors = Partial<Record<"name" | "balance" | "bankCustomName", string>>;
+
+const accountTypeOptions: Array<{ label: string; value: AccountType }> = [
+  { label: "Banco", value: "Banco" },
+  { label: "Efectivo", value: "Efectivo" },
+  { label: "Ahorro", value: "Ahorro" },
+  { label: "Tarjeta", value: "Tarjeta" },
+  { label: "Inversion", value: "Inversion" },
+];
 
 export function AccountDialog({
   open,
@@ -22,14 +26,16 @@ export function AccountDialog({
   open: boolean;
   initialValue?: AccountFormValue | null;
   onClose: () => void;
-  onSave: (account: AccountFormValue) => void;
+  onSave: (account: AccountFormValue) => boolean | void;
 }) {
+  const formId = useId();
   const [name, setName] = useState("");
   const [alias, setAlias] = useState("");
-  const [type, setType] = useState("Banco");
+  const [type, setType] = useState<AccountType>("Banco");
   const [balance, setBalance] = useState("0");
   const [bankName, setBankName] = useState("");
   const [bankCustomName, setBankCustomName] = useState("");
+  const [errors, setErrors] = useState<AccountDialogErrors>({});
 
   useEffect(() => {
     if (!open) return;
@@ -39,33 +45,46 @@ export function AccountDialog({
     setBalance(String(initialValue?.balance ?? 0));
     setBankName(initialValue?.bank_name ? findBank(initialValue.bank_name, initialValue.bank_custom_name).id : "");
     setBankCustomName(initialValue?.bank_custom_name ?? "");
+    setErrors({});
   }, [initialValue, open]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!name.trim()) return;
     const isBank = type === "Banco";
     const isCustomBank = isBank && bankName === "other";
+    const parsedBalance = Number(balance);
+    const nextErrors: AccountDialogErrors = {};
 
-    onSave({
+    if (!name.trim()) nextErrors.name = "El nombre de la cuenta es obligatorio.";
+    if (!Number.isFinite(parsedBalance)) nextErrors.balance = "Ingresa un saldo válido.";
+    if (isCustomBank && !bankCustomName.trim()) nextErrors.bankCustomName = "Ingresa el nombre del banco.";
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    const didSave = onSave({
       name: name.trim(),
       alias: alias.trim() || undefined,
       type,
-      balance: Number(balance) || 0,
+      balance: parsedBalance,
       bank_name: isBank && bankName ? bankName : undefined,
       bank_custom_name: isCustomBank ? bankCustomName.trim() : undefined,
     });
+
+    if (didSave === false) return;
+
     setName("");
     setAlias("");
     setType("Banco");
     setBalance("0");
     setBankName("");
     setBankCustomName("");
+    setErrors({});
     onClose();
   }
 
   return (
-    <AuroraModal
+    <NivaModal
       open={open}
       title={initialValue ? "Editar cuenta" : "Agregar cuenta"}
       onClose={onClose}
@@ -73,34 +92,32 @@ export function AccountDialog({
       className="max-w-2xl"
     >
       <form className="grid gap-4" onSubmit={submit}>
-        <p className="text-sm leading-6 text-[#6B7280]">Carga o ajusta una cuenta manual para registrar saldos y actividad.</p>
-        <AuroraInput label="Nombre" value={name} onChange={(event) => setName(event.target.value)} placeholder="Ej. Cuenta BBVA" />
-        <AuroraInput label="Alias visible" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="Ej. Nomina, ahorro, diaria" />
+        <p className="text-sm leading-6 text-[var(--niva-color-muted)]">Carga o ajusta una cuenta manual para registrar saldos y actividad.</p>
+        {Object.keys(errors).length > 0 ? <NivaAlert tone="danger" title="Revisa los datos de la cuenta." /> : null}
+        <NivaInput id={`${formId}-name`} label="Nombre" value={name} onChange={(event) => setName(event.target.value)} placeholder="Ej. Cuenta BBVA" error={errors.name} required />
+        <NivaInput id={`${formId}-alias`} label="Alias visible" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="Ej. Nomina, ahorro, diaria" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <AuroraSelect
+          <NivaSelect
+            id={`${formId}-type`}
             label="Tipo"
             value={type}
             onChange={(event) => {
-              setType(event.target.value);
+              const nextType = event.target.value as AccountType;
+              setType(nextType);
               if (event.target.value !== "Banco") {
                 setBankName("");
                 setBankCustomName("");
               }
             }}
-            options={[
-              { label: "Banco", value: "Banco" },
-              { label: "Efectivo", value: "Efectivo" },
-              { label: "Ahorro", value: "Ahorro" },
-              { label: "Tarjeta", value: "Tarjeta" },
-              { label: "Inversion", value: "Inversion" },
-            ]}
+            options={accountTypeOptions}
           />
-          <AuroraInput label="Saldo inicial" type="number" value={balance} onChange={(event) => setBalance(event.target.value)} />
+          <NivaInput id={`${formId}-balance`} label="Saldo inicial" type="number" value={balance} onChange={(event) => setBalance(event.target.value)} error={errors.balance} required />
         </div>
         {type === "Banco" ? (
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <AuroraSelect
+              <NivaSelect
+                id={`${formId}-bank`}
                 label="Banco"
                 value={bankName}
                 onChange={(event) => {
@@ -114,27 +131,30 @@ export function AccountDialog({
                 ]}
               />
               {bankName ? (
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#374151]">
-                  <AuroraBankLogo bankName={bankName} bankCustomName={bankCustomName} size="sm" />
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--niva-color-foreground)]">
+                  <NivaBankLogo bankName={bankName} bankCustomName={bankCustomName} size="sm" className="h-7 w-7 border-0 shadow-none" />
                   {findBank(bankName, bankCustomName).name}
                 </span>
               ) : null}
             </div>
             {bankName === "other" ? (
-              <AuroraInput
+              <NivaInput
+                id={`${formId}-custom-bank`}
                 label="Nombre del banco"
                 value={bankCustomName}
                 onChange={(event) => setBankCustomName(event.target.value)}
                 placeholder="Ej. Banregio, Santander, HSBC"
+                error={errors.bankCustomName}
+                required
               />
             ) : null}
           </div>
         ) : null}
         <div className="flex justify-end gap-3 pt-2">
-          <AuroraButton type="button" variant="secondary" onClick={onClose}>Cancelar</AuroraButton>
-          <AuroraButton type="submit">Guardar cuenta</AuroraButton>
+          <NivaButton type="button" variant="secondary" onClick={onClose}>Cancelar</NivaButton>
+          <NivaButton type="submit">Guardar cuenta</NivaButton>
         </div>
       </form>
-    </AuroraModal>
+    </NivaModal>
   );
 }

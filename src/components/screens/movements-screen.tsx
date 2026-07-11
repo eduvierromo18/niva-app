@@ -5,7 +5,7 @@ import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Pencil, Plus, ReceiptText,
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
 import { movements as initialMovements } from "@/lib/finance-data";
 import { cn, formatCurrency } from "@/lib/utils";
-import { AuroraButton, AuroraEmptyState, AuroraIconButton, AuroraSearch } from "@/components/aurora";
+import { NivaButton, NivaEmptyState, NivaIconButton, NivaLayoutSurface, NivaSearch, NivaSection } from "@/design-system";
 
 const filters = ["Todos", "Gastos", "Ingresos", "Transferencias"];
 const timelineGroups = [
@@ -120,6 +120,18 @@ function amountTone(movement: TimelineMovement) {
   return "neutral" as const;
 }
 
+function toneTextClass(tone: ReturnType<typeof amountTone>) {
+  if (tone === "positive") return "text-[var(--niva-color-success)]";
+  if (tone === "negative") return "text-[var(--niva-color-danger)]";
+  return "text-[var(--niva-color-info)]";
+}
+
+function toneSurfaceClass(tone: ReturnType<typeof amountTone>) {
+  if (tone === "positive") return "bg-[var(--niva-color-success-surface)] text-[var(--niva-color-success)]";
+  if (tone === "negative") return "bg-[var(--niva-color-danger-surface)] text-[var(--niva-color-danger)]";
+  return "bg-[var(--niva-color-info-surface)] text-[var(--niva-color-info)]";
+}
+
 function signedAmount(movement: TimelineMovement) {
   const formatted = formatCurrency(Math.abs(movement.amount));
   if (movement.type === "Ingreso") return `+${formatted}`;
@@ -179,44 +191,47 @@ export function MovementsScreen() {
 
   return (
     <div className="space-y-7 pb-20 md:pb-0">
-      <header className="flex flex-col gap-5 border-b border-[#E5E7EB]/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex flex-col gap-5 border-b border-[var(--niva-color-border)] pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#6B7280]">Financial timeline</p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#111827] sm:text-5xl">Activity</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6B7280]">A chronological story of income, expenses, and transfers.</p>
+          <p className="text-xs font-semibold uppercase tracking-normal text-[var(--niva-color-muted)]">Financial timeline</p>
+          <h1 className="mt-2 text-4xl font-bold tracking-normal text-[var(--niva-color-foreground)] sm:text-5xl">Activity</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--niva-color-muted)]">A chronological story of income, expenses, and transfers.</p>
         </div>
-        <AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={openNewMovement} className="w-full sm:w-auto">
+        <NivaButton type="button" iconLeft={<Plus className="h-4 w-4" />} onClick={openNewMovement} className="w-full sm:w-auto">
           Nuevo registro
-        </AuroraButton>
+        </NivaButton>
       </header>
 
-      <div className="flex flex-col gap-3 rounded-xl bg-[#F9FAFB] p-2 sm:flex-row sm:items-center sm:justify-between">
-        <AuroraSearch
+      <NivaLayoutSurface variant="subtle" className="flex flex-col gap-3 p-2 sm:flex-row sm:items-center sm:justify-between">
+        <NivaSearch
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search activity..."
-          className="h-10 border-transparent bg-white shadow-none"
+          className="h-10 border-transparent bg-[var(--niva-color-surface)] shadow-none"
         />
-        <div className="flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-lg bg-white p-1">
+        <div className="flex min-w-0 max-w-full gap-1 overflow-x-auto rounded-[var(--niva-radius-md)] bg-[var(--niva-color-surface)] p-1">
           {filters.map((filter) => (
-            <button
+            <NivaButton
               key={filter}
               type="button"
+              variant="ghost"
+              size="sm"
+              aria-pressed={typeFilter === filter}
               onClick={() => setTypeFilter(filter)}
               className={cn(
-                "h-9 shrink-0 rounded-md px-3 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]",
-                typeFilter === filter ? "bg-[#111827] text-white" : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]",
+                "h-9 shrink-0 px-3",
+                typeFilter === filter && "bg-[var(--niva-color-inverse-surface)] text-[var(--niva-color-inverse-foreground)] hover:bg-[var(--niva-color-inverse-surface)] hover:text-[var(--niva-color-inverse-foreground)]",
               )}
             >
               {filter}
-            </button>
+            </NivaButton>
           ))}
         </div>
-      </div>
+      </NivaLayoutSurface>
 
-      <section aria-label="Activity timeline">
+      <NivaSection aria-label="Activity timeline">
         {filteredMovements.length === 0 ? (
-          <AuroraEmptyState
+          <NivaEmptyState
             title="Aun no aparece actividad"
             description="Crea un registro o ajusta los filtros para ver tus movimientos."
             actionLabel="Nuevo registro"
@@ -232,11 +247,11 @@ export function MovementsScreen() {
               return (
                 <section key={group.key} className="grid gap-5 lg:grid-cols-[9rem_minmax(0,1fr)]">
                   <div className="lg:sticky lg:top-6 lg:self-start">
-                    <h2 className="text-sm font-bold uppercase tracking-wide text-[#111827]">{group.label}</h2>
-                    <p className="mt-1 text-xs font-semibold text-[#9CA3AF]">{movementCounter(rows.length)}</p>
+                    <h2 className="text-sm font-bold uppercase tracking-normal text-[var(--niva-color-foreground)]">{group.label}</h2>
+                    <p className="mt-1 text-xs font-semibold text-[var(--niva-color-placeholder)]">{movementCounter(rows.length)}</p>
                   </div>
 
-                  <ol className="relative space-y-1 pl-7 before:absolute before:bottom-6 before:left-[7px] before:top-4 before:w-px before:bg-[#E5E7EB]">
+                  <ol className="relative space-y-1 pl-7 before:absolute before:bottom-6 before:left-[7px] before:top-4 before:w-px before:bg-[var(--niva-color-border)]">
                     {rows.map((movement) => {
                       const index = originalIndex(movement);
                       const tone = amountTone(movement);
@@ -244,55 +259,39 @@ export function MovementsScreen() {
                         <li key={`${movement.date}-${movement.description}-${index}`} className="relative pb-7 last:pb-0">
                           <span
                             className={cn(
-                              "absolute -left-7 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white ring-4 ring-[#F8FAFC]",
-                              tone === "positive" && "text-[#047857]",
-                              tone === "negative" && "text-[#DC2626]",
-                              tone === "neutral" && "text-[#2563EB]",
+                              "absolute -left-7 top-2 flex h-4 w-4 items-center justify-center rounded-[var(--niva-radius-full)] bg-[var(--niva-color-surface)] ring-4 ring-[var(--niva-color-background)]",
+                              toneTextClass(tone),
                             )}
-                            aria-hidden="true"
+                            aria-hidden={true}
                           >
-                            <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                            <span className="h-2.5 w-2.5 rounded-[var(--niva-radius-full)] bg-current" />
                           </span>
 
-                          <article className="group grid gap-3 rounded-xl px-0 py-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                          <article className="group grid gap-3 rounded-[var(--niva-radius-xl)] px-0 py-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                             <div className="min-w-0">
                               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                                <span
-                                  className={cn(
-                                    "inline-flex h-7 w-7 items-center justify-center rounded-full",
-                                    tone === "positive" && "bg-[#ECFDF5] text-[#047857]",
-                                    tone === "negative" && "bg-[#FEF2F2] text-[#DC2626]",
-                                    tone === "neutral" && "bg-[#EFF6FF] text-[#2563EB]",
-                                  )}
-                                >
+                                <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-[var(--niva-radius-full)]", toneSurfaceClass(tone))}>
                                   {iconForType(movement.type)}
                                 </span>
-                                <h3 className="min-w-0 text-lg font-bold leading-7 text-[#111827]">{titleForMovement(movement)}</h3>
-                                <span className="text-xs font-semibold uppercase tracking-wide text-[#9CA3AF]">{relativeTime(movement.date)}</span>
+                                <h3 className="min-w-0 text-lg font-bold leading-7 text-[var(--niva-color-foreground)]">{titleForMovement(movement)}</h3>
+                                <span className="text-xs font-semibold uppercase tracking-normal text-[var(--niva-color-placeholder)]">{relativeTime(movement.date)}</span>
                               </div>
 
-                              <p className="mt-2 text-sm leading-6 text-[#4B5563]">{detailForMovement(movement)}</p>
-                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[#6B7280]">
+                              <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">{detailForMovement(movement)}</p>
+                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[var(--niva-color-muted)]">
                                 <span>{movement.account}</span>
                                 {movement.destinationAccount ? <span>to {movement.destinationAccount}</span> : null}
-                                <span className="text-[#D1D5DB]">/</span>
+                                <span className="text-[var(--niva-color-placeholder)]">/</span>
                                 <span>{movement.category}</span>
                               </div>
                             </div>
 
                             <div className="flex items-center justify-between gap-3 sm:justify-end">
-                              <p
-                                className={cn(
-                                  "text-right text-xl font-bold tabular-nums tracking-normal",
-                                  tone === "positive" && "text-[#047857]",
-                                  tone === "negative" && "text-[#DC2626]",
-                                  tone === "neutral" && "text-[#111827]",
-                                )}
-                              >
+                              <p className={cn("text-right text-xl font-bold tabular-nums tracking-normal", tone === "neutral" ? "text-[var(--niva-color-foreground)]" : toneTextClass(tone))}>
                                 {signedAmount(movement)}
                               </p>
                               <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-                                <AuroraIconButton
+                                <NivaIconButton
                                   icon={<Pencil className="h-4 w-4" />}
                                   label="Editar registro"
                                   variant="ghost"
@@ -301,7 +300,7 @@ export function MovementsScreen() {
                                     setOpen(true);
                                   }}
                                 />
-                                <AuroraIconButton
+                                <NivaIconButton
                                   icon={<Trash2 className="h-4 w-4" />}
                                   label="Eliminar registro"
                                   variant="ghost"
@@ -319,7 +318,7 @@ export function MovementsScreen() {
             })}
           </div>
         )}
-      </section>
+      </NivaSection>
 
       <MovementDialog
         open={open}

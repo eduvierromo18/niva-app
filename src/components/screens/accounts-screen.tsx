@@ -1,95 +1,37 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  Banknote,
-  CircleDollarSign,
-  CreditCard,
-  Landmark,
-  MoreHorizontal,
-  PiggyBank,
-  Plus,
-  WalletCards,
-} from "lucide-react";
+import { useState } from "react";
+import { CircleDollarSign, MoreHorizontal, Plus, WalletCards } from "lucide-react";
 import { AccountDialog, type AccountFormValue } from "@/components/finance/account-dialog";
 import { accounts as initialAccounts, movements } from "@/lib/finance-data";
 import type { FinanceAccount, FinanceMovement } from "@/lib/finance-types";
-import { getBankDisplayName, normalizeBankName } from "@/config/banks";
 import { cn, formatCurrency } from "@/lib/utils";
-import { AuroraBankLogo, AuroraButton, AuroraIconButton, AuroraSection } from "@/components/aurora";
+import { NivaAlert, NivaBankLogo, NivaButton, NivaEmptyState, NivaIconButton, NivaLayoutSurface, NivaModal, NivaSection, NivaSkeleton } from "@/design-system";
+import { useAccounts } from "@/hooks/use-accounts";
+import { countLabel, findLastMovement, getAccountStatus, type AccountStatus } from "@/lib/accounts";
 
-type InstitutionConfig = {
-  id: string;
-  label: string;
-  bankName?: string;
-  cash?: boolean;
+type PendingDeleteAccount = {
+  index: number;
+  account: FinanceAccount;
 };
-
-type AccountStatus = {
-  label: string;
-  tone: "ready" | "review" | "quiet";
-};
-
-const institutionConfigs: InstitutionConfig[] = [
-  { id: "bbva", label: "BBVA", bankName: "bbva" },
-  { id: "nu", label: "Nu", bankName: "nu" },
-  { id: "american-express", label: "American Express", bankName: "american-express" },
-  { id: "banorte", label: "Banorte", bankName: "banorte" },
-  { id: "banamex", label: "Banamex", bankName: "banamex" },
-  { id: "mercado-pago", label: "Mercado Pago", bankName: "mercado-pago" },
-  { id: "dollarapp", label: "DollarApp", bankName: "dollarapp" },
-  { id: "cash", label: "Efectivo", cash: true },
-  { id: "other", label: "Otro", bankName: "other" },
-];
-
-function isSavingsAccount(account: FinanceAccount) {
-  const value = `${account.name} ${account.alias ?? ""} ${account.type}`.toLowerCase();
-  return value.includes("ahorro") || value.includes("reserva") || value.includes("inversion");
-}
-
-function getInstitutionId(account: FinanceAccount) {
-  if (account.type === "Efectivo") return "cash";
-  return normalizeBankName(account.bank_name ?? account.bank_custom_name ?? "other") || "other";
-}
-
-function findLastMovement(account: FinanceAccount, allMovements: FinanceMovement[]) {
-  return allMovements.find((movement) => movement.account === account.name || movement.destinationAccount === account.name);
-}
-
-function countLabel(count: number) {
-  return count === 1 ? "1 cuenta" : `${count} cuentas`;
-}
-
-function getAccountStatus(account: FinanceAccount, lastMovement?: FinanceMovement | null, principalAccountId?: string): AccountStatus {
-  if (account.id === principalAccountId) return { label: "Cuenta principal", tone: "quiet" };
-  if (account.balance < 0 || (account.type !== "Tarjeta" && account.balance < 1000)) return { label: "Por revisar", tone: "review" };
-  if (!lastMovement) return { label: "Sin actividad reciente", tone: "quiet" };
-  return { label: "Todo listo", tone: "ready" };
-}
-
-function getGroupStatus(accounts: FinanceAccount[]): AccountStatus {
-  if (accounts.length === 0) return { label: "Sin cuentas", tone: "quiet" };
-  if (accounts.some((account) => account.balance < 0)) return { label: "Por revisar", tone: "review" };
-  return { label: "Todo listo", tone: "ready" };
-}
 
 function moneyTextColor(value: number) {
-  if (value > 0) return "text-[#0F6B4D]";
-  if (value < 0) return "text-[#9A4B35]";
-  return "text-[#211F1B]";
+  if (value > 0) return "text-[var(--niva-account-positive)]";
+  if (value < 0) return "text-[var(--niva-account-review)]";
+  return "text-[var(--niva-account-foreground)]";
 }
 
 function statusClasses(tone: AccountStatus["tone"]) {
-  if (tone === "ready") return "border-[#B7D7C6] bg-[#EEF6F1] text-[#0F6B4D]";
-  if (tone === "review") return "border-[#E7C8B8] bg-[#F7EEE8] text-[#9A4B35]";
-  return "border-[#D9D1C5] bg-[#F7F1E8] text-[#6E655B]";
+  if (tone === "ready") return "border-[var(--niva-account-positive-border)] bg-[var(--niva-account-positive-surface)] text-[var(--niva-account-positive)]";
+  if (tone === "review") return "border-[var(--niva-account-review-border)] bg-[var(--niva-account-review-surface)] text-[var(--niva-account-review)]";
+  return "border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] text-[var(--niva-account-muted)]";
 }
 
 function typeLabel(type: string) {
   if (type === "Banco") return "Cuenta";
   if (type === "Tarjeta") return "Tarjeta";
   if (type === "Efectivo") return "Efectivo";
-  if (type === "Inversion") return "Inversion";
+  if (type === "Inversion") return "Inversión";
   return type;
 }
 
@@ -98,284 +40,292 @@ function lastActivityText(lastMovement?: FinanceMovement | null) {
   return `${lastMovement.description} · ${lastMovement.date}`;
 }
 
+function AccountsLoadingState() {
+  return (
+    <div className="space-y-10" aria-label="Cargando cuentas">
+      <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+        <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none sm:p-7">
+          <NivaSkeleton className="h-4 w-16" />
+          <NivaSkeleton className="mt-4 h-16 w-full max-w-lg" />
+          <NivaSkeleton className="mt-5 h-4 w-full max-w-md" />
+        </NivaLayoutSurface>
+        <div className="grid gap-3">
+          <NivaSkeleton className="h-28 w-full rounded-[var(--niva-radius-lg)]" />
+          <NivaSkeleton className="h-28 w-full rounded-[var(--niva-radius-lg)]" />
+          <NivaSkeleton className="h-28 w-full rounded-[var(--niva-radius-lg)]" />
+        </div>
+      </section>
+      <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none">
+        <div className="space-y-4">
+          <NivaSkeleton className="h-12 w-full" />
+          <NivaSkeleton className="h-12 w-full" />
+          <NivaSkeleton className="h-12 w-full" />
+        </div>
+      </NivaLayoutSurface>
+    </div>
+  );
+}
+
 export function AccountsScreen() {
   const [open, setOpen] = useState(false);
-  const [accounts, setAccounts] = useState(initialAccounts);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDeleteAccount | null>(null);
+  const {
+    accounts,
+    isLoading,
+    error,
+    clearError,
+    saveAccount,
+    deleteAccount,
+    totals,
+    moneyDistribution,
+    institutionGroups,
+  } = useAccounts(initialAccounts);
 
-  const totalMoney = accounts.reduce((sum, account) => sum + account.balance, 0);
-  const availableMoney = accounts.filter((account) => account.type !== "Tarjeta").reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
-  const creditImpact = accounts.filter((account) => account.type === "Tarjeta").reduce((sum, account) => sum + account.balance, 0);
-  const reservedMoney = accounts.filter((account) => isSavingsAccount(account) || account.type === "Inversion").reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
-  const lowBalanceCount = accounts.filter((account) => account.balance < 0 || (account.type !== "Tarjeta" && account.balance < 1000)).length;
-  const principalAccount = accounts
-    .filter((account) => account.type !== "Tarjeta")
-    .sort((a, b) => b.balance - a.balance)[0];
-
-  const moneyDistribution = [
-    {
-      label: "Bancos",
-      icon: Landmark,
-      total: accounts.filter((account) => account.type === "Banco" && !isSavingsAccount(account)).reduce((sum, account) => sum + account.balance, 0),
-      count: accounts.filter((account) => account.type === "Banco" && !isSavingsAccount(account)).length,
-    },
-    {
-      label: "Tarjetas",
-      icon: CreditCard,
-      total: accounts.filter((account) => account.type === "Tarjeta").reduce((sum, account) => sum + account.balance, 0),
-      count: accounts.filter((account) => account.type === "Tarjeta").length,
-    },
-    {
-      label: "Efectivo",
-      icon: CircleDollarSign,
-      total: accounts.filter((account) => account.type === "Efectivo").reduce((sum, account) => sum + account.balance, 0),
-      count: accounts.filter((account) => account.type === "Efectivo").length,
-    },
-    {
-      label: "Ahorro",
-      icon: PiggyBank,
-      total: accounts.filter(isSavingsAccount).reduce((sum, account) => sum + account.balance, 0),
-      count: accounts.filter(isSavingsAccount).length,
-    },
-    {
-      label: "Inversiones",
-      icon: Banknote,
-      total: accounts.filter((account) => account.type === "Inversion").reduce((sum, account) => sum + account.balance, 0),
-      count: accounts.filter((account) => account.type === "Inversion").length,
-    },
-  ];
-
-  const institutionGroups = useMemo(
-    () =>
-      institutionConfigs.map((institution) => {
-        const groupAccounts = accounts.filter((account) => getInstitutionId(account) === institution.id);
-        return {
-          ...institution,
-          accounts: groupAccounts,
-          total: groupAccounts.reduce((sum, account) => sum + account.balance, 0),
-          status: getGroupStatus(groupAccounts),
-        };
-      }),
-    [accounts],
-  );
+  const { totalMoney, availableMoney, creditImpact, reservedMoney, lowBalanceCount, principalAccount } = totals;
   const activeInstitutionGroups = institutionGroups.filter((group) => group.accounts.length > 0);
   const inactiveInstitutionGroups = institutionGroups.filter((group) => group.accounts.length === 0);
 
   function openNewAccount() {
+    clearError();
     setEditingIndex(null);
     setOpen(true);
   }
 
   function openEditAccount(index: number) {
+    clearError();
     setEditingIndex(index);
     setOpen(true);
     setOpenMenuId(null);
   }
 
-  function addAccount(account: AccountFormValue) {
-    setAccounts((current) => {
-      if (editingIndex !== null) {
-        return current.map((item, index) => (index === editingIndex ? { ...item, ...account } : item));
-      }
-
-      return [
-        ...current,
-        { ...account, color: "bg-slate-800", icon: initialAccounts[0].icon },
-      ];
-    });
-    setEditingIndex(null);
+  function saveAccountFromDialog(account: AccountFormValue) {
+    const didSave = saveAccount(account, editingIndex);
+    if (didSave) setEditingIndex(null);
+    return didSave;
   }
 
-  function deleteAccount(index: number) {
-    setAccounts((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  function requestDeleteAccount(index: number, account: FinanceAccount) {
+    setPendingDelete({ index, account });
     setOpenMenuId(null);
   }
 
+  function confirmDeleteAccount() {
+    if (!pendingDelete) return;
+    if (deleteAccount(pendingDelete.index)) setPendingDelete(null);
+  }
+
   return (
-    <div className="min-h-full bg-[#F4EDE2] px-1 py-2 text-[#211F1B] sm:px-2">
+    <div className="min-h-full bg-[var(--niva-account-background)] px-1 py-2 text-[var(--niva-account-foreground)] sm:px-2">
       <div className="mx-auto max-w-6xl space-y-10">
-        <AuroraSection
+        <NivaSection
           eyebrow="Cuentas"
           title="Dónde está mi dinero"
           description="Una lectura simple de tus cuentas activas, separada por dinero disponible, impacto de tarjetas y espacios de ahorro."
-          action={<AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={openNewAccount} className="hidden sm:inline-flex">Agregar cuenta</AuroraButton>}
-          className="[&_h2]:text-[clamp(2rem,5vw,4.5rem)] [&_h2]:font-semibold [&_h2]:leading-[0.98] [&_p:first-child]:text-[#0F6B4D] [&_p:first-child]:tracking-[0.16em] [&_p:not(:first-child)]:text-[#6E655B]"
+          action={<NivaButton type="button" iconLeft={<Plus className="h-4 w-4" />} onClick={openNewAccount} className="hidden sm:inline-flex">Agregar cuenta</NivaButton>}
+          className="[&_h2]:text-[clamp(2rem,5vw,4.5rem)] [&_h2]:font-semibold [&_h2]:leading-[0.98] [&_p:first-child]:text-[var(--niva-account-positive)] [&_p:first-child]:tracking-[0.16em] [&_p:not(:first-child)]:text-[var(--niva-account-muted)]"
         />
 
-        <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="rounded-lg border border-[#D8CDBD] bg-[#FBF7EF] p-5 sm:p-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6E655B]">Total</p>
-            <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className={cn("text-[clamp(2.5rem,9vw,5.5rem)] font-semibold leading-none", moneyTextColor(totalMoney))}>
-                  {formatCurrency(totalMoney)}
-                </p>
-                <p className="mt-4 max-w-xl text-sm leading-6 text-[#6E655B]">
-                  {lowBalanceCount > 0 ? "Hay cuentas por revisar, pero la distribución principal está visible." : "Todo listo: tus cuentas activas están organizadas abajo."}
-                </p>
-                <div className="mt-5 rounded-lg border border-[#D8CDBD] bg-[#F7F1E8] p-4 lg:hidden">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E655B]">Disponible</p>
-                  <p className="mt-2 text-3xl font-semibold text-[#0F6B4D]">{formatCurrency(availableMoney)}</p>
-                </div>
-              </div>
-              <div className="hidden border-t border-[#D8CDBD] pt-4 sm:block sm:w-48 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E655B]">Cuentas activas</p>
-                <p className="mt-2 text-3xl font-semibold text-[#211F1B]">{accounts.length}</p>
-              </div>
-            </div>
-          </div>
+        {error ? <NivaAlert tone="danger" title={error} /> : null}
 
-          <div className="grid gap-3">
-            <div className="hidden rounded-lg border border-[#D8CDBD] bg-[#FBF7EF] p-5 lg:block">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E655B]">Disponible</p>
-              <p className="mt-2 text-3xl font-semibold text-[#0F6B4D]">{formatCurrency(availableMoney)}</p>
-            </div>
-            <div className="rounded-lg border border-[#D8CDBD] bg-[#FBF7EF] p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E655B]">Ahorro / inversión</p>
-              <p className="mt-2 text-2xl font-semibold text-[#211F1B]">{formatCurrency(reservedMoney)}</p>
-            </div>
-            <div className="rounded-lg border border-[#D8CDBD] bg-[#FBF7EF] p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E655B]">Impacto tarjetas</p>
-              <p className={cn("mt-2 text-2xl font-semibold", moneyTextColor(creditImpact))}>{formatCurrency(creditImpact)}</p>
-            </div>
-          </div>
-        </section>
-
-        <AuroraSection title="Distribución" description="Dónde vive el dinero, sin instituciones vacías ocupando espacio." className="[&_h2]:text-[#211F1B] [&_p]:text-[#6E655B]">
-          <div className="divide-y divide-[#D8CDBD] rounded-lg border border-[#D8CDBD] bg-[#FBF7EF]">
-            {moneyDistribution.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.label} className="grid gap-4 px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center sm:px-5">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[#D8CDBD] bg-[#F7F1E8] text-[#0F6B4D]">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-base font-semibold text-[#211F1B]">{item.label}</p>
-                      <p className="text-sm text-[#6E655B]">{countLabel(item.count)}</p>
-                    </div>
+        {isLoading ? (
+          <AccountsLoadingState />
+        ) : (
+          <>
+            <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+              <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none sm:p-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--niva-account-muted)]">Total</p>
+                <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className={cn("text-[clamp(2.5rem,9vw,5.5rem)] font-semibold leading-none", moneyTextColor(totalMoney))}>
+                      {formatCurrency(totalMoney)}
+                    </p>
+                    <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--niva-account-muted)]">
+                      {lowBalanceCount > 0 ? "Hay cuentas por revisar, pero la distribución principal está visible." : "Todo listo: tus cuentas activas están organizadas abajo."}
+                    </p>
+                    <NivaLayoutSurface className="mt-5 rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] p-4 shadow-none lg:hidden">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Disponible</p>
+                      <p className="mt-2 text-3xl font-semibold text-[var(--niva-account-positive)]">{formatCurrency(availableMoney)}</p>
+                    </NivaLayoutSurface>
                   </div>
-                  <p className={cn("text-2xl font-semibold sm:text-right", moneyTextColor(item.total))}>{formatCurrency(item.total)}</p>
+                  <div className="hidden border-t border-[var(--niva-account-border)] pt-4 sm:block sm:w-48 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Cuentas activas</p>
+                    <p className="mt-2 text-3xl font-semibold text-[var(--niva-account-foreground)]">{accounts.length}</p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </AuroraSection>
+              </NivaLayoutSurface>
 
-        <AuroraSection title="Cuentas activas" description="Agrupadas por institución o tipo. Solo aparecen espacios con cuentas." className="[&_h2]:text-[#211F1B] [&_p]:text-[#6E655B]">
-          <div className="space-y-5">
-            {activeInstitutionGroups.map((group) => {
-              const groupName = group.bankName ? getBankDisplayName(group.bankName) : group.label;
+              <div className="grid gap-3">
+                <NivaLayoutSurface className="hidden rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none lg:block">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Disponible</p>
+                  <p className="mt-2 text-3xl font-semibold text-[var(--niva-account-positive)]">{formatCurrency(availableMoney)}</p>
+                </NivaLayoutSurface>
+                <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Ahorro / inversión</p>
+                  <p className="mt-2 text-2xl font-semibold text-[var(--niva-account-foreground)]">{formatCurrency(reservedMoney)}</p>
+                </NivaLayoutSurface>
+                <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Impacto tarjetas</p>
+                  <p className={cn("mt-2 text-2xl font-semibold", moneyTextColor(creditImpact))}>{formatCurrency(creditImpact)}</p>
+                </NivaLayoutSurface>
+              </div>
+            </section>
 
-              return (
-                <section key={group.id} className="rounded-lg border border-[#D8CDBD] bg-[#FBF7EF]">
-                  <div className="flex flex-col gap-4 border-b border-[#D8CDBD] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-                    <div className="flex min-w-0 items-center gap-4">
-                      {group.cash ? (
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-[#B7D7C6] bg-[#EEF6F1] text-[#0F6B4D]">
-                          <CircleDollarSign className="h-6 w-6" />
+            <NivaSection title="Distribución" description="Dónde vive el dinero, sin instituciones vacías ocupando espacio." className="[&_h2]:text-[var(--niva-account-foreground)] [&_p]:text-[var(--niva-account-muted)]">
+              <NivaLayoutSurface className="divide-y divide-[var(--niva-account-border)] rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] shadow-none">
+                {moneyDistribution.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={item.label} className="grid gap-4 px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center sm:px-5">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--niva-radius-md)] border border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] text-[var(--niva-account-positive)]">
+                          <Icon className="h-5 w-5" />
                         </div>
-                      ) : (
-                        <div className="rounded-md border border-[#D8CDBD] bg-[#F7F1E8] p-1">
-                          <AuroraBankLogo bankName={group.bankName} size="md" />
+                        <div className="min-w-0">
+                          <p className="text-base font-semibold text-[var(--niva-account-foreground)]">{item.label}</p>
+                          <p className="text-sm text-[var(--niva-account-muted)]">{countLabel(item.count)}</p>
                         </div>
-                      )}
-                      <div className="min-w-0">
-                        <h3 className="truncate text-xl font-semibold text-[#211F1B]">{groupName}</h3>
-                        <p className="mt-1 text-sm text-[#6E655B]">{countLabel(group.accounts.length)}</p>
+                      </div>
+                      <p className={cn("text-2xl font-semibold sm:text-right", moneyTextColor(item.total))}>{formatCurrency(item.total)}</p>
+                    </div>
+                  );
+                })}
+              </NivaLayoutSurface>
+            </NivaSection>
+
+            <NivaSection title="Cuentas activas" description="Agrupadas por institución o tipo. Solo aparecen espacios con cuentas." className="[&_h2]:text-[var(--niva-account-foreground)] [&_p]:text-[var(--niva-account-muted)]">
+              <div className="space-y-5">
+                {activeInstitutionGroups.length === 0 ? (
+                  <NivaEmptyState
+                    title="Aún no hay cuentas"
+                    description="Agrega una cuenta para ver tu dinero organizado por institución."
+                    actionLabel="Agregar cuenta"
+                    icon={<WalletCards className="h-8 w-8" />}
+                    onAction={openNewAccount}
+                    className="border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] shadow-none"
+                  />
+                ) : null}
+
+                {activeInstitutionGroups.map((group) => (
+                  <NivaLayoutSurface key={group.id} className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] shadow-none">
+                    <div className="flex flex-col gap-4 border-b border-[var(--niva-account-border)] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                      <div className="flex min-w-0 items-center gap-4">
+                        {group.cash ? (
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--niva-radius-md)] border border-[var(--niva-account-positive-border)] bg-[var(--niva-account-positive-surface)] text-[var(--niva-account-positive)]">
+                            <CircleDollarSign className="h-6 w-6" />
+                          </div>
+                        ) : (
+                          <div className="rounded-[var(--niva-radius-md)] border border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] p-1">
+                            <NivaBankLogo bankName={group.bankName} size="md" className="border-0 shadow-none" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="truncate text-xl font-semibold text-[var(--niva-account-foreground)]">{group.displayName}</h3>
+                          <p className="mt-1 text-sm text-[var(--niva-account-muted)]">{countLabel(group.accounts.length)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 sm:text-right">
+                        <span aria-label={`Estado: ${group.status.label}`} className={cn("rounded-[var(--niva-radius-full)] border px-3 py-1 text-xs font-semibold", statusClasses(group.status.tone))}>{group.status.label}</span>
+                        <p className={cn("text-2xl font-semibold", moneyTextColor(group.total))}>{formatCurrency(group.total)}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 sm:text-right">
-                      <span className={cn("rounded-full border px-3 py-1 text-xs font-semibold", statusClasses(group.status.tone))}>{group.status.label}</span>
-                      <p className={cn("text-2xl font-semibold", moneyTextColor(group.total))}>{formatCurrency(group.total)}</p>
+
+                    <div className="divide-y divide-[var(--niva-account-border)]">
+                      {group.accounts.map((account) => {
+                        const originalIndex = accounts.findIndex((item) => item === account);
+                        const menuId = account.id ?? account.name;
+                        const menuDomId = `account-actions-${menuId}`;
+                        const lastMovement = findLastMovement(account, movements);
+                        const accountStatus = getAccountStatus(account, lastMovement, principalAccount?.id);
+                        const isBankLike = account.type === "Banco" || account.type === "Tarjeta" || Boolean(account.bank_name);
+                        const Icon = account.icon;
+
+                        return (
+                          <article key={menuId} className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1.25fr)_minmax(0,0.8fr)_auto] sm:items-center sm:p-5">
+                            <div className="flex min-w-0 items-start gap-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--niva-radius-md)] border border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] text-[var(--niva-account-positive)]">
+                                {isBankLike ? <NivaBankLogo bankName={account.bank_name ?? group.bankName} bankCustomName={account.bank_custom_name} size="sm" className="h-8 w-8 border-0 shadow-none" /> : <Icon className="h-5 w-5" />}
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className="truncate text-base font-semibold text-[var(--niva-account-foreground)]">{account.name}</h4>
+                                <p className="mt-1 text-sm text-[var(--niva-account-muted)]">{typeLabel(account.type)} · {account.alias ?? group.displayName}</p>
+                                <p className="mt-2 text-xs leading-5 text-[var(--niva-account-muted)]">Última actividad: {lastActivityText(lastMovement)}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                              <span aria-label={`Estado: ${accountStatus.label}`} className={cn("rounded-[var(--niva-radius-full)] border px-3 py-1 text-xs font-semibold", statusClasses(accountStatus.tone))}>{accountStatus.label}</span>
+                              <span className="rounded-[var(--niva-radius-full)] border border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] px-3 py-1 text-xs font-semibold text-[var(--niva-account-muted)]">{typeLabel(account.type)}</span>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-3 sm:justify-end">
+                              <p className={cn("text-2xl font-semibold", moneyTextColor(account.balance))}>{formatCurrency(account.balance)}</p>
+                              <div className="relative">
+                                <NivaIconButton
+                                  type="button"
+                                  icon={<MoreHorizontal className="h-4 w-4" />}
+                                  label={`Acciones de ${account.name}`}
+                                  variant="ghost"
+                                  aria-haspopup="menu"
+                                  aria-expanded={openMenuId === menuId}
+                                  aria-controls={openMenuId === menuId ? menuDomId : undefined}
+                                  onClick={() => setOpenMenuId(openMenuId === menuId ? null : menuId)}
+                                />
+                                {openMenuId === menuId ? (
+                                  <NivaLayoutSurface
+                                    id={menuDomId}
+                                    role="menu"
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Escape") setOpenMenuId(null);
+                                    }}
+                                    className="absolute right-0 top-11 z-20 w-40 rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-2 shadow-none"
+                                  >
+                                    <NivaButton type="button" role="menuitem" variant="ghost" className="w-full justify-start text-[var(--niva-account-foreground)]" onClick={() => openEditAccount(originalIndex)}>
+                                      Editar
+                                    </NivaButton>
+                                    <NivaButton type="button" role="menuitem" variant="ghost" className="w-full justify-start text-[var(--niva-account-review)] hover:bg-[var(--niva-account-review-surface)]" onClick={() => requestDeleteAccount(originalIndex, account)}>
+                                      Eliminar
+                                    </NivaButton>
+                                  </NivaLayoutSurface>
+                                ) : null}
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </NivaLayoutSurface>
+                ))}
+              </div>
+            </NivaSection>
+
+            <div className="sm:hidden">
+              <NivaButton type="button" iconLeft={<Plus className="h-4 w-4" />} onClick={openNewAccount} className="w-full">
+                Agregar cuenta
+              </NivaButton>
+            </div>
+
+            {inactiveInstitutionGroups.length > 0 ? (
+              <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-dashed border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] p-4 shadow-none">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--niva-radius-md)] border border-[var(--niva-account-border)] text-[var(--niva-account-muted)]">
+                      <WalletCards className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--niva-account-foreground)]">Instituciones sin cuentas</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--niva-account-muted)]">
+                        {inactiveInstitutionGroups.map((group) => group.displayName).join(", ")}
+                      </p>
                     </div>
                   </div>
-
-                  <div className="divide-y divide-[#D8CDBD]">
-                    {group.accounts.map((account) => {
-                      const originalIndex = accounts.findIndex((item) => item === account);
-                      const menuId = account.id ?? account.name;
-                      const lastMovement = findLastMovement(account, movements);
-                      const accountStatus = getAccountStatus(account, lastMovement, principalAccount?.id);
-                      const isBankLike = account.type === "Banco" || account.type === "Tarjeta" || Boolean(account.bank_name);
-                      const Icon = account.icon;
-
-                      return (
-                        <article key={menuId} className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1.25fr)_minmax(0,0.8fr)_auto] sm:items-center sm:p-5">
-                          <div className="flex min-w-0 items-start gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[#D8CDBD] bg-[#F7F1E8] text-[#0F6B4D]">
-                              {isBankLike ? <AuroraBankLogo bankName={account.bank_name ?? group.bankName} bankCustomName={account.bank_custom_name} size="sm" className="h-8 w-8 border-0 shadow-none" /> : <Icon className="h-5 w-5" />}
-                            </div>
-                            <div className="min-w-0">
-                              <h4 className="truncate text-base font-semibold text-[#211F1B]">{account.name}</h4>
-                              <p className="mt-1 text-sm text-[#6E655B]">{typeLabel(account.type)} · {account.alias ?? groupName}</p>
-                              <p className="mt-2 text-xs leading-5 text-[#6E655B]">Última actividad: {lastActivityText(lastMovement)}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                            <span className={cn("rounded-full border px-3 py-1 text-xs font-semibold", statusClasses(accountStatus.tone))}>{accountStatus.label}</span>
-                            <span className="rounded-full border border-[#D8CDBD] bg-[#F7F1E8] px-3 py-1 text-xs font-semibold text-[#6E655B]">{typeLabel(account.type)}</span>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-3 sm:justify-end">
-                            <p className={cn("text-2xl font-semibold", moneyTextColor(account.balance))}>{formatCurrency(account.balance)}</p>
-                            <div className="relative">
-                              <AuroraIconButton
-                                type="button"
-                                icon={<MoreHorizontal className="h-4 w-4" />}
-                                label={`Acciones de ${account.name}`}
-                                variant="ghost"
-                                onClick={() => setOpenMenuId(openMenuId === menuId ? null : menuId)}
-                              />
-                              {openMenuId === menuId ? (
-                                <div className="absolute right-0 top-11 z-20 w-40 rounded-lg border border-[#D8CDBD] bg-[#FBF7EF] p-2 shadow-none">
-                                  <button type="button" className="w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-[#211F1B] hover:bg-[#F7F1E8]" onClick={() => openEditAccount(originalIndex)}>
-                                    Editar
-                                  </button>
-                                  <button type="button" className="w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-[#9A4B35] hover:bg-[#F7EEE8]" onClick={() => deleteAccount(originalIndex)}>
-                                    Eliminar
-                                  </button>
-                                </div>
-                              ) : null}
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        </AuroraSection>
-
-        <div className="sm:hidden">
-          <AuroraButton type="button" icon={<Plus className="h-4 w-4" />} onClick={openNewAccount} className="w-full">
-            Agregar cuenta
-          </AuroraButton>
-        </div>
-
-        {inactiveInstitutionGroups.length > 0 ? (
-          <section className="rounded-lg border border-dashed border-[#D8CDBD] bg-[#F7F1E8] p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#D8CDBD] text-[#6E655B]">
-                  <WalletCards className="h-4 w-4" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Secundario</p>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-[#211F1B]">Instituciones sin cuentas</p>
-                  <p className="mt-1 text-sm leading-6 text-[#6E655B]">
-                    {inactiveInstitutionGroups.map((group) => (group.bankName ? getBankDisplayName(group.bankName) : group.label)).join(", ")}
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E655B]">Secundario</p>
-            </div>
-          </section>
-        ) : null}
+              </NivaLayoutSurface>
+            ) : null}
+          </>
+        )}
 
         <AccountDialog
           open={open}
@@ -384,8 +334,27 @@ export function AccountsScreen() {
             setOpen(false);
             setEditingIndex(null);
           }}
-          onSave={addAccount}
+          onSave={saveAccountFromDialog}
         />
+
+        <NivaModal
+          open={Boolean(pendingDelete)}
+          title="Eliminar cuenta"
+          description={pendingDelete ? `Vas a eliminar ${pendingDelete.account.name}. Esta acción no se puede deshacer.` : undefined}
+          onClose={() => setPendingDelete(null)}
+          footer={
+            <div className="mt-6 flex justify-end gap-3">
+              <NivaButton type="button" variant="secondary" size="sm" onClick={() => setPendingDelete(null)}>
+                Cancelar
+              </NivaButton>
+              <NivaButton type="button" variant="danger" size="sm" onClick={confirmDeleteAccount}>
+                Eliminar
+              </NivaButton>
+            </div>
+          }
+        >
+          <p className="text-sm leading-6 text-[var(--niva-color-muted)]">Confirma que quieres quitar esta cuenta de la vista de cuentas activas.</p>
+        </NivaModal>
       </div>
     </div>
   );

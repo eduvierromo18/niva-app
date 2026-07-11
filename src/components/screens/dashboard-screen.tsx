@@ -7,7 +7,8 @@ import { AccountDialog, type AccountFormValue } from "@/components/finance/accou
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
 import { accounts as initialAccounts, goals, movements as initialMovements, scheduledTransactions } from "@/lib/finance-data";
 import { cn, formatCurrency } from "@/lib/utils";
-import { AuroraBadge, AuroraButton } from "@/components/aurora";
+import { NivaBadge, NivaButton, NivaContentGrid, NivaLayoutSurface, NivaProgress, NivaSection } from "@/design-system";
+import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
 
 const today = new Date("2026-06-29T00:00:00");
 
@@ -29,10 +30,16 @@ function amountToneForMovement(type: string) {
   return "neutral" as const;
 }
 
+function amountToneClass(tone: ReturnType<typeof amountToneForMovement>) {
+  if (tone === "positive") return "text-[var(--niva-color-success)]";
+  if (tone === "negative") return "text-[var(--niva-color-danger)]";
+  return "text-[var(--niva-color-foreground)]";
+}
+
 function scheduledAmountTone(type: string) {
-  if (type === "income") return "text-[#047857]";
-  if (type === "transfer") return "text-[#2563EB]";
-  return "text-[#DC2626]";
+  if (type === "income") return "text-[var(--niva-color-success)]";
+  if (type === "transfer") return "text-[var(--niva-color-info)]";
+  return "text-[var(--niva-color-danger)]";
 }
 
 export function DashboardScreen() {
@@ -69,7 +76,7 @@ export function DashboardScreen() {
       ...current,
       {
         ...account,
-        color: "bg-slate-800",
+        color: "bg-[var(--niva-color-foreground)]",
         icon: initialAccounts[0].icon,
       },
     ]);
@@ -86,73 +93,73 @@ export function DashboardScreen() {
 
   return (
     <div className="mx-auto w-full max-w-[1180px] space-y-10 px-1 pb-6 sm:px-2 lg:space-y-12">
-      <section className="space-y-4 pt-2 sm:pt-4">
-        <p className="text-sm font-medium text-[#6B7280]">Buenos dias, Luis.</p>
+      <NivaSection className="pt-2 sm:pt-4">
+        <p className="text-sm font-medium text-[var(--niva-color-muted)]">Buenos dias, Luis.</p>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <h1 className="max-w-[12ch] text-4xl font-semibold leading-[1.02] text-[#111827] sm:text-5xl lg:text-6xl">
+            <h1 className="max-w-[12ch] text-4xl font-semibold leading-[1.02] text-[var(--niva-color-foreground)] sm:text-5xl lg:text-6xl">
               Tu dinero, con calma.
             </h1>
           </div>
-          <AuroraButton type="button" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openMovement("Gasto")}>
+          <NivaButton type="button" size="sm" iconLeft={<Plus className="h-4 w-4" />} onClick={() => openMovement("Gasto")}>
             Nuevo registro
-          </AuroraButton>
+          </NivaButton>
         </div>
-      </section>
+      </NivaSection>
 
-      <section className="rounded-[28px] bg-[#111827] px-6 py-8 text-white shadow-[0_28px_70px_rgba(17,24,39,0.18)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+      <NivaLayoutSurface className="rounded-[28px] border-0 bg-[var(--niva-color-inverse-surface)] px-6 py-8 text-[var(--niva-color-inverse-foreground)] shadow-[var(--niva-shadow-xl)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-xs font-bold uppercase text-white/60">Daily Brief</p>
-          <AuroraBadge tone="success">Hoy</AuroraBadge>
+          <p className="text-xs font-bold uppercase text-[var(--niva-color-inverse-muted)]">Daily Brief</p>
+          <NivaBadge tone="success">Hoy</NivaBadge>
         </div>
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
           <div className="min-w-0">
             <p className="max-w-4xl text-3xl font-semibold leading-[1.08] sm:text-4xl lg:text-5xl">
               Hay {formatCurrency(spendableToday)} libres para decidir y {formatCurrency(reservedBalance)} protegidos fuera del ruido diario.
             </p>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-white/68 sm:text-lg">
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--niva-color-inverse-muted)] sm:text-lg">
               En los proximos dias aparecen {formatCurrency(upcomingExpenses)} programados. La lectura importante: tu reserva sigue separada y el margen de hoy permanece visible.
             </p>
           </div>
-          <div className="border-t border-white/14 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-            <p className="text-sm font-medium text-white/58">Margen disponible</p>
+          <div className="border-t border-[var(--niva-color-inverse-subtle)] pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <p className="text-sm font-medium text-[var(--niva-color-inverse-muted)]">Margen disponible</p>
             <p className="mt-3 text-5xl font-semibold tracking-tight">{availableRatio}%</p>
-            <p className="mt-4 text-sm leading-6 text-white/62">
+            <p className="mt-4 text-sm leading-6 text-[var(--niva-color-inverse-muted)]">
               Del efectivo positivo queda accesible despues de apartar la reserva.
             </p>
           </div>
         </div>
-      </section>
+      </NivaLayoutSurface>
 
-      <section className="grid gap-5 border-y border-[#E5E7EB] py-6 sm:grid-cols-3">
+      <NivaContentGrid columns={3} className="border-y border-[var(--niva-color-border)] py-6">
         {[
-          { label: "Available", value: formatCurrency(spendableToday), helper: "Listo para hoy", tone: "text-[#047857]" },
-          { label: "Reserved", value: formatCurrency(reservedBalance), helper: "Separado de decisiones diarias", tone: "text-[#6B7280]" },
-          { label: "Total", value: formatCurrency(netWorth), helper: "Patrimonio neto actual", tone: "text-[#111827]" },
+          { label: "Available", value: formatCurrency(spendableToday), helper: "Listo para hoy", tone: "text-[var(--niva-color-success)]" },
+          { label: "Reserved", value: formatCurrency(reservedBalance), helper: "Separado de decisiones diarias", tone: "text-[var(--niva-color-muted)]" },
+          { label: "Total", value: formatCurrency(netWorth), helper: "Patrimonio neto actual", tone: "text-[var(--niva-color-foreground)]" },
         ].map((item) => (
           <div key={item.label} className="min-w-0">
-            <p className="text-xs font-bold uppercase text-[#6B7280]">{item.label}</p>
+            <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">{item.label}</p>
             <p className={cn("mt-3 break-words text-2xl font-semibold tracking-tight sm:text-3xl", item.tone)}>{item.value}</p>
-            <p className="mt-2 text-sm leading-6 text-[#6B7280]">{item.helper}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">{item.helper}</p>
           </div>
         ))}
-      </section>
+      </NivaContentGrid>
 
       {nextScheduled ? (
         <section className="grid gap-5 lg:grid-cols-[12rem_minmax(0,1fr)] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase text-[#6B7280]">Upcoming Commitment</p>
-            <p className="mt-3 text-sm leading-6 text-[#6B7280]">Solo el siguiente evento.</p>
+            <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Upcoming Commitment</p>
+            <p className="mt-3 text-sm leading-6 text-[var(--niva-color-muted)]">Solo el siguiente evento.</p>
           </div>
-          <div className="rounded-[24px] bg-white px-5 py-5 shadow-[0_12px_34px_rgba(15,23,42,0.06)] sm:px-6">
+          <NivaLayoutSurface className="px-5 py-5 sm:px-6">
             <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
               <div className="flex min-w-0 items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#F3F4F6] text-[#2563EB]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-muted-surface)] text-[var(--niva-color-info)]">
                   <CalendarClock className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-xl font-semibold text-[#111827]">{nextScheduled.name}</h2>
-                  <p className={cn("mt-2 text-sm font-semibold", nextScheduledDays !== null && nextScheduledDays <= 5 ? "text-[#B45309]" : "text-[#6B7280]")}>
+                  <h2 className="text-xl font-semibold text-[var(--niva-color-foreground)]">{nextScheduled.name}</h2>
+                  <p className={cn("mt-2 text-sm font-semibold", nextScheduledDays !== null && nextScheduledDays <= 5 ? "text-[var(--niva-color-warning)]" : "text-[var(--niva-color-muted)]")}>
                     {nextScheduledDays !== null ? formatDueLabel(nextScheduledDays) : "Sin fecha"}
                   </p>
                 </div>
@@ -162,7 +169,7 @@ export function DashboardScreen() {
                 {formatCurrency(nextScheduled.amount)}
               </p>
             </div>
-          </div>
+          </NivaLayoutSurface>
         </section>
       ) : null}
 
@@ -170,84 +177,82 @@ export function DashboardScreen() {
         <div className="min-w-0">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase text-[#6B7280]">Recent Activity</p>
-              <h2 className="mt-3 text-2xl font-semibold text-[#111827]">Ultimos movimientos</h2>
+              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Recent Activity</p>
+              <h2 className="mt-3 text-2xl font-semibold text-[var(--niva-color-foreground)]">Ultimos movimientos</h2>
             </div>
-            <Link href="/movements" className="text-sm font-semibold text-[#2563EB] transition hover:text-[#1D4ED8]">
+            <Link
+              href="/movements"
+              className={cn("text-sm font-semibold text-[var(--niva-color-info)]", nivaTransition, nivaFocusRing, "hover:text-[var(--niva-color-accent-hover)]")}
+            >
               Ver todos
             </Link>
           </div>
 
-          <div className="mt-5 divide-y divide-[#E5E7EB] rounded-[24px] bg-white px-5 shadow-[0_12px_34px_rgba(15,23,42,0.05)]">
-            {recentMovements.map((movement) => (
-              <div key={`${movement.date}-${movement.description}`} className="grid gap-4 py-5 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div className="flex min-w-0 items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#F3F4F6] text-[#2563EB]">
-                    {movement.type === "Ingreso" ? <WalletCards className="h-5 w-5" /> : <ReceiptText className="h-5 w-5" />}
+          <NivaLayoutSurface className="mt-5 divide-y divide-[var(--niva-color-border)] px-5">
+            {recentMovements.map((movement) => {
+              const tone = amountToneForMovement(movement.type);
+
+              return (
+                <div key={`${movement.date}-${movement.description}`} className="grid gap-4 py-5 sm:grid-cols-[1fr_auto] sm:items-center">
+                  <div className="flex min-w-0 items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-muted-surface)] text-[var(--niva-color-info)]">
+                      {movement.type === "Ingreso" ? <WalletCards className="h-5 w-5" /> : <ReceiptText className="h-5 w-5" />}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-base font-semibold text-[var(--niva-color-foreground)]">{movement.description}</h3>
+                      <p className="mt-1 text-sm leading-6 text-[var(--niva-color-muted)]">
+                        {movement.account} / {movement.category}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="truncate text-base font-semibold text-[#111827]">{movement.description}</h3>
-                    <p className="mt-1 text-sm leading-6 text-[#6B7280]">
-                      {movement.account} / {movement.category}
-                    </p>
+                  <div className="sm:text-right">
+                    <p className={cn("text-base font-semibold", amountToneClass(tone))}>{formatCurrency(movement.amount)}</p>
+                    <p className="mt-1 text-xs font-bold text-[var(--niva-color-muted)]">{movement.date}</p>
                   </div>
                 </div>
-                <div className="sm:text-right">
-                  <p
-                    className={cn(
-                      "text-base font-semibold",
-                      amountToneForMovement(movement.type) === "positive" && "text-[#047857]",
-                      amountToneForMovement(movement.type) === "negative" && "text-[#DC2626]",
-                      amountToneForMovement(movement.type) === "neutral" && "text-[#111827]",
-                    )}
-                  >
-                    {formatCurrency(movement.amount)}
-                  </p>
-                  <p className="mt-1 text-xs font-bold text-[#6B7280]">{movement.date}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              );
+            })}
+          </NivaLayoutSurface>
         </div>
 
         <div className="grid min-w-0 gap-5">
-          <section className="rounded-[24px] bg-[#F8FAFC] p-5 ring-1 ring-[#E5E7EB]">
+          <NivaLayoutSurface variant="subtle" className="p-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#047857]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-surface)] text-[var(--niva-color-success)]">
                 <Flag className="h-5 w-5" />
               </div>
-              <p className="text-xs font-bold uppercase text-[#6B7280]">Primary Goal</p>
+              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Primary Goal</p>
             </div>
-            <h3 className="mt-5 text-xl font-semibold text-[#111827]">{featuredGoal.name}</h3>
-            <p className="mt-2 text-sm leading-6 text-[#6B7280]">
+            <h3 className="mt-5 text-xl font-semibold text-[var(--niva-color-foreground)]">{featuredGoal.name}</h3>
+            <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">
               {formatCurrency(featuredGoal.current)} de {formatCurrency(featuredGoal.target)} para {featuredGoal.date}
             </p>
-            <div className="mt-6 h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
-              <div className="h-full rounded-full bg-[#047857]" style={{ width: `${featuredGoalProgress}%` }} />
-            </div>
-            <p className="mt-3 text-sm font-semibold text-[#047857]">{featuredGoalProgress}% completado</p>
-          </section>
+            <NivaProgress value={featuredGoalProgress} label={featuredGoal.name} className="mt-6" />
+            <p className="mt-3 text-sm font-semibold text-[var(--niva-color-success)]">{featuredGoalProgress}% completado</p>
+          </NivaLayoutSurface>
 
-          <section className="rounded-[24px] bg-white p-5 shadow-[0_12px_34px_rgba(15,23,42,0.05)]">
+          <NivaLayoutSurface className="p-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F3F4F6] text-[#2563EB]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-muted-surface)] text-[var(--niva-color-info)]">
                 <Lightbulb className="h-5 w-5" />
               </div>
-              <p className="text-xs font-bold uppercase text-[#6B7280]">Insight</p>
+              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Insight</p>
             </div>
-            <h3 className="mt-5 text-xl font-semibold text-[#111827]">Balance saludable</h3>
-            <p className="mt-2 text-sm leading-6 text-[#6B7280]">
+            <h3 className="mt-5 text-xl font-semibold text-[var(--niva-color-foreground)]">Balance saludable</h3>
+            <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">
               Tu balance mensual positivo cubre una parte relevante de gastos fijos. Mantener la reserva separada hace mas clara cada decision pequena.
             </p>
-          </section>
+          </NivaLayoutSurface>
 
-          <button
+          <NivaButton
             type="button"
-            className="justify-self-start text-sm font-semibold text-[#2563EB] transition hover:text-[#1D4ED8]"
+            variant="ghost"
+            size="sm"
+            className="justify-self-start"
             onClick={() => setAccountDialogOpen(true)}
           >
             Nueva cuenta
-          </button>
+          </NivaButton>
         </div>
       </section>
 
