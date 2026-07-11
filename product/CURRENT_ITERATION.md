@@ -1,21 +1,31 @@
-# Current Iteration
+﻿# Current Iteration
 
 ## Estado
 
-Inicializada
+En ejecucion
 
-## Product Spec activo
+## Product Specs activos
 
-PS-000 Product Operating System
+- PS-002 Financial Workspace
+- PS-003 Activity
+- PS-004 Analytics
+- PS-005 Goals
 
 ## Objetivo
 
-Crear la infraestructura documental de producto que guiara el desarrollo futuro.
+Convertir la interfaz validada de Niva en un MVP financiero persistente: datos reales por usuario, CRUD completo, dashboard calculado, pruebas y despliegue.
 
-## Notas
+## Alcance
 
-- No modificar pantallas.
-- No modificar logica.
-- No modificar Supabase ni base de datos.
-- Toda nueva funcionalidad futura debera partir de un Product Spec.
+1. Capa de datos Supabase tipada y segura.
+2. Categorias, cuentas, movimientos y transferencias.
+3. Dashboard alimentado por datos persistentes.
+4. Presupuestos, metas, deudas y programados.
+5. Pruebas, CI y despliegue.
 
+## Definition of Done
+
+- Los cambios sobreviven una recarga y estan aislados por RLS.
+- No se usan datos demo cuando Supabase esta configurado.
+- Lint, typecheck, pruebas y build pasan en CI.
+- Los flujos criticos se verifican en Preview antes de Production.

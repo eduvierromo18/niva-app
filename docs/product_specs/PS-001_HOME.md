@@ -1,4 +1,4 @@
-# PS-001 Home
+﻿# PS-001 Home
 
 ## Objetivo
 
@@ -32,18 +32,19 @@ No usar "Patrimonio" como termino visible en Home. Cuando el usuario necesite na
 
 ## Reglas UX
 
-- Usar Aurora Design System.
-- Mantener mucho aire, fondo suave, cards blancas, bordes de 20px y sombras sutiles.
+- Usar Niva Design System; Aurora permanece como implementacion interna heredada.
+- Mantener aire, superficies claras, jerarquia calmada y sombras sutiles.
 - Evitar graficas grandes en Home.
-- No modificar logica financiera, rutas ni integraciones de datos desde esta pantalla.
+- Toda cifra debe provenir de la capa de datos persistente.
 
 ## Acceptance Criteria
 
 - Home no muestra la palabra "Patrimonio".
-- Home mantiene los datos existentes de cuentas, metricas, movimientos, pagos programados y metas.
-- Home permite abrir las acciones existentes de nueva cuenta y nuevo movimiento.
-- La pantalla compila correctamente con lint y build.
+- Home consume cuentas, metricas, movimientos, pagos programados y metas persistentes cuando Supabase esta configurado.
+- Home permite abrir las acciones de nueva cuenta y nuevo movimiento.
+- Cuenta con estados de carga, error y vacio.
+- Lint, pruebas y build pasan correctamente.
 
 ## Estado
 
-Implementado en UI-001.
+UI implementada; integracion persistente incluida en v0.2.0.

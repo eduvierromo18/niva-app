@@ -1,22 +1,32 @@
-# Backlog
+﻿# Backlog
 
-## Prioridad Alta
+## P0 - MVP desplegable
 
-- PS-001 Home Premium
-- PS-002 Financial Workspace
-- PS-003 Activity Timeline
+- Persistencia y tipos Supabase.
+- Seguridad RLS y autorizacion dentro de handlers/actions.
+- CRUD de categorias, cuentas y movimientos.
+- Transferencias atomicas entre cuentas.
+- Dashboard calculado desde datos reales.
+- Presupuestos, metas, deudas y programados persistentes.
+- Pruebas criticas, CI y deploy.
 
-## Prioridad Media
+## P1 - Experiencia diaria
 
-- Focus Card
-- Insights
-- Command Palette
-- Financial Health
+- Busqueda y filtros avanzados.
+- Alertas de presupuesto, deuda y proximos pagos.
+- Estados vacios, carga, error y reintento.
+- Perfil, moneda y preferencias regionales persistentes.
 
-## Prioridad Baja
+## P2 - Inteligencia
 
-- Branding
-- Landing
-- Widgets
-- Apps moviles
+- Insights explicables.
+- Salud financiera.
+- Proyecciones y tendencias.
+- Command Palette.
 
+## P3 - Ecosistema
+
+- Importacion y exportacion.
+- Landing y branding publico.
+- Widgets y aplicaciones moviles.
+- Colaboracion multiusuario con roles auditables.

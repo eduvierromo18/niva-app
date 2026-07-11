@@ -1,4 +1,4 @@
-# Flujo recomendado de desarrollo por etapas
+﻿# Flujo recomendado de desarrollo por etapas
 
 ## Etapa 1 - Base tecnica
 
@@ -14,8 +14,8 @@
 - Proteger rutas bajo `/(app)`.
 - Mostrar perfil, moneda principal y preferencias regionales.
 - Verificar que RLS impida leer datos entre usuarios.
-- Configurar en Vercel `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SERVICE_ROLE_KEY`.
-- Usar `SUPABASE_SERVICE_ROLE_KEY` solo en servidor para crear usuarios administrados desde Configuracion.
+- Configurar en Vercel `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+- Mantener deshabilitado el aprovisionamiento administrativo hasta contar con roles verificables e invitaciones por enlace.
 
 ## Etapa 3 - Catalogos
 
@@ -59,3 +59,4 @@
 - Exportacion CSV/PDF.
 - Tests de acciones criticas.
 - Revision de accesibilidad y responsive.
+

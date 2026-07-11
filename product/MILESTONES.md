@@ -1,31 +1,38 @@
-# Milestones
+﻿# Milestones
 
 ## Milestone 1 - Foundation
 
+Estado: Completado
+
+- Arquitectura Next.js y Supabase.
+- Autenticacion base.
+- Niva Design System y App Shell.
+- Home, cuentas y timeline en UI.
+
+## Milestone 2 - Persistent MVP
+
 Estado: En progreso
 
-Incluye:
-
-- Arquitectura
-- Design System
-- Home Premium
-- Financial Workspace
-- Timeline Premium
-- Motion System
-
-## Milestone 2 - Daily Experience
-
-Estado: Pendiente
+- Capa de datos tipada.
+- CRUD financiero principal.
+- Dashboard real.
+- Modulos diarios persistentes.
+- Pruebas y despliegue.
 
 ## Milestone 3 - Intelligence
 
 Estado: Pendiente
 
+- Insights, tendencias, proyecciones y salud financiera.
+
 ## Milestone 4 - Brand
 
 Estado: Pendiente
+
+- Landing, activos publicos y narrativa de lanzamiento.
 
 ## Milestone 5 - Ecosystem
 
 Estado: Pendiente
 
+- Colaboracion, importaciones, exportaciones y aplicaciones moviles.

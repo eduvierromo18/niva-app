@@ -1,13 +1,30 @@
-# Niva Roadmap
+﻿# Niva Roadmap
 
-- Sprint 2.1: Bancos, logos y Programados - completado.
-- Sprint 2.2: Design System Foundation - completado.
-- Sprint 2.3: Product Docs Foundation - actual.
-- INF-001: Foundation Repository & CI/CD - actual.
-- Sprint 2.4: Timeline premium de movimientos.
-- Sprint 2.5: Dashboard con proximos programados.
-- Sprint 2.6: Insights financieros.
-- Sprint 2.7: Presupuestos visuales.
-- Sprint 2.8: Metas de ahorro mejoradas.
+## Completado
 
-Nota: Niva es el nombre oficial del producto. El sistema interno `Aurora*` se mantiene sin renombres por ahora.
+- Foundation Repository & CI inicial.
+- Supabase schema y autenticacion base.
+- Niva Design System, App Shell y accesibilidad base.
+- Home, cuentas y Activity en UI.
+
+## Actual - v0.2.0 Persistent MVP
+
+1. Capa de datos y migraciones verificables.
+2. Categorias, cuentas, movimientos y transferencias.
+3. Dashboard con datos reales.
+4. Presupuestos, metas, deudas y programados.
+5. Pruebas, Preview y Production.
+
+## Siguiente - v0.3.0 Intelligence
+
+- Insights explicables.
+- Tendencias y proyecciones.
+- Salud financiera.
+
+## Futuro
+
+- Importacion/exportacion.
+- Colaboracion segura.
+- Landing, widgets y aplicaciones moviles.
+
+Nota: Niva es el nombre oficial. Los componentes internos `Aurora*` se migraran solo en un sprint tecnico dedicado.
