@@ -1,12 +1,12 @@
-# Niva Handbook
+﻿# Niva Handbook
 
 ## Version
 
-0.1.0
+0.1.3
 
 ## Status
 
-Alpha
+Review
 
 ## Owner
 
@@ -22,5 +22,4 @@ Product Handbook
 
 ## Notes
 
-This version establishes the Handbook foundation and prepares the system for future product, design, and engineering chapters.
-
+This working version establishes the Handbook foundation and its brand vocabulary. It is not an approved authority until promoted through Niva governance.

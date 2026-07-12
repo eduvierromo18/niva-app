@@ -1,4 +1,4 @@
----
+﻿---
 title: Handbook Changelog
 version: 0.1.0
 status: Review
@@ -12,6 +12,13 @@ related_product_specs: []
 ---
 
 # Handbook Changelog
+
+## 0.1.4
+
+- Registered approved workspace authorities and their checksums.
+- Recorded the Design Manual / Meridian authority split in ADR-001.
+- Replaced the obsolete documentation-only sprint with the UI v5 compliance program.
+- Clarified that Handbook 0.1.3 remains in Review until governance promotion.
 
 ## 0.1.3
 
