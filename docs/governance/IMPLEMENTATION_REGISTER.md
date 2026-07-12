@@ -19,7 +19,7 @@
 | 3 | Design System v4 | Tokens, primitives, accessibility baseline | Complete |
 | 4 | UI v5 screens | Route-by-route implementation, responsive review, 21 automated tests | Complete |
 | 5 | Product language | Spanish copy, real user identity, persisted profile preferences | Complete |
-| 6 | Release verification | Unit, type, lint, build, browser, Supabase security | Planned |
+| 6 | Release verification | Unit, type, lint, build, browser, Supabase security | Complete |
 | 7 | Approval and release | Release record, tag, production deployment | Planned |
 
 ## Definition of Done
