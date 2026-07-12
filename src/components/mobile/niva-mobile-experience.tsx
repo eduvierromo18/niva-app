@@ -2,125 +2,135 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode, useRef, useState } from "react";
+import { type FormEvent, type ReactNode, useRef, useState } from "react";
 import {
+  ArrowDownLeft,
+  ArrowUpRight,
   BarChart3,
   CalendarClock,
   ChevronRight,
   Eye,
   Flag,
   Home,
+  Landmark,
+  LogOut,
+  MoreHorizontal,
   Moon,
+  Pause,
+  Pencil,
+  PiggyBank,
+  Play,
   Plus,
   ReceiptText,
   RefreshCw,
+  Repeat2,
+  Settings,
   Sun,
+  Target,
   Trash2,
   WalletCards,
   X,
 } from "lucide-react";
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
+import { AccountDialog, type AccountFormValue } from "@/components/finance/account-dialog";
+import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
+import { ScheduledTransactionDialog } from "@/components/finance/ScheduledTransactionDialog";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useMovements } from "@/hooks/use-movements";
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { getFeaturedGoalProgress } from "@/lib/dashboard";
 import { categoryData, metrics } from "@/lib/finance-data";
-import type { FinanceMovement } from "@/lib/finance-types";
+import type { FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
 import { cn, formatCurrency } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { signOut } from "@/app/(app)/actions";
 
 type NivaMobileExperienceProps = {
-  firstName: string;
+  user: { id: string; name: string; email: string; currencyCode: string; locale: string };
 };
 
-const mobileRoutes = new Set(["/dashboard", "/movements", "/categories", "/accounts", "/goals"]);
+const mobileRoutes = new Set(["/dashboard", "/movements", "/categories", "/accounts", "/goals", "/programados", "/budgets", "/liabilities", "/settings"]);
 
 export function isNivaMobileRoute(pathname: string) {
   return mobileRoutes.has(pathname);
 }
 
-export function NivaMobileExperience({ firstName }: NivaMobileExperienceProps) {
+export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
+  const firstName = user.name.trim().split(/\s+/)[0] || "Usuario";
   const pathname = usePathname();
-  const currentPath = pathname;
   const [locked, setLocked] = useState(true);
   const [darkHome, setDarkHome] = useState(false);
   const [movementOpen, setMovementOpen] = useState(false);
+  const [movementType, setMovementType] = useState("Gasto");
+  const [editingMovement, setEditingMovement] = useState<FinanceMovement | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [scheduledOpen, setScheduledOpen] = useState(false);
+  const [editingScheduled, setEditingScheduled] = useState<ScheduledTransaction | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [editingAccountIndex, setEditingAccountIndex] = useState<number | null>(null);
+  const [goalOpen, setGoalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<ReturnType<typeof usePlanningData>["goals"][number] | null>(null);
   const movementsData = useMovements();
   const accountsData = useAccounts();
   const planningData = usePlanningData();
 
   async function saveMovement(value: MovementFormValue) {
-    const saved = await movementsData.saveMovement(value);
-    if (saved) await accountsData.reload();
+    const saved = await movementsData.saveMovement(value, editingMovement?.id);
+    if (saved) {
+      await Promise.all([accountsData.reload(), planningData.reload()]);
+      setEditingMovement(null);
+    }
     return saved;
   }
 
-  if (locked) {
-    return <MobileSessionLock onUnlock={() => setLocked(false)} />;
+  function openMovement(type: string, movement?: FinanceMovement) {
+    setCreateOpen(false);
+    setMovementType(type);
+    setEditingMovement(movement ?? null);
+    setMovementOpen(true);
   }
 
-  return (
-    <div
-      className={cn(
-        "min-h-[100dvh] overflow-x-hidden pb-[calc(6.25rem+env(safe-area-inset-bottom))] niva-mobile-ios",
-        currentPath === "/dashboard" && darkHome
-          ? "bg-[#0F1726] text-[#FCFCFD]"
-          : "bg-[#F7F8FA] text-[var(--niva-color-foreground)]",
-      )}
-    >
-      {currentPath === "/dashboard" ? (
-        <MobileHome
-          firstName={firstName}
-          dark={darkHome}
-          onToggleAppearance={() => setDarkHome((current) => !current)}
-          accounts={movementsData.accounts}
-          movements={movementsData.movements}
-          scheduled={planningData.scheduled}
-          goals={planningData.goals}
-          loading={movementsData.isLoading || planningData.isLoading}
-          error={movementsData.error || planningData.error}
-          onRetry={() => {
-            void movementsData.reload();
-            void planningData.reload();
-          }}
-        />
-      ) : null}
-      {currentPath === "/movements" ? (
-        <MobileActivity
-          movements={movementsData.movements}
-          loading={movementsData.isLoading}
-          error={movementsData.error}
-          onReload={movementsData.reload}
-          onDelete={movementsData.deleteMovement}
-        />
-      ) : null}
-      {currentPath === "/categories" ? <MobileAnalytics movements={movementsData.movements} /> : null}
-      {currentPath === "/accounts" ? (
-        <MobileAccounts
-          accounts={accountsData.accounts}
-          distribution={accountsData.moneyDistribution}
-          groups={accountsData.institutionGroups}
-          total={accountsData.totals.totalMoney}
-          reviewCount={accountsData.totals.lowBalanceCount}
-          loading={accountsData.isLoading}
-          error={accountsData.error}
-          onReload={accountsData.reload}
-        />
-      ) : null}
-      {currentPath === "/goals" ? <MobileGoals goals={planningData.goals} loading={planningData.isLoading} /> : null}
+  function openScheduled(item?: ScheduledTransaction) {
+    setCreateOpen(false);
+    setEditingScheduled(item ?? null);
+    setScheduledOpen(true);
+  }
 
-      <MobileTabBar pathname={currentPath} onCreate={() => setMovementOpen(true)} />
-      <MovementDialog
-        open={movementOpen}
-        defaultType="Gasto"
-        accounts={movementsData.accounts}
-        categories={movementsData.categories}
-        onClose={() => setMovementOpen(false)}
-        onSave={saveMovement}
-      />
+  async function saveAccount(value: AccountFormValue) {
+    const saved = await accountsData.saveAccount(value, editingAccountIndex);
+    if (saved) await movementsData.reload();
+    return saved;
+  }
+
+  async function saveGoal(value: QuickCreateValue) {
+    return planningData.saveGoal(value, editingGoal ?? undefined);
+  }
+
+  if (locked) return <MobileSessionLock onUnlock={() => setLocked(false)} />;
+
+  return (
+    <div className={cn("min-h-[100dvh] overflow-x-hidden pb-[calc(6.25rem+env(safe-area-inset-bottom))] niva-mobile-ios", pathname === "/dashboard" && darkHome ? "bg-[#0F1726] text-[#FCFCFD]" : "bg-[#F7F8FA] text-[var(--niva-color-foreground)]")}>
+      {pathname === "/dashboard" ? <MobileHome firstName={firstName} dark={darkHome} onToggleAppearance={() => setDarkHome((current) => !current)} accounts={movementsData.accounts} movements={movementsData.movements} scheduled={planningData.scheduled} goals={planningData.goals} loading={movementsData.isLoading || planningData.isLoading} error={movementsData.error || planningData.error} onRetry={() => { void movementsData.reload(); void planningData.reload(); }} onAddExpense={() => openMovement("Gasto")} /> : null}
+      {pathname === "/movements" ? <MobileActivity movements={movementsData.movements} loading={movementsData.isLoading} error={movementsData.error} onReload={movementsData.reload} onDelete={movementsData.deleteMovement} onCreate={() => openMovement("Gasto")} onEdit={(item) => openMovement(item.type, item)} /> : null}
+      {pathname === "/categories" ? <MobileAnalytics movements={movementsData.movements} /> : null}
+      {pathname === "/accounts" ? <MobileAccounts accounts={accountsData.accounts} distribution={accountsData.moneyDistribution} groups={accountsData.institutionGroups} total={accountsData.totals.totalMoney} reviewCount={accountsData.totals.lowBalanceCount} loading={accountsData.isLoading} error={accountsData.error} onReload={accountsData.reload} onCreate={() => { setEditingAccountIndex(null); setAccountOpen(true); }} onEdit={(index) => { setEditingAccountIndex(index); setAccountOpen(true); }} onArchive={accountsData.deleteAccount} /> : null}
+      {pathname === "/goals" ? <MobileGoals goals={planningData.goals} loading={planningData.isLoading} onCreate={() => { setEditingGoal(null); setGoalOpen(true); }} onEdit={(goal) => { setEditingGoal(goal); setGoalOpen(true); }} onDelete={(id) => planningData.remove("savings_goals", id)} /> : null}
+      {pathname === "/programados" ? <MobileScheduled items={planningData.scheduled} loading={planningData.isLoading} error={planningData.error} onReload={planningData.reload} onCreate={() => openScheduled()} onEdit={openScheduled} onToggle={planningData.toggleScheduled} onConfirm={async (id) => { const saved = await planningData.confirmScheduled(id); if (saved) await Promise.all([movementsData.reload(), accountsData.reload()]); return saved; }} onDelete={(id) => planningData.remove("scheduled_transactions", id)} /> : null}
+      {pathname === "/budgets" ? <MobileBudgets items={planningData.budgets} loading={planningData.isLoading} onSave={planningData.saveBudget} onDelete={(id) => planningData.remove("monthly_budgets", id)} /> : null}
+      {pathname === "/liabilities" ? <MobileLiabilities items={planningData.liabilities} loading={planningData.isLoading} onSave={planningData.saveLiability} onDelete={(id) => planningData.remove("liabilities", id)} /> : null}
+      {pathname === "/settings" ? <MobileSettings user={user} /> : null}
+
+      <MobileTabBar pathname={pathname} onCreate={() => setCreateOpen(true)} onMore={() => setMoreOpen(true)} />
+      {moreOpen ? <MoreSheet onClose={() => setMoreOpen(false)} /> : null}
+      {createOpen ? <CreateActionSheet onClose={() => setCreateOpen(false)} onMovement={openMovement} onScheduled={() => openScheduled()} onAccount={() => { setCreateOpen(false); setEditingAccountIndex(null); setAccountOpen(true); }} /> : null}
+      <MovementDialog open={movementOpen} initialValue={editingMovement ?? undefined} defaultType={movementType} accounts={movementsData.accounts} categories={movementsData.categories} onClose={() => { setMovementOpen(false); setEditingMovement(null); }} onSave={saveMovement} />
+      <ScheduledTransactionDialog open={scheduledOpen} initialValue={editingScheduled} accounts={planningData.accounts} onClose={() => { setScheduledOpen(false); setEditingScheduled(null); }} onSave={planningData.saveScheduled} />
+      <AccountDialog open={accountOpen} initialValue={editingAccountIndex === null ? null : accountsData.accounts[editingAccountIndex]} onClose={() => { setAccountOpen(false); setEditingAccountIndex(null); }} onSave={saveAccount} />
+      <QuickCreateDialog open={goalOpen} title={editingGoal ? "Editar objetivo" : "Nuevo objetivo"} description="Define una cantidad y una fecha para tu meta." amountLabel="Meta" currentLabel="Ahorrado" secondaryLabel="Fecha objetivo" secondaryPlaceholder="AAAA-MM-DD" initialValue={editingGoal ? { name: editingGoal.name, amount: editingGoal.target, current: editingGoal.current, secondary: editingGoal.date === "Sin fecha" ? "" : editingGoal.date } : null} onClose={() => { setGoalOpen(false); setEditingGoal(null); }} onSave={saveGoal} />
     </div>
   );
 }
-
 function MobileSessionLock({ onUnlock }: { onUnlock: () => void }) {
   return (
     <main className="grid min-h-[100dvh] place-items-center bg-[#0F1726] px-8 text-center text-[#FCFCFD]">
@@ -155,6 +165,7 @@ type MobileHomeProps = {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  onAddExpense: () => void;
 };
 
 function MobileHome({
@@ -168,6 +179,7 @@ function MobileHome({
   loading,
   error,
   onRetry,
+  onAddExpense,
 }: MobileHomeProps) {
   const total = accounts.reduce((sum, account) => sum + account.balance, 0);
   const reserved = accounts
@@ -202,6 +214,8 @@ function MobileHome({
           {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
       </header>
+
+      <button type="button" onClick={onAddExpense} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1E7A4E] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(30,122,78,0.2)]"><Plus className="h-4 w-4" />Añadir gasto</button>
 
       {loading ? <MobileSkeleton /> : null}
       {error ? <MobileError message="No pudimos sincronizar tu resumen." onRetry={onRetry} /> : null}
@@ -302,17 +316,11 @@ function MobileStat({ label, value, muted, border = false }: { label: string; va
 }
 
 function MobileActivity({
-  movements,
-  loading,
-  error,
-  onReload,
-  onDelete,
+  movements, loading, error, onReload, onDelete, onCreate, onEdit,
 }: {
-  movements: FinanceMovement[];
-  loading: boolean;
-  error: string | null;
-  onReload: () => Promise<void>;
-  onDelete: (id?: string) => Promise<boolean>;
+  movements: FinanceMovement[]; loading: boolean; error: string | null;
+  onReload: () => Promise<void>; onDelete: (id?: string) => Promise<boolean>;
+  onCreate: () => void; onEdit: (movement: FinanceMovement) => void;
 }) {
   const [filter, setFilter] = useState("Todos");
   const [selected, setSelected] = useState<FinanceMovement | null>(null);
@@ -325,7 +333,7 @@ function MobileActivity({
   });
 
   return (
-    <MobilePage title="Actividad" subtitle="Desliza hacia abajo para actualizar" onTouchStart={(y) => { touchStart.current = y; }} onTouchEnd={(y) => { if (y - touchStart.current > 70) void onReload(); }}>
+    <MobilePage title="Actividad" subtitle="Desliza hacia abajo para actualizar" action={<button type="button" onClick={onCreate} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Gasto</button>} onTouchStart={(y) => { touchStart.current = y; }} onTouchEnd={(y) => { if (y - touchStart.current > 70) void onReload(); }}>
       <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 pb-2">
         {["Todos", "Gastos", "Ingresos", "Transferencias"].map((item) => (
           <button key={item} type="button" onClick={() => setFilter(item)} className={cn("shrink-0 rounded-full border px-4 py-2 text-xs font-semibold", filter === item ? "border-[#1E7A4E] bg-[#EAF5EF] text-[#1E7A4E]" : "border-[#E0E3E8] bg-white text-[#6B7280]")}>{item}</button>
@@ -351,7 +359,7 @@ function MobileActivity({
           {filtered.length === 0 ? <MobileEmpty title="Sin movimientos este mes" /> : null}
         </div>
       ) : null}
-      {selected ? <MovementDetailSheet movement={selected} onClose={() => setSelected(null)} /> : null}
+      {selected ? <MovementDetailSheet movement={selected} onClose={() => setSelected(null)} onEdit={() => { onEdit(selected); setSelected(null); }} /> : null}
     </MobilePage>
   );
 }
@@ -401,16 +409,7 @@ function MobileAnalytics({ movements }: { movements: FinanceMovement[] }) {
   );
 }
 
-function MobileAccounts({
-  accounts,
-  distribution,
-  groups,
-  total,
-  reviewCount,
-  loading,
-  error,
-  onReload,
-}: {
+function MobileAccounts({ accounts, distribution, total, reviewCount, loading, error, onReload, onCreate, onEdit, onArchive }: {
   accounts: ReturnType<typeof useAccounts>["accounts"];
   distribution: ReturnType<typeof useAccounts>["moneyDistribution"];
   groups: ReturnType<typeof useAccounts>["institutionGroups"];
@@ -419,55 +418,65 @@ function MobileAccounts({
   loading: boolean;
   error: string | null;
   onReload: () => Promise<void>;
+  onCreate: () => void;
+  onEdit: (index: number) => void;
+  onArchive: (index: number) => Promise<boolean>;
 }) {
   const touchStart = useRef(0);
   return (
-    <MobilePage title="Cuentas" subtitle="Desliza hacia abajo para actualizar" onTouchStart={(y) => { touchStart.current = y; }} onTouchEnd={(y) => { if (y - touchStart.current > 70) void onReload(); }}>
+    <MobilePage title="Cuentas" subtitle="Tu dinero por cuenta" action={<button type="button" onClick={onCreate} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Cuenta</button>} onTouchStart={(y) => { touchStart.current = y; }} onTouchEnd={(y) => { if (y - touchStart.current > 70) void onReload(); }}>
       {loading ? <MobileSkeleton /> : null}
       {error ? <MobileError message="No pudimos sincronizar tus cuentas." onRetry={() => void onReload()} /> : null}
-      {!loading && !error ? (
-        <div className="space-y-6">
-          <section className="rounded-3xl border border-[#E0E3E8] bg-white p-6 shadow-[var(--niva-shadow-sm)]">
-            <MobileEyebrow>Total</MobileEyebrow>
-            <p className="mt-3 text-[2.65rem] font-light tracking-[-0.04em]">{formatCurrency(total)}</p>
-            <div className="mt-4 flex justify-between border-t border-[#E8EBEF] pt-3 text-xs text-[#6B7280]"><span>{accounts.length} cuentas activas</span><span className="font-mono uppercase text-[#8A651C]">{reviewCount} por revisar</span></div>
-          </section>
-          <section>
-            <MobileEyebrow>Distribución</MobileEyebrow>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              {distribution.map((item) => <article key={item.label} className="rounded-2xl border border-[#E0E3E8] bg-white p-4"><span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E8EBEF] font-mono text-xs text-[#6B7280]">{item.label[0]}</span><p className="mt-3 text-sm text-[#6B7280]">{item.label}</p><p className="mt-2 text-lg font-light">{formatCurrency(item.total)}</p></article>)}
-            </div>
-          </section>
-          <section>
-            <MobileEyebrow>Cuentas activas</MobileEyebrow>
-            <div className="mt-3 space-y-3">
-              {groups.filter((group) => group.accounts.length).map((group) => <article key={group.id} className="rounded-2xl border border-[#E0E3E8] bg-white p-4"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F5F6F8] text-xs font-bold">{group.displayName[0]}</span><div><p className="font-semibold">{group.displayName}</p><p className="mt-0.5 text-xs text-[#8B95A7]">{group.accounts.length} {group.accounts.length === 1 ? "cuenta" : "cuentas"}</p></div></div><p className="font-medium">{formatCurrency(group.total)}</p></div></article>)}
-              {!accounts.length ? <MobileEmpty title="Sin cuentas" /> : null}
-              <Link href="/programados" className="flex items-center justify-between rounded-2xl border border-[#E0E3E8] bg-white p-4"><span className="flex items-center gap-3"><CalendarClock className="h-5 w-5 text-[#1E7A4E]" /><span className="font-semibold">Programados</span></span><ChevronRight className="h-4 w-4 text-[#8B95A7]" /></Link>
-            </div>
-          </section>
-        </div>
-      ) : null}
+      {!loading && !error ? <div className="space-y-6">
+        <section className="rounded-3xl border border-[#E0E3E8] bg-white p-6 shadow-[var(--niva-shadow-sm)]"><MobileEyebrow>Total</MobileEyebrow><p className="mt-3 text-[2.65rem] font-light tracking-[-0.04em]">{formatCurrency(total)}</p><div className="mt-4 flex justify-between border-t border-[#E8EBEF] pt-3 text-xs text-[#6B7280]"><span>{accounts.length} cuentas activas</span><span className="font-mono uppercase text-[#8A651C]">{reviewCount} por revisar</span></div></section>
+        <section><MobileEyebrow>Distribución</MobileEyebrow><div className="mt-3 grid grid-cols-2 gap-3">{distribution.map((item) => <article key={item.label} className="rounded-2xl border border-[#E0E3E8] bg-white p-4"><p className="text-sm text-[#6B7280]">{item.label}</p><p className="mt-2 text-lg font-light">{formatCurrency(item.total)}</p></article>)}</div></section>
+        <section><MobileEyebrow>Cuentas activas</MobileEyebrow><div className="mt-3 space-y-3">{accounts.map((account, index) => <article key={account.id ?? account.name} className="rounded-2xl border border-[#E0E3E8] bg-white p-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F6F8] text-sm font-bold">{account.name[0]}</span><div className="min-w-0 flex-1"><p className="truncate font-semibold">{account.name}</p><p className="mt-0.5 text-xs text-[#8B95A7]">{account.type}</p></div><p className="font-medium">{formatCurrency(account.balance)}</p></div><div className="mt-3 flex gap-2 border-t border-[#E8EBEF] pt-3"><button type="button" onClick={() => onEdit(index)} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#F5F6F8] py-2 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Editar</button><button type="button" onClick={() => { if (window.confirm(`¿Archivar ${account.name}?`)) void onArchive(index); }} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#FCF4F4] py-2 text-xs font-semibold text-[#A24A4A]"><Trash2 className="h-3.5 w-3.5" />Archivar</button></div></article>)}{!accounts.length ? <MobileEmpty title="Sin cuentas" /> : null}<Link href="/programados" className="flex items-center justify-between rounded-2xl border border-[#E0E3E8] bg-white p-4"><span className="flex items-center gap-3"><CalendarClock className="h-5 w-5 text-[#1E7A4E]" /><span className="font-semibold">Programados</span></span><ChevronRight className="h-4 w-4 text-[#8B95A7]" /></Link></div></section>
+      </div> : null}
     </MobilePage>
   );
 }
 
-function MobileGoals({ goals, loading }: { goals: ReturnType<typeof usePlanningData>["goals"]; loading: boolean }) {
-  return (
-    <MobilePage title="Objetivos" subtitle="Tus metas, con una fecha y una cantidad.">
-      {loading ? <MobileListSkeleton /> : (
-        <div className="space-y-4">
-          {goals.map((goal) => {
-            const progress = getFeaturedGoalProgress(goal);
-            return <article key={goal.id} className="rounded-3xl border border-[#E0E3E8] bg-white p-6"><div className="flex items-start justify-between"><div><MobileEyebrow>Meta</MobileEyebrow><h2 className="mt-2 text-xl font-medium">{goal.name}</h2></div><span className="text-2xl font-light text-[#1E7A4E]">{progress}%</span></div><p className="mt-5 text-sm text-[#6B7280]">{formatCurrency(goal.current)} de {formatCurrency(goal.target)}</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${progress}%` }} /></div><p className="mt-4 text-xs text-[#8B95A7]">{goal.date}</p></article>;
-          })}
-          {!goals.length ? <MobileEmpty title="Sin metas todavía" /> : null}
-        </div>
-      )}
-    </MobilePage>
-  );
+function MobileGoals({ goals, loading, onCreate, onEdit, onDelete }: { goals: ReturnType<typeof usePlanningData>["goals"]; loading: boolean; onCreate: () => void; onEdit: (goal: ReturnType<typeof usePlanningData>["goals"][number]) => void; onDelete: (id: string) => void }) {
+  return <MobilePage title="Objetivos" subtitle="Tus metas, con fecha y cantidad" action={<button type="button" onClick={onCreate} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Meta</button>}>
+    {loading ? <MobileListSkeleton /> : <div className="space-y-4">{goals.map((goal) => { const progress = getFeaturedGoalProgress(goal); return <article key={goal.id} className="rounded-3xl border border-[#E0E3E8] bg-white p-6"><div className="flex items-start justify-between"><div><MobileEyebrow>Meta</MobileEyebrow><h2 className="mt-2 text-xl font-medium">{goal.name}</h2></div><span className="text-2xl font-light text-[#1E7A4E]">{progress}%</span></div><p className="mt-5 text-sm text-[#6B7280]">{formatCurrency(goal.current)} de {formatCurrency(goal.target)}</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${progress}%` }} /></div><p className="mt-4 text-xs text-[#8B95A7]">{goal.date}</p><div className="mt-4 flex gap-2 border-t border-[#E8EBEF] pt-4"><button type="button" onClick={() => onEdit(goal)} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#F5F6F8] py-2 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Editar</button><button type="button" onClick={() => { if (window.confirm(`¿Eliminar ${goal.name}?`)) onDelete(goal.id); }} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#FCF4F4] py-2 text-xs font-semibold text-[#A24A4A]"><Trash2 className="h-3.5 w-3.5" />Eliminar</button></div></article>; })}{!goals.length ? <MobileEmpty title="Sin metas todavía" /> : null}</div>}
+  </MobilePage>;
 }
 
+function MobileScheduled({ items, loading, error, onReload, onCreate, onEdit, onToggle, onConfirm, onDelete }: { items: ScheduledTransaction[]; loading: boolean; error: string; onReload: () => Promise<void>; onCreate: () => void; onEdit: (item: ScheduledTransaction) => void; onToggle: (item: ScheduledTransaction) => void; onConfirm: (id: string) => Promise<boolean>; onDelete: (id: string) => void }) {
+  return <MobilePage title="Programados" subtitle="Pagos e ingresos recurrentes" action={<button type="button" onClick={onCreate} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nuevo</button>}>
+    {loading ? <MobileListSkeleton /> : null}{error ? <MobileError message="No pudimos sincronizar tus programados." onRetry={() => void onReload()} /> : null}
+    {!loading && !error ? <div className="space-y-4">{items.map((item) => <article key={item.id} className="rounded-3xl border border-[#E0E3E8] bg-white p-5"><div className="flex items-start gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF5EF] text-[#1E7A4E]"><CalendarClock className="h-5 w-5" /></span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div><h2 className="font-semibold">{item.name}</h2><p className="mt-1 text-xs text-[#8B95A7]">{item.account} · {item.frequency}</p></div><p className="shrink-0 font-medium">{formatCurrency(item.amount)}</p></div><div className="mt-3 flex items-center justify-between"><span className={cn("rounded-full px-2.5 py-1 text-[10px] font-semibold", item.status === "active" ? "bg-[#EAF5EF] text-[#1E7A4E]" : "bg-[#F2F3F5] text-[#6B7280]")}>{item.status === "active" ? "Activo" : item.status === "paused" ? "Pausado" : "Finalizado"}</span><span className="text-xs text-[#6B7280]">Próximo: {item.nextDueDate}</span></div></div></div><div className="mt-4 grid grid-cols-4 gap-2 border-t border-[#E8EBEF] pt-4"><button type="button" aria-label="Editar" onClick={() => onEdit(item)} className="grid place-items-center rounded-xl bg-[#F5F6F8] py-2.5"><Pencil className="h-4 w-4" /></button><button type="button" aria-label={item.status === "paused" ? "Reactivar" : "Pausar"} onClick={() => onToggle(item)} className="grid place-items-center rounded-xl bg-[#F5F6F8] py-2.5">{item.status === "paused" ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}</button><button type="button" aria-label="Confirmar pago" disabled={item.status !== "active"} onClick={() => void onConfirm(item.id)} className="grid place-items-center rounded-xl bg-[#EAF5EF] py-2.5 text-[#1E7A4E] disabled:opacity-40"><ReceiptText className="h-4 w-4" /></button><button type="button" aria-label="Eliminar" onClick={() => { if (window.confirm(`¿Eliminar ${item.name}?`)) onDelete(item.id); }} className="grid place-items-center rounded-xl bg-[#FCF4F4] py-2.5 text-[#A24A4A]"><Trash2 className="h-4 w-4" /></button></div></article>)}{!items.length ? <MobileEmpty title="No tienes pagos programados" /> : null}</div> : null}
+  </MobilePage>;
+}
+
+function MobileBudgets({ items, loading, onSave, onDelete }: { items: ReturnType<typeof usePlanningData>["budgets"]; loading: boolean; onSave: ReturnType<typeof usePlanningData>["saveBudget"]; onDelete: (id: string) => void }) {
+  const [open, setOpen] = useState(false); const [editing, setEditing] = useState<ReturnType<typeof usePlanningData>["budgets"][number] | null>(null);
+  return <><MobilePage title="Presupuestos" subtitle="Límites mensuales por categoría" action={<button type="button" onClick={() => { setEditing(null); setOpen(true); }} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nuevo</button>}>{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={`${formatCurrency(item.spent)} de ${formatCurrency(item.limit)}`} progress={item.limit ? Math.min((item.spent / item.limit) * 100, 100) : 0} onEdit={() => { setEditing(item); setOpen(true); }} onDelete={() => onDelete(item.id)} />)}{!items.length ? <MobileEmpty title="Sin presupuestos" /> : null}</div>}</MobilePage><QuickCreateDialog open={open} title={editing ? "Editar presupuesto" : "Nuevo presupuesto"} description="Define el límite mensual para una categoría." amountLabel="Límite" secondaryLabel="Mes" secondaryPlaceholder="Mes actual" initialValue={editing ? { name: editing.name, amount: editing.limit, secondary: "" } : null} onClose={() => setOpen(false)} onSave={(value) => onSave(value, editing ?? undefined)} /></>;
+}
+
+function MobileLiabilities({ items, loading, onSave, onDelete }: { items: ReturnType<typeof usePlanningData>["liabilities"]; loading: boolean; onSave: ReturnType<typeof usePlanningData>["saveLiability"]; onDelete: (id: string) => void }) {
+  const [open, setOpen] = useState(false); const [editing, setEditing] = useState<ReturnType<typeof usePlanningData>["liabilities"][number] | null>(null);
+  return <><MobilePage title="Deudas" subtitle="Tarjetas y compromisos pendientes" action={<button type="button" onClick={() => { setEditing(null); setOpen(true); }} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nueva</button>}>{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={formatCurrency(item.balance)} subtitle={`${item.closing} · ${item.due}`} progress={item.limit ? Math.min((item.balance / item.limit) * 100, 100) : 0} onEdit={() => { setEditing(item); setOpen(true); }} onDelete={() => onDelete(item.id)} />)}{!items.length ? <MobileEmpty title="Sin deudas activas" /> : null}</div>}</MobilePage><QuickCreateDialog open={open} title={editing ? "Editar deuda" : "Nueva deuda"} description="Registra el saldo y las fechas clave." amountLabel="Saldo" secondaryLabel="Día de corte" secondaryPlaceholder="Ej. Día 20" extraLabel="Día de pago" extraPlaceholder="Ej. Día 5" extraAmountLabel="Límite de crédito" initialValue={editing ? { name: editing.name, amount: editing.balance, secondary: editing.closing, extra: editing.due, extraAmount: editing.limit } : null} onClose={() => setOpen(false)} onSave={(value) => onSave(value, editing ?? undefined)} /></>;
+}
+
+function PlanningCard({ title, value, subtitle, progress, onEdit, onDelete }: { title: string; value: string; subtitle?: string; progress: number; onEdit: () => void; onDelete: () => void }) {
+  return <article className="rounded-3xl border border-[#E0E3E8] bg-white p-5"><h2 className="font-semibold">{title}</h2><p className="mt-2 text-xl font-light">{value}</p>{subtitle ? <p className="mt-1 text-xs text-[#8B95A7]">{subtitle}</p> : null}<div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${progress}%` }} /></div><div className="mt-4 flex gap-2"><button type="button" onClick={onEdit} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#F5F6F8] py-2 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Editar</button><button type="button" onClick={() => { if (window.confirm(`¿Eliminar ${title}?`)) onDelete(); }} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#FCF4F4] py-2 text-xs font-semibold text-[#A24A4A]"><Trash2 className="h-3.5 w-3.5" />Eliminar</button></div></article>;
+}
+
+function MobileSettings({ user }: NivaMobileExperienceProps) {
+  const [name, setName] = useState(user.name); const [currency, setCurrency] = useState(user.currencyCode); const [message, setMessage] = useState(""); const [saving, setSaving] = useState(false);
+  async function save(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!name.trim()) return; setSaving(true); setMessage(""); const supabase = createClient(); const { error } = await supabase.from("profiles").update({ full_name: name.trim(), currency_code: currency, locale: user.locale }).eq("id", user.id); if (!error) { await supabase.auth.updateUser({ data: { full_name: name.trim() } }); setMessage("Preferencias guardadas."); } else setMessage("No pudimos guardar tus preferencias."); setSaving(false); }
+  return <MobilePage title="Configuración" subtitle="Perfil, moneda y seguridad"><form onSubmit={save} className="space-y-4 rounded-3xl border border-[#E0E3E8] bg-white p-5"><label className="grid gap-2 text-sm font-semibold">Nombre<input value={name} onChange={(event) => setName(event.target.value)} className="h-12 rounded-xl border border-[#D5D9E0] px-4 font-normal" /></label><label className="grid gap-2 text-sm font-semibold">Correo<input value={user.email} readOnly className="h-12 rounded-xl border border-[#D5D9E0] bg-[#F5F6F8] px-4 font-normal text-[#6B7280]" /></label><label className="grid gap-2 text-sm font-semibold">Moneda<select value={currency} onChange={(event) => setCurrency(event.target.value)} className="h-12 rounded-xl border border-[#D5D9E0] px-4 font-normal"><option value="MXN">MXN · Peso mexicano</option><option value="USD">USD · Dólar estadounidense</option><option value="EUR">EUR · Euro</option></select></label>{message ? <p role="status" className="rounded-xl bg-[#EAF5EF] p-3 text-sm text-[#1E7A4E]">{message}</p> : null}<button type="submit" disabled={saving} className="w-full rounded-xl bg-[#1E7A4E] py-3 text-sm font-semibold text-white">{saving ? "Guardando…" : "Guardar cambios"}</button></form><form action={signOut} className="mt-4"><button type="submit" className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#E6CFCF] bg-white py-3 text-sm font-semibold text-[#A24A4A]"><LogOut className="h-4 w-4" />Cerrar sesión</button></form></MobilePage>;
+}
+
+function MoreSheet({ onClose }: { onClose: () => void }) {
+  const links = [{ label: "Programados", href: "/programados", icon: CalendarClock }, { label: "Objetivos", href: "/goals", icon: Target }, { label: "Presupuestos", href: "/budgets", icon: PiggyBank }, { label: "Deudas", href: "/liabilities", icon: Landmark }, { label: "Configuración", href: "/settings", icon: Settings }];
+  return <div className="fixed inset-0 z-[80] flex items-end bg-black/35" role="dialog" aria-modal="true" aria-label="Más opciones"><button type="button" aria-label="Cerrar" className="absolute inset-0" onClick={onClose} /><section className="relative w-full rounded-t-[2rem] bg-white px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4"><div className="mx-auto mb-5 h-1 w-10 rounded bg-[#D5D9E0]" /><div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Más opciones</h2><button type="button" onClick={onClose} aria-label="Cerrar"><X className="h-5 w-5" /></button></div><div className="mt-5 space-y-2">{links.map(({ label, href, icon: Icon }) => <Link key={href} href={href} onClick={onClose} className="flex items-center gap-3 rounded-2xl border border-[#E0E3E8] p-4"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF5EF] text-[#1E7A4E]"><Icon className="h-5 w-5" /></span><span className="flex-1 font-semibold">{label}</span><ChevronRight className="h-4 w-4 text-[#8B95A7]" /></Link>)}</div></section></div>;
+}
+function CreateActionSheet({ onClose, onMovement, onScheduled, onAccount }: { onClose: () => void; onMovement: (type: string) => void; onScheduled: () => void; onAccount: () => void }) {
+  const actions = [{ label: "Añadir gasto", icon: ArrowUpRight, action: () => onMovement("Gasto") }, { label: "Añadir ingreso", icon: ArrowDownLeft, action: () => onMovement("Ingreso") }, { label: "Transferencia", icon: Repeat2, action: () => onMovement("Transferencia") }, { label: "Crear programado", icon: CalendarClock, action: onScheduled }, { label: "Añadir cuenta", icon: WalletCards, action: onAccount }];
+  return <div className="fixed inset-0 z-[80] flex items-end bg-black/35" role="dialog" aria-modal="true" aria-label="Crear"><button type="button" aria-label="Cerrar" className="absolute inset-0" onClick={onClose} /><section className="relative w-full rounded-t-[2rem] bg-white px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4"><div className="mx-auto mb-5 h-1 w-10 rounded bg-[#D5D9E0]" /><div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Nuevo registro</h2><button type="button" onClick={onClose} aria-label="Cerrar"><X className="h-5 w-5" /></button></div><div className="mt-5 grid grid-cols-2 gap-3">{actions.map(({ label, icon: Icon, action }) => <button key={label} type="button" onClick={action} className="flex min-h-24 flex-col items-start justify-between rounded-2xl border border-[#E0E3E8] bg-[#F8F9FA] p-4 text-left text-sm font-semibold"><Icon className="h-5 w-5 text-[#1E7A4E]" />{label}</button>)}</div></section></div>;
+}
 function MobilePage({
   title,
   subtitle,
@@ -509,7 +518,7 @@ function MobileMovementRow({ movement, muted }: { movement: FinanceMovement; mut
   );
 }
 
-function MovementDetailSheet({ movement, onClose }: { movement: FinanceMovement; onClose: () => void }) {
+function MovementDetailSheet({ movement, onClose, onEdit }: { movement: FinanceMovement; onClose: () => void; onEdit: () => void }) {
   return (
     <div className="fixed inset-0 z-[70] flex items-end bg-black/30" role="dialog" aria-modal="true" aria-label="Detalle del movimiento">
       <button type="button" aria-label="Cerrar detalle" className="absolute inset-0" onClick={onClose} />
@@ -521,12 +530,13 @@ function MovementDetailSheet({ movement, onClose }: { movement: FinanceMovement;
         <p className="mt-2 text-sm text-[#6B7280]">{movement.account} · {movement.category}</p>
         <p className="mt-7 text-3xl font-light">{formatCurrency(movement.amount)}</p>
         <p className="mt-2 text-sm text-[#8B95A7]">{movement.date}</p>
+        <button type="button" onClick={onEdit} className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0F1726] px-5 py-3 text-sm font-semibold text-white"><Pencil className="h-4 w-4" />Editar movimiento</button>
       </section>
     </div>
   );
 }
 
-function MobileTabBar({ pathname, onCreate }: { pathname: string; onCreate: () => void }) {
+function MobileTabBar({ pathname, onCreate, onMore }: { pathname: string; onCreate: () => void; onMore: () => void }) {
   const items = [
     { label: "Inicio", href: "/dashboard", icon: Home },
     { label: "Actividad", href: "/movements", icon: ReceiptText },
@@ -535,6 +545,7 @@ function MobileTabBar({ pathname, onCreate }: { pathname: string; onCreate: () =
   ];
   return (
     <nav aria-label="Navegación principal móvil" className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E0E3E8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+      <button type="button" onClick={onMore} aria-label="Más opciones" className="absolute right-3 -top-12 flex h-10 w-10 items-center justify-center rounded-full border border-[#E0E3E8] bg-white text-[#6B7280] shadow-sm"><MoreHorizontal className="h-5 w-5" /></button>
       <div className="mx-auto grid h-[4.75rem] max-w-md grid-cols-5 items-center px-3">
         {items.slice(0, 2).map((item) => <MobileTab key={item.href} {...item} active={pathname === item.href} />)}
         <button type="button" aria-label="Nuevo registro" onClick={onCreate} className="mx-auto -mt-7 flex h-14 w-14 items-center justify-center rounded-full border-4 border-[#F7F8FA] bg-[#1E7A4E] text-white shadow-[0_10px_24px_rgba(30,122,78,0.3)]"><Plus className="h-6 w-6" /></button>

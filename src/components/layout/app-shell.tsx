@@ -16,6 +16,7 @@ const sidebarGroupOrder = ["primary", "workspace", "support"];
 type AppShellProps = {
   children: ReactNode;
   user: {
+    id: string;
     name: string;
     email: string;
     currencyCode: string;
@@ -48,7 +49,7 @@ export function AppShell({ children, user }: AppShellProps) {
   }, []);
 
   if (isMobile && isNivaMobileRoute(pathname)) {
-    return <NivaMobileExperience firstName={firstName} />;
+    return <NivaMobileExperience user={user} />;
   }
 
   return (

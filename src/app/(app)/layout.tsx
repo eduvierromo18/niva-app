@@ -27,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <AppShell
       user={{
+        id: user.id,
         name: profile?.full_name?.trim() || fallbackName,
         email: user.email ?? "",
         currencyCode: profile?.currency_code ?? "MXN",
