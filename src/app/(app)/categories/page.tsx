@@ -23,9 +23,9 @@ export default function CategoriesPage() {
 
   return (
     <PageScaffold
-      title="Analitica"
+      title="Analítica"
       description="Explora tendencias, estructura de gasto y detalle por categoria."
-      sidebar={<FinanceFilters title="Analitica" />}
+      sidebar={<FinanceFilters title="Analítica" />}
       action={<Button type="button" onClick={exportReport}>Exportar</Button>}
     >
       <div className="mb-4 flex flex-wrap gap-2">

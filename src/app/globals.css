@@ -181,3 +181,13 @@ body {
     touch-action: manipulation;
   }
 }
+
+.niva-mobile-ios,
+.niva-mobile-ios h1,
+.niva-mobile-ios h2,
+.niva-mobile-ios h3,
+.niva-mobile-ios button,
+.niva-mobile-ios input,
+.niva-mobile-ios select {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", ui-sans-serif, system-ui, sans-serif;
+}

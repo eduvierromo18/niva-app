@@ -34,7 +34,7 @@ export function useAccounts() {
     try {
       const supabase = createClient();
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Tu sesion ya no es valida.");
+      if (userError || !user) throw new Error("Tu sesión ya no es válida.");
       const current = editingIndex === null ? null : accounts[editingIndex];
       const payload = {
         user_id: user.id,

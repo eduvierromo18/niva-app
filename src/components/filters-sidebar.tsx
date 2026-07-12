@@ -13,7 +13,7 @@ import {
 
 const filters = [
   { label: "Cuentas", value: "Todas las cuentas", icon: WalletCards },
-  { label: "Categorias", value: "Todas las categorias", icon: Grid2X2 },
+  { label: "Categorías", value: "Todas las categorías", icon: Grid2X2 },
   { label: "Etiquetas", value: "All", icon: Tag },
   { label: "Monedas", value: "Todas las monedas", icon: Euro },
   { label: "Tipos de registro", value: "Todos los tipos de registro", icon: ArrowDownUp },

@@ -52,7 +52,7 @@ export function usePlanningData() {
       setBudgets((budgetResult.data ?? []).map((item) => ({
         id: item.id,
         categoryId: item.category_id,
-        name: categories.find((category) => category.id === item.category_id)?.name ?? "Categoria",
+        name: categories.find((category) => category.id === item.category_id)?.name ?? "Categoría",
         spent: spending.get(item.category_id) ?? 0,
         limit: Number(item.amount),
         icon: ReceiptText,
@@ -60,7 +60,7 @@ export function usePlanningData() {
       setGoals((goalResult.data ?? []).map((item) => ({ id: item.id, name: item.name, current: Number(item.current_amount), target: Number(item.target_amount), date: item.target_date ?? "Sin fecha" })));
       setLiabilities((liabilityResult.data ?? []).map((item) => ({
         id: item.id, name: item.name, balance: Number(item.principal_amount), limit: Number(item.credit_limit ?? item.principal_amount),
-        closing: item.statement_closing_day ? `Dia ${item.statement_closing_day}` : "Sin corte", due: item.payment_due_day ? `Dia ${item.payment_due_day}` : "Sin fecha", icon: CreditCard,
+        closing: item.statement_closing_day ? `Día ${item.statement_closing_day}` : "Sin corte", due: item.payment_due_day ? `Día ${item.payment_due_day}` : "Sin fecha", icon: CreditCard,
       })));
       const mappedAccounts = (accountResult.data ?? []).map(mapAccount);
       setAccounts(mappedAccounts);

@@ -25,6 +25,10 @@ export const uiToDbType = {
   Inversion: "investment",
 } as const;
 
+function productCopy(value: string) {
+  return value.replace(/\bNomina\b/g, "Nómina").replace(/\bnomina\b/g, "nómina");
+}
+
 function iconForAccount(type: AccountType) {
   if (type === "Efectivo") return CircleDollarSign;
   if (type === "Ahorro") return PiggyBank;
@@ -39,8 +43,8 @@ export function mapAccount(row: AccountBalanceRow): FinanceAccount {
   const type = dbToUiType[row.type ?? "other"];
   return {
     id: row.id ?? undefined,
-    name: row.name ?? "Cuenta",
-    alias: row.alias ?? undefined,
+    name: productCopy(row.name ?? "Cuenta"),
+    alias: row.alias ? productCopy(row.alias) : undefined,
     type,
     balance: Number(row.balance ?? row.initial_balance ?? 0),
     initialBalance: Number(row.initial_balance ?? 0),
@@ -68,13 +72,13 @@ export function mapMovement(
     id: row.id,
     occurredOn: row.occurred_on,
     date: row.occurred_on,
-    description: row.description || "Sin descripcion",
+    description: productCopy(row.description || "Sin descripción"),
     accountId: accountId ?? undefined,
     account: account?.name ?? "Cuenta archivada",
     destinationAccountId: row.to_account_id ?? undefined,
     destinationAccount: destination?.name,
     categoryId: row.category_id ?? undefined,
-    category: row.type === "transfer" ? "Transferencia" : category?.name ?? "Sin categoria",
+    category: row.type === "transfer" ? "Transferencia" : productCopy(category?.name ?? "Sin categoría"),
     type,
     amount: signedAmount,
     merchant: row.merchant ?? undefined,

@@ -1,7 +1,7 @@
 import { formatCurrency } from "@/lib/utils";
 
 const movements = [
-  { description: "Nomina", category: "Sueldo", amount: 32000, type: "income" },
+  { description: "Nómina", category: "Sueldo", amount: 32000, type: "income" },
   { description: "Supermercado", category: "Comida", amount: 1850, type: "expense" },
   { description: "Renta", category: "Hogar", amount: 8500, type: "expense" },
   { description: "Ahorro automatico", category: "Transferencia", amount: 5000, type: "transfer" },
@@ -12,7 +12,7 @@ export function RecentMovements() {
     <section className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div className="mb-4 border-b border-slate-200 pb-4">
         <h3 className="text-lg font-bold text-slate-950">Actividad reciente</h3>
-        <p className="text-sm text-slate-500">Ultimas capturas manuales</p>
+        <p className="text-sm text-slate-500">Últimas capturas manuales</p>
       </div>
       <div className="space-y-3">
         {movements.map((movement) => (

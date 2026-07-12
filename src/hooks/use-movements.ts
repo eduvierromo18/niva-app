@@ -10,7 +10,7 @@ import type { Tables, TablesInsert } from "@/types/database";
 export type FinanceCategory = Pick<Tables<"categories">, "id" | "name" | "type" | "color">;
 
 const defaultCategories = [
-  { name: "Nomina", type: "income" as const, color: "#16a34a", sort_order: 10 },
+  { name: "Nómina", type: "income" as const, color: "#16a34a", sort_order: 10 },
   { name: "Otros ingresos", type: "income" as const, color: "#0d9488", sort_order: 20 },
   { name: "Comida", type: "expense" as const, color: "#16a34a", sort_order: 10 },
   { name: "Vivienda", type: "expense" as const, color: "#2563eb", sort_order: 20 },
@@ -38,7 +38,7 @@ export function useMovements() {
     const supabase = createClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      setError("Tu sesion ya no es valida.");
+      setError("Tu sesión ya no es válida.");
       setIsLoading(false);
       return;
     }
@@ -72,7 +72,7 @@ export function useMovements() {
   const saveMovement = useCallback(async (value: MovementFormValue, editingId?: string) => {
     const supabase = createClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) { setError("Tu sesion ya no es valida."); return false; }
+    if (userError || !user) { setError("Tu sesión ya no es válida."); return false; }
     const type: TablesInsert<"movements">["type"] = value.type === "Ingreso" ? "income" : value.type === "Gasto" ? "expense" : "transfer";
     const account = accounts.find((item) => item.id === value.accountId || item.name === value.account);
     const destination = accounts.find((item) => item.id === value.destinationAccountId || item.name === value.destinationAccount);

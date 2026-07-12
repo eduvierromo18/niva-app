@@ -95,7 +95,7 @@ export function AccountDialog({
         <p className="text-sm leading-6 text-[var(--niva-color-muted)]">Carga o ajusta una cuenta manual para registrar saldos y actividad.</p>
         {Object.keys(errors).length > 0 ? <NivaAlert tone="danger" title="Revisa los datos de la cuenta." /> : null}
         <NivaInput id={`${formId}-name`} label="Nombre" value={name} onChange={(event) => setName(event.target.value)} placeholder="Ej. Cuenta BBVA" error={errors.name} required />
-        <NivaInput id={`${formId}-alias`} label="Alias visible" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="Ej. Nomina, ahorro, diaria" />
+        <NivaInput id={`${formId}-alias`} label="Alias visible" value={alias} onChange={(event) => setAlias(event.target.value)} placeholder="Ej. Nómina, ahorro, diaria" />
         <div className="grid gap-4 sm:grid-cols-2">
           <NivaSelect
             id={`${formId}-type`}

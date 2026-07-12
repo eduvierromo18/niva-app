@@ -16,6 +16,10 @@ describe("Niva mobile iOS experience", () => {
     expect(source).toContain('aria-label="Nuevo registro"');
   });
 
+  it("contains clean UTF-8 product copy", () => {
+    expect(source).not.toMatch(/[ÃÂâ�]/);
+  });
+
   it("respects iOS safe areas", () => {
     expect(source).toContain("env(safe-area-inset-top)");
     expect(source).toContain("env(safe-area-inset-bottom)");

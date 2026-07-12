@@ -15,7 +15,7 @@ import type { FinanceAccount, FinanceMetric, FinanceMovement, ScheduledTransacti
 
 export const accounts: FinanceAccount[] = [
   { id: "cash", name: "Efectivo", alias: "Caja diaria", type: "Efectivo", balance: 3000, color: "bg-[var(--niva-color-info)]", icon: CircleDollarSign },
-  { id: "payroll", name: "Cuenta nomina", alias: "Nomina", type: "Banco", balance: 38250, color: "bg-[var(--niva-color-foreground)]", icon: WalletCards, bank_name: "bbva" },
+  { id: "payroll", name: "Cuenta nómina", alias: "Nómina", type: "Banco", balance: 38250, color: "bg-[var(--niva-color-foreground)]", icon: WalletCards, bank_name: "bbva" },
   { id: "savings", name: "Ahorro", alias: "Reserva", type: "Banco", balance: 33150, color: "bg-[var(--niva-color-accent)]", icon: PiggyBank, bank_name: "nu" },
   { id: "nu-card", name: "Tarjeta credito", alias: "Credito", type: "Tarjeta", balance: -2150, color: "bg-[var(--niva-color-muted)]", icon: CreditCard, bank_name: "nu" },
 ];
@@ -52,10 +52,10 @@ export const chartSeries = [
 ];
 
 export const movements: FinanceMovement[] = [
-  { date: "26 Jun", description: "Nomina quincenal", merchant: "Empresa SA de CV", account: "Cuenta nomina", category: "Ingresos", type: "Ingreso", amount: 22500 },
-  { date: "25 Jun", description: "Supermercado", merchant: "Walmart", account: "Cuenta nomina", category: "Comida", type: "Gasto", amount: -1850 },
-  { date: "24 Jun", description: "Renta", merchant: "Departamento", account: "Cuenta nomina", category: "Vivienda", type: "Gasto", amount: -6800 },
-  { date: "22 Jun", description: "Ahorro mensual", merchant: "Transferencia interna", account: "Cuenta nomina", destinationAccount: "Ahorro", category: "Transferencia", type: "Transferencia", amount: 5000 },
+  { date: "26 Jun", description: "Nómina quincenal", merchant: "Empresa SA de CV", account: "Cuenta nómina", category: "Ingresos", type: "Ingreso", amount: 22500 },
+  { date: "25 Jun", description: "Supermercado", merchant: "Walmart", account: "Cuenta nómina", category: "Comida", type: "Gasto", amount: -1850 },
+  { date: "24 Jun", description: "Renta", merchant: "Departamento", account: "Cuenta nómina", category: "Vivienda", type: "Gasto", amount: -6800 },
+  { date: "22 Jun", description: "Ahorro mensual", merchant: "Transferencia interna", account: "Cuenta nómina", destinationAccount: "Ahorro", category: "Transferencia", type: "Transferencia", amount: 5000 },
   { date: "20 Jun", description: "Gasolina", merchant: "Shell", account: "Tarjeta", category: "Transporte", type: "Gasto", amount: -950 },
 ];
 
@@ -83,7 +83,7 @@ export const scheduledTransactions: ScheduledTransaction[] = [
     name: "Renta",
     type: "expense",
     amount: 6800,
-    account: "Cuenta nomina",
+    account: "Cuenta nómina",
     category: "Vivienda",
     frequency: "monthly",
     startDate: "2026-01-01",
@@ -107,10 +107,10 @@ export const scheduledTransactions: ScheduledTransaction[] = [
   },
   {
     id: "payroll-next",
-    name: "Nomina quincenal",
+    name: "Nómina quincenal",
     type: "income",
     amount: 22500,
-    account: "Cuenta nomina",
+    account: "Cuenta nómina",
     category: "Ingresos",
     frequency: "biweekly",
     startDate: "2026-01-15",
@@ -123,7 +123,7 @@ export const scheduledTransactions: ScheduledTransaction[] = [
     name: "Pago tarjeta principal",
     type: "debt_payment",
     amount: 6450,
-    account: "Cuenta nomina",
+    account: "Cuenta nómina",
     destinationAccount: "Tarjeta credito",
     category: "Pago de deuda",
     frequency: "monthly",
@@ -137,7 +137,7 @@ export const scheduledTransactions: ScheduledTransaction[] = [
     name: "Transferencia a ahorro",
     type: "transfer",
     amount: 5000,
-    account: "Cuenta nomina",
+    account: "Cuenta nómina",
     destinationAccount: "Ahorro",
     category: "Transferencia",
     frequency: "monthly",

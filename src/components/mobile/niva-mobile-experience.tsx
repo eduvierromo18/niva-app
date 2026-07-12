@@ -61,7 +61,7 @@ export function NivaMobileExperience({ firstName }: NivaMobileExperienceProps) {
   return (
     <div
       className={cn(
-        "min-h-[100dvh] overflow-x-hidden pb-[calc(6.25rem+env(safe-area-inset-bottom))] font-sans",
+        "min-h-[100dvh] overflow-x-hidden pb-[calc(6.25rem+env(safe-area-inset-bottom))] niva-mobile-ios",
         currentPath === "/dashboard" && darkHome
           ? "bg-[#0F1726] text-[#FCFCFD]"
           : "bg-[#F7F8FA] text-[var(--niva-color-foreground)]",
@@ -137,7 +137,7 @@ function MobileSessionLock({ onUnlock }: { onUnlock: () => void }) {
             <Eye className="h-7 w-7" />
           </span>
           <span className="text-sm">Toca para desbloquear</span>
-          <span className="text-xs font-normal text-[#A8B1C2]">Bloqueo visual de sesiÃ³n</span>
+          <span className="text-xs font-normal text-[#A8B1C2]">Bloqueo visual de sesión</span>
         </button>
       </div>
     </main>
@@ -216,9 +216,9 @@ function MobileHome({
               Hay <span className="text-[#82C7A8]">{formatCurrency(available)}</span> libres para decidir y {formatCurrency(reserved)} protegidos fuera del ruido diario.
             </p>
             <p className="mt-2 line-clamp-2 text-sm leading-5 text-[#A8B1C2]">
-              En los prÃ³ximos dÃ­as aparecen {formatCurrency(upcomingTotal)} programados; tu reserva sigue separada.
+              En los próximos días aparecen {formatCurrency(upcomingTotal)} programados; tu reserva sigue separada.
             </p>
-            <Link href="/programados" className="mt-4 inline-flex text-sm font-semibold text-[#82C7A8]">Leer mÃ¡s</Link>
+            <Link href="/programados" className="mt-4 inline-flex text-sm font-semibold text-[#82C7A8]">Leer más</Link>
           </section>
 
           <section className={cn("rounded-3xl border p-6 shadow-[var(--niva-shadow-sm)]", surface)}>
@@ -238,7 +238,7 @@ function MobileHome({
           {nextScheduled ? (
             <section>
               <div className="mb-2 flex items-center justify-between">
-                <MobileEyebrow>PrÃ³ximo compromiso</MobileEyebrow>
+                <MobileEyebrow>Próximo compromiso</MobileEyebrow>
                 <Link href="/programados" className="text-xs font-semibold text-[#1E7A4E]">Ver todos</Link>
               </div>
               <Link href="/programados" className={cn("flex items-center gap-3 rounded-2xl border p-4", surface)}>
@@ -249,7 +249,7 @@ function MobileHome({
                   <span className="block truncate text-sm font-semibold">{nextScheduled.name}</span>
                   <span className={cn("mt-0.5 block text-xs", muted)}>{nextScheduled.nextDueDate}</span>
                 </span>
-                <span className="text-sm font-medium">âˆ’{formatCurrency(nextScheduled.amount)}</span>
+                <span className="text-sm font-medium">−{formatCurrency(nextScheduled.amount)}</span>
                 <ChevronRight className={cn("h-4 w-4", muted)} />
               </Link>
             </section>
@@ -371,7 +371,7 @@ function MobileAnalytics({ movements }: { movements: FinanceMovement[] }) {
   const categorySum = categories.reduce((sum, [, value]) => sum + value, 0);
 
   return (
-    <MobilePage title="AnÃ¡lisis" action={<select aria-label="Periodo" className="rounded-full border border-[#E0E3E8] bg-white px-4 py-2 text-xs font-semibold"><option>Este mes</option></select>}>
+    <MobilePage title="Análisis" action={<select aria-label="Periodo" className="rounded-full border border-[#E0E3E8] bg-white px-4 py-2 text-xs font-semibold"><option>Este mes</option></select>}>
       <div className="no-scrollbar -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2">
         {data.map((metric) => (
           <article key={metric.label} className="w-[46%] shrink-0 snap-start rounded-2xl border border-[#E0E3E8] bg-white p-4">
@@ -382,18 +382,18 @@ function MobileAnalytics({ movements }: { movements: FinanceMovement[] }) {
         ))}
       </div>
       <section className="mt-5 rounded-2xl border border-[#E0E3E8] bg-white p-5">
-        <MobileEyebrow>Ingresos vs. gastos Â· Ãºltimos 7 dÃ­as</MobileEyebrow>
+        <MobileEyebrow>Ingresos vs. gastos · últimos 7 días</MobileEyebrow>
         <div className="mt-6 flex h-32 items-end justify-between gap-3 border-b border-[#E8EBEF] px-2">
           {[42, 68, 58, 72, 88, 63, 76].map((height, index) => <div key={index} className="w-6 rounded-t bg-[#1E7A4E]" style={{ height: `${height}%` }} />)}
         </div>
         <div className="mt-3 flex justify-between px-2 font-mono text-[9px] text-[#A0A8B7]">{["L", "M", "M", "J", "V", "S", "D"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div>
       </section>
       <section className="mt-5 rounded-2xl border border-[#E0E3E8] bg-white p-5">
-        <div className="flex items-center justify-between"><h2 className="font-medium">Gasto por categorÃ­a</h2><span className="text-sm">{formatCurrency(categorySum)}</span></div>
+        <div className="flex items-center justify-between"><h2 className="font-medium">Gasto por categoría</h2><span className="text-sm">{formatCurrency(categorySum)}</span></div>
         <div className="mt-4 space-y-4">
           {(categories.length ? categories : categoryData.map((item) => [item.name, 0] as const)).slice(0, 5).map(([name, value]) => {
             const percent = categorySum > 0 ? (value / categorySum) * 100 : 0;
-            return <div key={name}><div className="flex justify-between text-sm"><span className="font-semibold">{name}</span><span className="text-[#8B95A7]">{formatCurrency(value)} Â· {percent.toFixed(1)}%</span></div><div className="mt-2 h-1 overflow-hidden rounded bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${percent}%` }} /></div></div>;
+            return <div key={name}><div className="flex justify-between text-sm"><span className="font-semibold">{name}</span><span className="text-[#8B95A7]">{formatCurrency(value)} · {percent.toFixed(1)}%</span></div><div className="mt-2 h-1 overflow-hidden rounded bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${percent}%` }} /></div></div>;
           })}
         </div>
       </section>
@@ -433,7 +433,7 @@ function MobileAccounts({
             <div className="mt-4 flex justify-between border-t border-[#E8EBEF] pt-3 text-xs text-[#6B7280]"><span>{accounts.length} cuentas activas</span><span className="font-mono uppercase text-[#8A651C]">{reviewCount} por revisar</span></div>
           </section>
           <section>
-            <MobileEyebrow>DistribuciÃ³n</MobileEyebrow>
+            <MobileEyebrow>Distribución</MobileEyebrow>
             <div className="mt-3 grid grid-cols-2 gap-3">
               {distribution.map((item) => <article key={item.label} className="rounded-2xl border border-[#E0E3E8] bg-white p-4"><span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E8EBEF] font-mono text-xs text-[#6B7280]">{item.label[0]}</span><p className="mt-3 text-sm text-[#6B7280]">{item.label}</p><p className="mt-2 text-lg font-light">{formatCurrency(item.total)}</p></article>)}
             </div>
@@ -461,7 +461,7 @@ function MobileGoals({ goals, loading }: { goals: ReturnType<typeof usePlanningD
             const progress = getFeaturedGoalProgress(goal);
             return <article key={goal.id} className="rounded-3xl border border-[#E0E3E8] bg-white p-6"><div className="flex items-start justify-between"><div><MobileEyebrow>Meta</MobileEyebrow><h2 className="mt-2 text-xl font-medium">{goal.name}</h2></div><span className="text-2xl font-light text-[#1E7A4E]">{progress}%</span></div><p className="mt-5 text-sm text-[#6B7280]">{formatCurrency(goal.current)} de {formatCurrency(goal.target)}</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${progress}%` }} /></div><p className="mt-4 text-xs text-[#8B95A7]">{goal.date}</p></article>;
           })}
-          {!goals.length ? <MobileEmpty title="Sin metas todavÃ­a" /> : null}
+          {!goals.length ? <MobileEmpty title="Sin metas todavía" /> : null}
         </div>
       )}
     </MobilePage>
@@ -503,8 +503,8 @@ function MobileMovementRow({ movement, muted }: { movement: FinanceMovement; mut
   return (
     <div className="flex min-w-0 items-center gap-3 py-3">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F5F6F8] font-mono text-xs text-[#6B7280]">{movement.description[0]?.toUpperCase()}</span>
-      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{movement.description}</span><span className={cn("mt-0.5 block truncate text-[11px]", muted)}>{movement.account} Â· {movement.category}</span></span>
-      <span className={cn("shrink-0 text-sm font-medium", positive && "text-[#1E7A4E]")}>{positive ? "+" : movement.type === "Gasto" ? "âˆ’" : ""}{formatCurrency(Math.abs(movement.amount))}</span>
+      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{movement.description}</span><span className={cn("mt-0.5 block truncate text-[11px]", muted)}>{movement.account} · {movement.category}</span></span>
+      <span className={cn("shrink-0 text-sm font-medium", positive && "text-[#1E7A4E]")}>{positive ? "+" : movement.type === "Gasto" ? "−" : ""}{formatCurrency(Math.abs(movement.amount))}</span>
     </div>
   );
 }
@@ -518,7 +518,7 @@ function MovementDetailSheet({ movement, onClose }: { movement: FinanceMovement;
         <button type="button" aria-label="Cerrar" onClick={onClose} className="absolute right-5 top-5"><X className="h-5 w-5" /></button>
         <MobileEyebrow>Detalle</MobileEyebrow>
         <h2 className="mt-3 text-2xl font-medium">{movement.description}</h2>
-        <p className="mt-2 text-sm text-[#6B7280]">{movement.account} Â· {movement.category}</p>
+        <p className="mt-2 text-sm text-[#6B7280]">{movement.account} · {movement.category}</p>
         <p className="mt-7 text-3xl font-light">{formatCurrency(movement.amount)}</p>
         <p className="mt-2 text-sm text-[#8B95A7]">{movement.date}</p>
       </section>
@@ -530,11 +530,11 @@ function MobileTabBar({ pathname, onCreate }: { pathname: string; onCreate: () =
   const items = [
     { label: "Inicio", href: "/dashboard", icon: Home },
     { label: "Actividad", href: "/movements", icon: ReceiptText },
-    { label: "AnÃ¡lisis", href: "/categories", icon: BarChart3 },
+    { label: "Análisis", href: "/categories", icon: BarChart3 },
     { label: "Cuentas", href: "/accounts", icon: WalletCards },
   ];
   return (
-    <nav aria-label="NavegaciÃ³n principal mÃ³vil" className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E0E3E8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+    <nav aria-label="Navegación principal móvil" className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E0E3E8] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
       <div className="mx-auto grid h-[4.75rem] max-w-md grid-cols-5 items-center px-3">
         {items.slice(0, 2).map((item) => <MobileTab key={item.href} {...item} active={pathname === item.href} />)}
         <button type="button" aria-label="Nuevo registro" onClick={onCreate} className="mx-auto -mt-7 flex h-14 w-14 items-center justify-center rounded-full border-4 border-[#F7F8FA] bg-[#1E7A4E] text-white shadow-[0_10px_24px_rgba(30,122,78,0.3)]"><Plus className="h-6 w-6" /></button>

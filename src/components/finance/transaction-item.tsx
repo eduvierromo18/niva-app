@@ -30,7 +30,7 @@ export function TransactionItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h3 className="truncate text-sm font-bold text-[var(--niva-color-foreground)]">{movement.description}</h3>
-          <span className="hidden text-xs text-[var(--niva-color-placeholder)] sm:inline">â€¢</span>
+          <span className="hidden text-xs text-[var(--niva-color-placeholder)] sm:inline">•</span>
           <span className="hidden text-xs font-medium text-[var(--niva-color-muted)] sm:inline">{movement.category}</span>
         </div>
         <p className="mt-0.5 truncate text-xs text-[var(--niva-color-muted)]">

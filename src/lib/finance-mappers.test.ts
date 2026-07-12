@@ -26,7 +26,7 @@ describe("Supabase finance mappers", () => {
       notes: null, merchant: null, is_recurring: false, created_at: "2026-07-12T00:00:00Z", updated_at: "2026-07-12T00:00:00Z",
     }, accounts, [{ id: "category-1", name: "Comida" }]);
     expect(movement.amount).toBe(-250);
-    expect(movement.account).toBe("Nomina");
+    expect(movement.account).toBe("Nómina");
     expect(movement.category).toBe("Comida");
   });
 });

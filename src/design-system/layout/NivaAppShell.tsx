@@ -45,7 +45,7 @@ export function NivaAppShell({
   groupOrder = ["primary", "workspace", "support"],
   homeHref = "/dashboard",
   homeTitle = "Hola Luis.",
-  homeSubtitle = "Asi esta tu dinero hoy.",
+  homeSubtitle = "Así está tu dinero hoy.",
   appSubtitle = "Niva",
   searchPlaceholder = "Buscar registros, cuentas o categorias...",
   primaryAction,
@@ -248,7 +248,7 @@ function NivaMobileNavigation({ items, activeHref, settingsActive }: NivaMobileN
           )}
         >
           <Menu aria-hidden={true} className="h-5 w-5" />
-          <span>Mas</span>
+          <span>Más</span>
         </Link>
       </div>
     </nav>

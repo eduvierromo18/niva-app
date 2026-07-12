@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { NivaIconButton } from "@/design-system";
 
-const periods = ["Este mes", "Mes anterior", "Ultimos 3 meses", "Este ano", "Personalizado"];
+const periods = ["Este mes", "Mes anterior", "Últimos 3 meses", "Este año", "Personalizado"];
 
 export function DateRangeControl() {
   const [periodIndex, setPeriodIndex] = useState(0);
