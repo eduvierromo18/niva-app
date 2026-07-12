@@ -66,7 +66,7 @@ export default function CategoriesPage() {
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-zinc-900">
                 <tr>
-                  <th className="px-5 py-3">Categoria</th>
+                  <th className="px-5 py-3">Categoría</th>
                   <th className="px-5 py-3 text-right">Total</th>
                   <th className="px-5 py-3">Porcentaje</th>
                   <th className="px-5 py-3 text-right">Registros</th>

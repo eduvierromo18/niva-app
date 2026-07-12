@@ -17,11 +17,11 @@ import { inputClass } from "@/components/ui/dialog";
 
 const filterItems = [
   { key: "account", label: "Cuentas", icon: WalletCards, options: ["Todas las cuentas", "Efectivo", "Cuenta nomina", "Ahorro"] },
-  { key: "category", label: "Categorias", icon: Grid2X2, options: ["Todas las categorias", "Comida", "Vivienda", "Transporte", "Ingresos"] },
+  { key: "category", label: "Categorías", icon: Grid2X2, options: ["Todas las categorías", "Comida", "Vivienda", "Transporte", "Ingresos"] },
   { key: "tag", label: "Etiquetas", icon: Tag, options: ["Todas las etiquetas", "Recurrente", "Importante", "Revisar"] },
   { key: "currency", label: "Moneda", icon: CircleDollarSign, options: ["MXN - Peso mexicano", "USD - Dolar", "EUR - Euro"] },
   { key: "type", label: "Tipo de registro", icon: ArrowDownUp, options: ["Todos los tipos", "Ingreso", "Gasto", "Transferencia"] },
-  { key: "period", label: "Periodo", icon: CalendarDays, options: ["Este mes", "Mes anterior", "Ultimos 3 meses", "Este ano"] },
+  { key: "period", label: "Periodo", icon: CalendarDays, options: ["Este mes", "Mes anterior", "Últimos 3 meses", "Este año"] },
 ];
 
 export function FinanceFilters({ title }: { title: string }) {

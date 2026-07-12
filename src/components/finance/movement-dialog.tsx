@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { NivaAlert, NivaButton, NivaInput, NivaModal, NivaSelect } from "@/design-system";
@@ -108,11 +108,11 @@ export function MovementDialog({ open, initialValue, defaultType = "Gasto", acco
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             <NivaSelect label="Cuenta" value={accountId} onChange={(event) => setAccountId(event.target.value)} options={accountOptions} />
-            <NivaSelect label="Categoria" value={categoryId} onChange={(event) => setCategoryId(event.target.value)} options={[{ label: "Selecciona una categoria", value: "" }, ...categoryOptions]} />
+            <NivaSelect label="Categoría" value={categoryId} onChange={(event) => setCategoryId(event.target.value)} options={[{ label: "Selecciona una categoria", value: "" }, ...categoryOptions]} />
           </div>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
-          <NivaInput label="Descripcion" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Ej. Supermercado" />
+          <NivaInput label="Descripción" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Ej. Supermercado" />
           <NivaInput label="Fecha" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
         </div>
         {error ? <NivaAlert tone="danger" title={error} /> : null}
@@ -124,4 +124,3 @@ export function MovementDialog({ open, initialValue, defaultType = "Gasto", acco
     </NivaModal>
   );
 }
-

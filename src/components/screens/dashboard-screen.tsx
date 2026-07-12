@@ -21,10 +21,10 @@ function daysUntil(date: string) {
 }
 
 function formatDueLabel(days: number) {
-  if (days < 0) return `Vencido hace ${Math.abs(days)} dias`;
+  if (days < 0) return `Vencido hace ${Math.abs(days)} días`;
   if (days === 0) return "Vence hoy";
-  if (days === 1) return "Vence manana";
-  return `Vence en ${days} dias`;
+  if (days === 1) return "Vence mañana";
+  return `Vence en ${days} días`;
 }
 
 function amountToneForMovement(type: string) {
@@ -94,7 +94,7 @@ export function DashboardScreen() {
   return (
     <div className="mx-auto w-full max-w-[1180px] space-y-10 px-1 pb-6 sm:px-2 lg:space-y-12">
       <NivaSection className="pt-2 sm:pt-4">
-        <p className="text-sm font-medium text-[var(--niva-color-muted)]">Buenos dias, Luis.</p>
+        <p className="text-sm font-medium text-[var(--niva-color-muted)]">Tu panorama financiero de hoy.</p>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <h1 className="max-w-[12ch] text-4xl font-semibold leading-[1.02] text-[var(--niva-color-foreground)] sm:text-5xl lg:text-6xl">
@@ -109,7 +109,7 @@ export function DashboardScreen() {
 
       <NivaLayoutSurface className="rounded-[var(--niva-radius-3xl)] border-0 bg-[var(--niva-color-inverse-surface)] px-6 py-8 text-[var(--niva-color-inverse-foreground)] shadow-[var(--niva-shadow-xl)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-xs font-bold uppercase text-[var(--niva-color-inverse-muted)]">Daily Brief</p>
+          <p className="text-xs font-bold uppercase text-[var(--niva-color-inverse-muted)]">Resumen diario</p>
           <NivaBadge tone="success">Hoy</NivaBadge>
         </div>
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
@@ -118,7 +118,7 @@ export function DashboardScreen() {
               Hay {formatCurrency(spendableToday)} libres para decidir y {formatCurrency(reservedBalance)} protegidos fuera del ruido diario.
             </p>
             <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--niva-color-inverse-muted)] sm:text-lg">
-              En los proximos dias aparecen {formatCurrency(upcomingExpenses)} programados. La lectura importante: tu reserva sigue separada y el margen de hoy permanece visible.
+              En los próximos días aparecen {formatCurrency(upcomingExpenses)} programados. La lectura importante: tu reserva sigue separada y el margen de hoy permanece visible.
             </p>
           </div>
           <div className="border-t border-[var(--niva-color-inverse-subtle)] pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
@@ -133,8 +133,8 @@ export function DashboardScreen() {
 
       <NivaContentGrid columns={3} className="border-y border-[var(--niva-color-border)] py-6">
         {[
-          { label: "Available", value: formatCurrency(spendableToday), helper: "Listo para hoy", tone: "text-[var(--niva-color-success)]" },
-          { label: "Reserved", value: formatCurrency(reservedBalance), helper: "Separado de decisiones diarias", tone: "text-[var(--niva-color-muted)]" },
+          { label: "Disponible", value: formatCurrency(spendableToday), helper: "Listo para hoy", tone: "text-[var(--niva-color-success)]" },
+          { label: "Reservado", value: formatCurrency(reservedBalance), helper: "Separado de decisiones diarias", tone: "text-[var(--niva-color-muted)]" },
           { label: "Total", value: formatCurrency(netWorth), helper: "Patrimonio neto actual", tone: "text-[var(--niva-color-foreground)]" },
         ].map((item) => (
           <div key={item.label} className="min-w-0">
@@ -148,7 +148,7 @@ export function DashboardScreen() {
       {nextScheduled ? (
         <section className="grid gap-5 lg:grid-cols-[12rem_minmax(0,1fr)] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Upcoming Commitment</p>
+            <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Próximo compromiso</p>
             <p className="mt-3 text-sm leading-6 text-[var(--niva-color-muted)]">Solo el siguiente evento.</p>
           </div>
           <NivaLayoutSurface className="px-5 py-5 sm:px-6">
@@ -177,8 +177,8 @@ export function DashboardScreen() {
         <div className="min-w-0">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Recent Activity</p>
-              <h2 className="mt-3 text-2xl font-semibold text-[var(--niva-color-foreground)]">Ultimos movimientos</h2>
+              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Actividad reciente</p>
+              <h2 className="mt-3 text-2xl font-semibold text-[var(--niva-color-foreground)]">Últimos movimientos</h2>
             </div>
             <Link
               href="/movements"
@@ -221,7 +221,7 @@ export function DashboardScreen() {
               <div className="flex h-10 w-10 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-surface)] text-[var(--niva-color-success)]">
                 <Flag className="h-5 w-5" />
               </div>
-              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Primary Goal</p>
+              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Meta principal</p>
             </div>
             {featuredGoal ? (
               <>
@@ -253,7 +253,7 @@ export function DashboardScreen() {
               <div className="flex h-10 w-10 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-muted-surface)] text-[var(--niva-color-info)]">
                 <Lightbulb className="h-5 w-5" />
               </div>
-              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Insight</p>
+              <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Lectura clave</p>
             </div>
             <h3 className="mt-5 text-xl font-semibold text-[var(--niva-color-foreground)]">Balance saludable</h3>
             <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">

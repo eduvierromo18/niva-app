@@ -4,23 +4,51 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 import { NivaMark, NivaWordmark } from "@/components/brand/niva-brand";
-import { appNavigation } from "@/lib/navigation";
 import { NivaAppShell, NivaLayoutSurface } from "@/design-system";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
+import { appNavigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 const sidebarGroupOrder = ["primary", "workspace", "support"];
 
-export function AppShell({ children }: { children: ReactNode }) {
+type AppShellProps = {
+  children: ReactNode;
+  user: {
+    name: string;
+    email: string;
+    currencyCode: string;
+    locale: string;
+  };
+};
+
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+export function AppShell({ children, user }: AppShellProps) {
+  const firstName = user.name.trim().split(/\s+/)[0] || "Usuario";
+  const initials = getInitials(user.name) || "N";
+
   return (
     <NivaAppShell
       navigation={appNavigation}
-      brand={{ name: "Niva", description: "Finanzas personales", mark: <NivaMark tone="dark" />, wordmark: <NivaWordmark inverse /> }}
-      user={{ name: "Luis Eduvier Romo", initials: "LR", href: "/settings" }}
+      brand={{
+        name: "Niva",
+        description: "Finanzas personales",
+        mark: <NivaMark tone="dark" />,
+        wordmark: <NivaWordmark inverse />,
+      }}
+      user={{ name: user.name, initials, href: "/settings" }}
       groupOrder={sidebarGroupOrder}
-      homeTitle="Hola Luis."
-      homeSubtitle="Asi esta tu dinero hoy."
-      searchPlaceholder="Buscar registros, cuentas o categorias..."
+      homeTitle={`Hola, ${firstName}.`}
+      homeSubtitle="Así está tu dinero hoy."
+      searchPlaceholder="Buscar registros, cuentas o categorías…"
       primaryAction={
         <Link
           href="/movements"
@@ -41,7 +69,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="h-2 w-2 rounded-[var(--niva-radius-full)] bg-[var(--niva-color-accent)]" />
             <p className="text-sm font-semibold text-[var(--niva-color-inverse-foreground)]">Todo al día</p>
           </div>
-          <p className="mt-2 text-xs leading-5 text-[var(--niva-color-inverse-muted)]">Una lectura clara, sin ruido.</p>
+          <p className="mt-2 text-xs leading-5 text-[var(--niva-color-inverse-muted)]">
+            {user.currencyCode} · {user.locale}
+          </p>
         </NivaLayoutSurface>
       }
     >

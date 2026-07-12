@@ -240,7 +240,7 @@ export function MovementsScreen() {
 
       <div className="grid gap-3 md:grid-cols-4">
         <NivaSelect label="Cuenta" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} options={[{ label: "Todas las cuentas", value: "" }, ...accounts.filter((item) => item.id).map((item) => ({ label: item.name, value: item.id! }))]} />
-        <NivaSelect label="Categoria" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} options={[{ label: "Todas las categorias", value: "" }, ...categories.map((item) => ({ label: item.name, value: item.id }))]} />
+        <NivaSelect label="Categoría" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} options={[{ label: "Todas las categorías", value: "" }, ...categories.map((item) => ({ label: item.name, value: item.id }))]} />
         <NivaInput label="Desde" type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
         <NivaInput label="Hasta" type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
       </div>
@@ -249,7 +249,7 @@ export function MovementsScreen() {
       <NivaSection aria-label="Activity timeline">
         {filteredMovements.length === 0 ? (
           <NivaEmptyState
-            title={isLoading ? "Cargando actividad" : "Aun no aparece actividad"}
+            title={isLoading ? "Cargando actividad" : "Aún no aparece actividad"}
             description={isLoading ? "Estamos consultando tus registros." : "Crea un registro o ajusta los filtros para ver tus movimientos."}
             actionLabel="Nuevo registro"
             icon={<ReceiptText className="h-8 w-8" />}

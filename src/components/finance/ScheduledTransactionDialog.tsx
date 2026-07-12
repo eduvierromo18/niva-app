@@ -127,7 +127,7 @@ export function ScheduledTransactionDialog({
           {type === "transfer" || type === "debt_payment" ? (
             <AccountSelect accounts={accounts} value={destinationAccount} onChange={setDestinationAccount} label="Cuenta destino" excludeValue={account} />
           ) : (
-            <Field label="Categoria">
+            <Field label="Categoría">
               <select className={inputClass} value={category} onChange={(event) => setCategory(event.target.value)}>
                 <option>Vivienda</option>
                 <option>Comida</option>
