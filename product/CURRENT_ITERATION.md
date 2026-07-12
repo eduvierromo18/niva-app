@@ -2,7 +2,7 @@
 
 ## Estado
 
-En ejecucion
+Completada
 
 ## Product Specs activos
 
@@ -29,3 +29,4 @@ Convertir la interfaz validada de Niva en un MVP financiero persistente: datos r
 - No se usan datos demo cuando Supabase esta configurado.
 - Lint, typecheck, pruebas y build pasan en CI.
 - Los flujos criticos se verifican en Preview antes de Production.
+

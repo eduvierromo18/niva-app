@@ -47,4 +47,4 @@ No usar "Patrimonio" como termino visible en Home. Cuando el usuario necesite na
 
 ## Estado
 
-UI implementada; integracion persistente incluida en v0.2.0.
+Completado en v0.2.0.

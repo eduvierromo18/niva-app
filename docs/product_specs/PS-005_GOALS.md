@@ -42,4 +42,4 @@ Cada modulo ofrece progreso comprensible, proximo paso y alertas sobrias antes d
 
 ## Estado
 
-En implementacion
+Completado en v0.2.0.

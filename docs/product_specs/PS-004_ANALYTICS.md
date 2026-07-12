@@ -41,4 +41,4 @@ Dashboard rapido, calmado y explicable, con rango temporal visible y enlaces al 
 
 ## Estado
 
-En implementacion
+Completado en v0.2.0.

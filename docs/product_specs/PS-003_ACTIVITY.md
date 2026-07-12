@@ -41,4 +41,4 @@ Registro rapido, timeline cronologico, filtros por periodo/tipo/cuenta/categoria
 
 ## Estado
 
-En implementacion
+Completado en v0.2.0.

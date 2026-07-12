@@ -10,6 +10,7 @@ Riesgo conocido: la informacion financiera aun no era persistente.
 
 ## v0.2.0 - Persistent MVP
 
-Estado: En desarrollo
+Estado: Lista para despliegue
 
 Incluira persistencia por usuario, vertical financiero completo, modulos diarios, pruebas automatizadas y despliegue verificable.
+

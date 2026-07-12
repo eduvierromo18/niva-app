@@ -41,4 +41,4 @@ El usuario puede crear, editar, archivar y consultar cuentas con feedback inmedi
 
 ## Estado
 
-En implementacion
+Completado en v0.2.0.
