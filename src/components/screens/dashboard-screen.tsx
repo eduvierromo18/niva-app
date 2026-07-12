@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CalendarClock, Flag, Lightbulb, Plus, ReceiptText, WalletCards } from "lucide-react";
 import { AccountDialog, type AccountFormValue } from "@/components/finance/account-dialog";
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
-import { goals, scheduledTransactions } from "@/lib/finance-data";
+import { usePlanningData } from "@/hooks/use-planning-data";
 import { useMovements } from "@/hooks/use-movements";
 import { useAccounts } from "@/hooks/use-accounts";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -50,6 +50,7 @@ export function DashboardScreen() {
   const [movementType, setMovementType] = useState("Gasto");
   const { accounts, categories, movements, saveMovement, reload } = useMovements();
   const { saveAccount } = useAccounts();
+  const { goals, scheduled: scheduledTransactions } = usePlanningData();
 
   const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
   const reservedBalance = accounts
@@ -258,5 +259,6 @@ export function DashboardScreen() {
     </div>
   );
 }
+
 
 

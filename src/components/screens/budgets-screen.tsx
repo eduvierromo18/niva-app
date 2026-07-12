@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
-import { budgets as initialBudgets } from "@/lib/finance-data";
+import { usePlanningData } from "@/hooks/use-planning-data";
 import { PageScaffold } from "@/components/finance/page-scaffold";
 import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
 import { BudgetProgress } from "@/components/finance/budget-progress";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export function BudgetsScreen() {
   const [open, setOpen] = useState(false);
-  const [budgets, setBudgets] = useState(initialBudgets);
+  const { budgets, error, isLoading, saveBudget, remove } = usePlanningData();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   function openNewBudget() {
@@ -19,15 +19,10 @@ export function BudgetsScreen() {
     setOpen(true);
   }
 
-  function addBudget(value: QuickCreateValue) {
-    setBudgets((current) => {
-      const nextBudget = { name: value.name, spent: value.current ?? 0, limit: value.amount, icon: initialBudgets[0].icon };
-      if (editingIndex !== null) {
-        return current.map((item, index) => (index === editingIndex ? { ...item, ...nextBudget } : item));
-      }
-      return [...current, nextBudget];
-    });
-    setEditingIndex(null);
+  async function addBudget(value: QuickCreateValue) {
+    const saved = await saveBudget(value, editingIndex !== null ? budgets[editingIndex] : undefined);
+    if (saved) setEditingIndex(null);
+    return saved;
   }
 
   return (
@@ -36,10 +31,12 @@ export function BudgetsScreen() {
       description="Controla limites por categoria y gasto real del mes."
       action={<Button onClick={openNewBudget}>Nuevo presupuesto</Button>}
     >
+      {error ? <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div> : null}
+      {isLoading ? <p className="text-sm text-slate-500">Cargando presupuestos...</p> : null}
       <div className="grid gap-4 xl:grid-cols-2">
         {budgets.map((budget, index) => {
           return (
-            <Card key={budget.name}>
+            <Card key={budget.id}>
               <CardContent>
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
@@ -63,7 +60,7 @@ export function BudgetsScreen() {
                         <Edit3 className="h-4 w-4" />
                         Editar
                       </Button>
-                      <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => setBudgets((current) => current.filter((_, itemIndex) => itemIndex !== index))}>
+                      <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => void remove("monthly_budgets", budget.id)}>
                         <Trash2 className="h-4 w-4" />
                         Eliminar
                       </Button>
@@ -98,3 +95,5 @@ export function BudgetsScreen() {
     </PageScaffold>
   );
 }
+
+

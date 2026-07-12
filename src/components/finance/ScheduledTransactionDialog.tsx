@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { AccountSelect } from "@/components/finance/AccountSelect";
 import { Button } from "@/components/ui/button";
 import { Dialog, Field, inputClass } from "@/components/ui/dialog";
-import { accounts as defaultAccounts } from "@/lib/finance-data";
+
 import type { FinanceAccount, ScheduledFrequency, ScheduledStatus, ScheduledTransaction, ScheduledTransactionType } from "@/lib/finance-types";
 
 const typeOptions: Array<{ value: ScheduledTransactionType; label: string }> = [
@@ -32,7 +32,7 @@ const statusOptions: Array<{ value: ScheduledStatus; label: string }> = [
 export function ScheduledTransactionDialog({
   open,
   initialValue,
-  accounts = defaultAccounts,
+  accounts = [],
   onClose,
   onSave,
 }: {
@@ -40,7 +40,7 @@ export function ScheduledTransactionDialog({
   initialValue?: ScheduledTransaction | null;
   accounts?: FinanceAccount[];
   onClose: () => void;
-  onSave: (value: ScheduledTransaction) => void;
+  onSave: (value: ScheduledTransaction) => Promise<boolean | void> | boolean | void;
 }) {
   const [type, setType] = useState<ScheduledTransactionType>("expense");
   const [name, setName] = useState("");
@@ -49,8 +49,8 @@ export function ScheduledTransactionDialog({
   const [destinationAccount, setDestinationAccount] = useState("Ahorro");
   const [category, setCategory] = useState("Vivienda");
   const [frequency, setFrequency] = useState<ScheduledFrequency>("monthly");
-  const [startDate, setStartDate] = useState("2026-06-27");
-  const [nextDueDate, setNextDueDate] = useState("2026-07-01");
+  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [nextDueDate, setNextDueDate] = useState(new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<ScheduledStatus>("active");
@@ -65,15 +65,15 @@ export function ScheduledTransactionDialog({
     setDestinationAccount(initialValue?.destinationAccount ?? "Ahorro");
     setCategory(initialValue?.category ?? "Vivienda");
     setFrequency(initialValue?.frequency ?? "monthly");
-    setStartDate(initialValue?.startDate ?? "2026-06-27");
-    setNextDueDate(initialValue?.nextDueDate ?? "2026-07-01");
+    setStartDate(initialValue?.startDate ?? new Date().toISOString().slice(0, 10));
+    setNextDueDate(initialValue?.nextDueDate ?? new Date().toISOString().slice(0, 10));
     setEndDate(initialValue?.endDate ?? "");
     setNotes(initialValue?.notes ?? "");
     setStatus(initialValue?.status ?? "active");
     setError("");
   }, [initialValue, open]);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!name.trim()) return;
     if ((type === "transfer" || type === "debt_payment") && account === destinationAccount) {
@@ -81,7 +81,7 @@ export function ScheduledTransactionDialog({
       return;
     }
 
-    onSave({
+    const saved = await onSave({
       id: initialValue?.id ?? crypto.randomUUID(),
       name: name.trim(),
       type,
@@ -97,6 +97,7 @@ export function ScheduledTransactionDialog({
       notes: notes.trim() || undefined,
       autoCreate: initialValue?.autoCreate ?? false,
     });
+    if (saved === false) return;
     onClose();
   }
 
@@ -173,3 +174,4 @@ export function ScheduledTransactionDialog({
     </Dialog>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export function QuickCreateDialog({
   extraAmountLabel?: string;
   initialValue?: QuickCreateValue | null;
   onClose: () => void;
-  onSave: (value: QuickCreateValue) => void;
+  onSave: (value: QuickCreateValue) => Promise<boolean | void> | boolean | void;
 }) {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -59,10 +59,10 @@ export function QuickCreateDialog({
     setExtraAmount(initialValue?.extraAmount !== undefined ? String(initialValue.extraAmount) : "");
   }, [initialValue, open]);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!name.trim()) return;
-    onSave({
+    const saved = await onSave({
       name: name.trim(),
       amount: Number(amount) || 0,
       secondary,
@@ -70,6 +70,7 @@ export function QuickCreateDialog({
       extra,
       extraAmount: Number(extraAmount) || 0,
     });
+    if (saved === false) return;
     setName("");
     setAmount("");
     setSecondary("");
@@ -116,3 +117,4 @@ export function QuickCreateDialog({
     </Dialog>
   );
 }
+

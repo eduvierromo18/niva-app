@@ -677,7 +677,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      confirm_scheduled_transaction: {
+        Args: { p_scheduled_id: string }
+        Returns: string
+      }
     }
     Enums: {
       account_type:

@@ -5,7 +5,7 @@ import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Pencil, Plus, ReceiptText,
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
 import { useMovements } from "@/hooks/use-movements";
 import { cn, formatCurrency } from "@/lib/utils";
-import { NivaAlert, NivaButton, NivaEmptyState, NivaIconButton, NivaLayoutSurface, NivaSearch, NivaSection } from "@/design-system";
+import { NivaAlert, NivaButton, NivaEmptyState, NivaIconButton, NivaInput, NivaLayoutSurface, NivaSearch, NivaSection, NivaSelect } from "@/design-system";
 
 const filters = ["Todos", "Gastos", "Ingresos", "Transferencias"];
 const timelineGroups = [
@@ -149,19 +149,27 @@ export function MovementsScreen() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("Todos");
+  const [accountFilter, setAccountFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const filteredMovements = useMemo(() => {
     return movements.filter((movement) => {
       const query = search.trim().toLowerCase();
       const matchesType = movementMatchesFilter(movement.type, typeFilter);
+      const movementDate = movement.occurredOn ?? movement.date;
+      const matchesAccount = !accountFilter || movement.accountId === accountFilter || movement.destinationAccountId === accountFilter;
+      const matchesCategory = !categoryFilter || movement.categoryId === categoryFilter;
+      const matchesDate = (!dateFrom || movementDate >= dateFrom) && (!dateTo || movementDate <= dateTo);
       const matchesSearch =
         !query ||
         [movement.description, movement.account, movement.destinationAccount, movement.category, movement.merchant]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(query));
-      return matchesType && matchesSearch;
+      return matchesType && matchesSearch && matchesAccount && matchesCategory && matchesDate;
     });
-  }, [movements, search, typeFilter]);
+  }, [accountFilter, categoryFilter, dateFrom, dateTo, movements, search, typeFilter]);
 
   const groupedMovements = useMemo(() => {
     return filteredMovements.reduce<Record<TimelineGroupKey, typeof filteredMovements>>(
@@ -230,6 +238,12 @@ export function MovementsScreen() {
         </div>
       </NivaLayoutSurface>
 
+      <div className="grid gap-3 md:grid-cols-4">
+        <NivaSelect label="Cuenta" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} options={[{ label: "Todas las cuentas", value: "" }, ...accounts.filter((item) => item.id).map((item) => ({ label: item.name, value: item.id! }))]} />
+        <NivaSelect label="Categoria" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} options={[{ label: "Todas las categorias", value: "" }, ...categories.map((item) => ({ label: item.name, value: item.id }))]} />
+        <NivaInput label="Desde" type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+        <NivaInput label="Hasta" type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+      </div>
       {error ? <NivaAlert tone="danger" title={error} /> : null}
 
       <NivaSection aria-label="Activity timeline">
@@ -337,5 +351,7 @@ export function MovementsScreen() {
     </div>
   );
 }
+
+
 
 

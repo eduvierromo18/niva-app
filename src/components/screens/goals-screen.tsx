@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
-import { goals as initialGoals } from "@/lib/finance-data";
+import { usePlanningData } from "@/hooks/use-planning-data";
 import { PageScaffold } from "@/components/finance/page-scaffold";
 import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
 import { GoalProgress } from "@/components/finance/goal-progress";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export function GoalsScreen() {
   const [open, setOpen] = useState(false);
-  const [goals, setGoals] = useState(initialGoals);
+  const { goals, error, isLoading, saveGoal, remove } = usePlanningData();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   function openNewGoal() {
@@ -19,15 +19,10 @@ export function GoalsScreen() {
     setOpen(true);
   }
 
-  function addGoal(value: QuickCreateValue) {
-    setGoals((current) => {
-      const nextGoal = { name: value.name, current: value.current ?? 0, target: value.amount, date: value.secondary || "Sin fecha" };
-      if (editingIndex !== null) {
-        return current.map((item, index) => (index === editingIndex ? nextGoal : item));
-      }
-      return [...current, nextGoal];
-    });
-    setEditingIndex(null);
+  async function addGoal(value: QuickCreateValue) {
+    const saved = await saveGoal(value, editingIndex !== null ? goals[editingIndex] : undefined);
+    if (saved) setEditingIndex(null);
+    return saved;
   }
 
   return (
@@ -36,10 +31,12 @@ export function GoalsScreen() {
       description="Planea objetivos, fechas limite y progreso acumulado."
       action={<Button onClick={openNewGoal}>Nueva meta</Button>}
     >
+      {error ? <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div> : null}
+      {isLoading ? <p className="text-sm text-slate-500">Cargando metas...</p> : null}
       <div className="grid gap-4 xl:grid-cols-3">
         {goals.map((goal, index) => {
           return (
-            <Card key={goal.name}>
+            <Card key={goal.id}>
               <CardContent>
                 <p className="text-sm font-semibold text-slate-500">Objetivo: {goal.date}</p>
                 <h3 className="mt-2 text-lg font-bold">{goal.name}</h3>
@@ -49,7 +46,7 @@ export function GoalsScreen() {
                     <Edit3 className="h-4 w-4" />
                     Editar
                   </Button>
-                  <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => setGoals((current) => current.filter((_, itemIndex) => itemIndex !== index))}>
+                  <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => void remove("savings_goals", goal.id)}>
                     <Trash2 className="h-4 w-4" />
                     Eliminar
                   </Button>
@@ -82,3 +79,5 @@ export function GoalsScreen() {
     </PageScaffold>
   );
 }
+
+

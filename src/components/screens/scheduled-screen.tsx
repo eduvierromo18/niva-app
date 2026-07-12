@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { ArrowRightLeft, BellRing, CalendarClock, CheckCircle2, CreditCard, Pause, Play, Plus, ReceiptText, RefreshCw, Trash2 } from "lucide-react";
 import { ScheduledTransactionDialog } from "@/components/finance/ScheduledTransactionDialog";
-import { accounts, scheduledTransactions as initialScheduled } from "@/lib/finance-data";
-import type { FinanceMovement, ScheduledFrequency, ScheduledTransaction, ScheduledTransactionType } from "@/lib/finance-types";
+import { usePlanningData } from "@/hooks/use-planning-data";
+import type { FinanceAccount, FinanceMovement, ScheduledFrequency, ScheduledTransaction, ScheduledTransactionType } from "@/lib/finance-types";
 import { AuroraBadge, AuroraBankLogo, AuroraButton, AuroraCard, AuroraEmptyState, AuroraSection } from "@/components/aurora";
 import { cn, formatCurrency } from "@/lib/utils";
 
@@ -13,7 +13,7 @@ const typeLabel: Record<ScheduledTransactionType, string> = {
   income: "Ingreso recurrente",
   transfer: "Transferencia",
   debt_payment: "Pago de deuda",
-  subscription: "Suscripción",
+  subscription: "SuscripciÃ³n",
 };
 
 const frequencyLabel: Record<ScheduledFrequency, string> = {
@@ -24,30 +24,24 @@ const frequencyLabel: Record<ScheduledFrequency, string> = {
   custom: "Personalizada",
 };
 
-function addFrequency(date: string, frequency: ScheduledFrequency) {
-  const next = new Date(`${date}T00:00:00`);
-  if (frequency === "weekly") next.setDate(next.getDate() + 7);
-  if (frequency === "biweekly") next.setDate(next.getDate() + 14);
-  if (frequency === "monthly" || frequency === "custom") next.setMonth(next.getMonth() + 1);
-  if (frequency === "yearly") next.setFullYear(next.getFullYear() + 1);
-  return next.toISOString().slice(0, 10);
-}
+
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T00:00:00`));
 }
 
 function daysUntil(date: string) {
-  const today = new Date("2026-06-27T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const due = new Date(`${date}T00:00:00`);
   return Math.ceil((due.getTime() - today.getTime()) / 86400000);
 }
 
 function formatDueText(days: number) {
-  if (days < 0) return `Vencido hace ${Math.abs(days)} días`;
+  if (days < 0) return `Vencido hace ${Math.abs(days)} dÃ­as`;
   if (days === 0) return "Vence hoy";
-  if (days === 1) return "Vence mañana";
-  return `Vence en ${days} días`;
+  if (days === 1) return "Vence maÃ±ana";
+  return `Vence en ${days} dÃ­as`;
 }
 
 function scheduledIcon(type: ScheduledTransactionType) {
@@ -89,12 +83,14 @@ function movementFromScheduled(item: ScheduledTransaction): FinanceMovement {
 
 function ScheduledItem({
   item,
+  accounts,
   onPaid,
   onEdit,
   onToggle,
   onDelete,
 }: {
   item: ScheduledTransaction;
+  accounts: FinanceAccount[];
   onPaid: () => void;
   onEdit: () => void;
   onToggle: () => void;
@@ -159,7 +155,7 @@ function ScheduledItem({
 }
 
 export function ScheduledScreen() {
-  const [scheduled, setScheduled] = useState(initialScheduled);
+  const { scheduled, accounts, error, saveScheduled: persistScheduled, toggleScheduled, confirmScheduled, remove } = usePlanningData();
   const [movementsCreated, setMovementsCreated] = useState<FinanceMovement[]>([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -168,7 +164,7 @@ export function ScheduledScreen() {
   const sections = useMemo(() => {
     const active = scheduled.filter((item) => item.status === "active").sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate));
     return [
-      { title: "Próximos", rows: active.slice(0, 5) },
+      { title: "PrÃ³ximos", rows: active.slice(0, 5) },
       { title: "Gastos fijos", rows: scheduled.filter((item) => item.type === "expense" && item.status === "active") },
       { title: "Ingresos recurrentes", rows: scheduled.filter((item) => item.type === "income" && item.status === "active") },
       { title: "Suscripciones", rows: scheduled.filter((item) => item.type === "subscription" && item.status === "active") },
@@ -176,14 +172,15 @@ export function ScheduledScreen() {
     ];
   }, [scheduled]);
 
-  function saveScheduled(value: ScheduledTransaction) {
-    setScheduled((current) => current.some((item) => item.id === value.id) ? current.map((item) => item.id === value.id ? value : item) : [value, ...current]);
-    setEditingId(null);
+  async function saveScheduled(value: ScheduledTransaction) {
+    const saved = await persistScheduled(value);
+    if (saved) setEditingId(null);
+    return saved;
   }
 
-  function markPaid(item: ScheduledTransaction) {
-    setMovementsCreated((current) => [movementFromScheduled(item), ...current]);
-    setScheduled((current) => current.map((entry) => entry.id === item.id ? { ...entry, nextDueDate: addFrequency(entry.nextDueDate, entry.frequency) } : entry));
+  async function markPaid(item: ScheduledTransaction) {
+    const saved = await confirmScheduled(item.id);
+    if (saved) setMovementsCreated((current) => [movementFromScheduled(item), ...current]);
   }
 
   return (
@@ -198,6 +195,8 @@ export function ScheduledScreen() {
           </AuroraButton>
         }
       />
+
+      {error ? <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div> : null}
 
       <AuroraCard className="rounded-[20px] p-5">
         <div className="grid gap-4 md:grid-cols-[1fr_240px] md:items-center">
@@ -227,17 +226,18 @@ export function ScheduledScreen() {
                 <ScheduledItem
                   key={item.id}
                   item={item}
+                  accounts={accounts}
                   onPaid={() => markPaid(item)}
                   onEdit={() => { setEditingId(item.id); setOpen(true); }}
-                  onToggle={() => setScheduled((current) => current.map((entry) => entry.id === item.id ? { ...entry, status: entry.status === "paused" ? "active" : "paused" } : entry))}
-                  onDelete={() => setScheduled((current) => current.filter((entry) => entry.id !== item.id))}
+                  onToggle={() => void toggleScheduled(item)}
+                  onDelete={() => void remove("scheduled_transactions", item.id)}
                 />
               ))}
             </div>
           ) : (
             <AuroraEmptyState
-              title="Sin pagos en esta sección"
-              description="Cuando haya programados que coincidan, aparecerán aquí."
+              title="Sin pagos en esta secciÃ³n"
+              description="Cuando haya programados que coincidan, aparecerÃ¡n aquÃ­."
               icon={<CalendarClock className="h-8 w-8" />}
               className="border-dashed bg-[#F9FAFB] shadow-none"
             />
@@ -271,3 +271,6 @@ export function ScheduledScreen() {
     </div>
   );
 }
+
+
+

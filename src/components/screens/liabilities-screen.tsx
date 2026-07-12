@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
-import { liabilities as initialLiabilities } from "@/lib/finance-data";
+import { usePlanningData } from "@/hooks/use-planning-data";
 import { formatCurrency } from "@/lib/utils";
 import { PageScaffold } from "@/components/finance/page-scaffold";
 import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 
 export function LiabilitiesScreen() {
   const [open, setOpen] = useState(false);
-  const [liabilities, setLiabilities] = useState(initialLiabilities);
+  const { liabilities, error, isLoading, saveLiability, remove } = usePlanningData();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   function openNewLiability() {
@@ -20,23 +20,10 @@ export function LiabilitiesScreen() {
     setOpen(true);
   }
 
-  function addLiability(value: QuickCreateValue) {
-    setLiabilities((current) => {
-      const nextLiability = {
-        name: value.name,
-        balance: value.amount,
-        limit: value.extraAmount || value.amount,
-        closing: value.secondary || "Pendiente",
-        due: value.extra || "Pendiente",
-        icon: initialLiabilities[0].icon,
-      };
-
-      if (editingIndex !== null) {
-        return current.map((item, index) => (index === editingIndex ? { ...item, ...nextLiability } : item));
-      }
-      return [...current, nextLiability];
-    });
-    setEditingIndex(null);
+  async function addLiability(value: QuickCreateValue) {
+    const saved = await saveLiability(value, editingIndex !== null ? liabilities[editingIndex] : undefined);
+    if (saved) setEditingIndex(null);
+    return saved;
   }
 
   return (
@@ -45,11 +32,13 @@ export function LiabilitiesScreen() {
       description="Controla tarjetas, prestamos, fechas de corte y pago."
       action={<Button onClick={openNewLiability}>Nueva deuda</Button>}
     >
+      {error ? <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div> : null}
+      {isLoading ? <p className="text-sm text-slate-500">Cargando deudas...</p> : null}
       <div className="grid gap-4 xl:grid-cols-2">
         {liabilities.map((item, index) => {
           const percent = item.limit > 0 ? (item.balance / item.limit) * 100 : 0;
           return (
-            <Card key={item.name}>
+            <Card key={item.id}>
               <CardContent>
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
@@ -70,7 +59,7 @@ export function LiabilitiesScreen() {
                         <Edit3 className="h-4 w-4" />
                         Editar
                       </Button>
-                      <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => setLiabilities((current) => current.filter((_, itemIndex) => itemIndex !== index))}>
+                      <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => void remove("liabilities", item.id)}>
                         <Trash2 className="h-4 w-4" />
                         Eliminar
                       </Button>
@@ -108,3 +97,5 @@ export function LiabilitiesScreen() {
     </PageScaffold>
   );
 }
+
+
