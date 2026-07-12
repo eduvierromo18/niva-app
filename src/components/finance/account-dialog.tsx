@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useId, useState } from "react";
 import { defaultBankOptions, findBank } from "@/config/banks";
@@ -56,7 +56,7 @@ export function AccountDialog({
     const nextErrors: AccountDialogErrors = {};
 
     if (!name.trim()) nextErrors.name = "El nombre de la cuenta es obligatorio.";
-    if (!Number.isFinite(parsedBalance)) nextErrors.balance = "Ingresa un saldo vÃ¡lido.";
+    if (!Number.isFinite(parsedBalance)) nextErrors.balance = "Ingresa un saldo válido.";
     if (isCustomBank && !bankCustomName.trim()) nextErrors.bankCustomName = "Ingresa el nombre del banco.";
 
     setErrors(nextErrors);
@@ -158,4 +158,3 @@ export function AccountDialog({
     </NivaModal>
   );
 }
-

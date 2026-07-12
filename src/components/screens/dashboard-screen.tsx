@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -107,7 +107,7 @@ export function DashboardScreen() {
         </div>
       </NivaSection>
 
-      <NivaLayoutSurface className="rounded-[28px] border-0 bg-[var(--niva-color-inverse-surface)] px-6 py-8 text-[var(--niva-color-inverse-foreground)] shadow-[var(--niva-shadow-xl)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+      <NivaLayoutSurface className="rounded-[var(--niva-radius-3xl)] border-0 bg-[var(--niva-color-inverse-surface)] px-6 py-8 text-[var(--niva-color-inverse-foreground)] shadow-[var(--niva-shadow-xl)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-xs font-bold uppercase text-[var(--niva-color-inverse-muted)]">Daily Brief</p>
           <NivaBadge tone="success">Hoy</NivaBadge>

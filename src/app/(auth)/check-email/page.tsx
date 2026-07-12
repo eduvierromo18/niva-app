@@ -3,6 +3,7 @@ import { MailCheck } from "lucide-react";
 import { resendConfirmation } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { NivaBrandLockup } from "@/components/brand/niva-brand";
 
 export default async function CheckEmailPage({
   searchParams,
@@ -13,31 +14,32 @@ export default async function CheckEmailPage({
   const email = params.email ?? "";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--niva-color-background)] p-4">
       <Card className="w-full max-w-md">
         <CardContent className="p-6 text-center sm:p-8">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+          <NivaBrandLockup className="mx-auto mb-7 justify-center" />
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-accent-surface)] text-[var(--niva-color-accent)]">
             <MailCheck className="h-7 w-7" />
           </div>
-          <h1 className="text-xl font-bold text-slate-950 dark:text-zinc-50">Revisa tu correo</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Creamos tu usuario y enviamos un enlace de confirmacion a:
+          <h1 className="text-xl font-bold text-[var(--niva-color-foreground)]">Revisa tu correo</h1>
+          <p className="mt-2 text-sm text-[var(--niva-color-muted)]">
+            Creamos tu usuario y enviamos un enlace de confirmación a:
           </p>
-          <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 font-mono text-sm font-semibold text-slate-800">
+          <p className="mt-3 rounded-[var(--niva-radius-md)] bg-[var(--niva-color-muted-surface)] px-3 py-2 font-mono text-sm font-semibold text-[var(--niva-color-body)]">
             {email || "tu correo"}
           </p>
 
           {params.error ? (
-            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-800">
+            <div className="mt-4 rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-3 text-left text-sm text-[var(--niva-color-foreground)]">
               {params.error.includes("For security purposes")
-                ? "Supabase limito los reenvios por seguridad. Espera alrededor de 1 minuto antes de intentarlo de nuevo."
+                ? "Supabase limitó los reenvíos por seguridad. Espera alrededor de 1 minuto antes de intentarlo de nuevo."
                 : params.error}
             </div>
           ) : null}
 
           {params.sent ? (
-            <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-              Enviamos otro correo de confirmacion.
+            <div className="mt-4 rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-accent-surface)] p-3 text-sm text-[var(--niva-color-accent)]">
+              Enviamos otro correo de confirmación.
             </div>
           ) : null}
 
@@ -45,16 +47,15 @@ export default async function CheckEmailPage({
             <form action={resendConfirmation}>
               <input type="hidden" name="email" value={email} />
               <Button className="w-full" type="submit" disabled={!email}>
-                Reenviar confirmacion
+                Reenviar confirmación
               </Button>
             </form>
-            <Button variant="secondary" className="w-full" type="button">
-              <Link href="/login">Ya confirme, ir a login</Link>
-            </Button>
+            <Link href="/login" className="inline-flex h-10 w-full items-center justify-center rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] px-5 text-sm font-semibold text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-xs)] transition hover:bg-[var(--niva-color-muted-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--niva-color-focus)] focus-visible:ring-offset-2">
+              Ya confirmé, ir a iniciar sesión
+            </Link>
           </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }
-

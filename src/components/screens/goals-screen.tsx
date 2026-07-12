@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
@@ -31,14 +31,14 @@ export function GoalsScreen() {
       description="Planea objetivos, fechas limite y progreso acumulado."
       action={<Button onClick={openNewGoal}>Nueva meta</Button>}
     >
-      {error ? <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div> : null}
-      {isLoading ? <p className="text-sm text-slate-500">Cargando metas...</p> : null}
+      {error ? <div className="mb-4 rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-4 text-sm text-[var(--niva-color-danger)]">{error}</div> : null}
+      {isLoading ? <p className="text-sm text-[var(--niva-color-muted)]">Cargando metas...</p> : null}
       <div className="grid gap-4 xl:grid-cols-3">
         {goals.map((goal, index) => {
           return (
             <Card key={goal.id}>
               <CardContent>
-                <p className="text-sm font-semibold text-slate-500">Objetivo: {goal.date}</p>
+                <p className="text-sm font-semibold text-[var(--niva-color-muted)]">Objetivo: {goal.date}</p>
                 <h3 className="mt-2 text-lg font-bold">{goal.name}</h3>
                 <GoalProgress current={goal.current} target={goal.target} />
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -46,7 +46,7 @@ export function GoalsScreen() {
                     <Edit3 className="h-4 w-4" />
                     Editar
                   </Button>
-                  <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => void remove("savings_goals", goal.id)}>
+                  <Button type="button" variant="ghost" className="h-9 px-3 text-[var(--niva-color-danger)]" onClick={() => void remove("savings_goals", goal.id)}>
                     <Trash2 className="h-4 w-4" />
                     Eliminar
                   </Button>
@@ -79,5 +79,3 @@ export function GoalsScreen() {
     </PageScaffold>
   );
 }
-
-

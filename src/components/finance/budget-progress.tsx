@@ -34,13 +34,13 @@ export function BudgetProgress({
   return (
     <div className={cn("space-y-2", className)}>
       <div className={cn("flex items-center justify-between gap-3 text-sm", headerClassName)}>
-        <Label className={cn("font-bold text-slate-950 dark:text-zinc-50", nameClassName)}>{name}</Label>
-        <span className={cn(isHigh ? "font-bold text-amber-700 dark:text-amber-400" : "font-semibold text-slate-500", percentClassName)}>
+        <Label className={cn("font-bold text-[var(--niva-color-foreground)]", nameClassName)}>{name}</Label>
+        <span className={cn(isHigh ? "font-bold text-[var(--niva-color-muted)]" : "font-semibold text-[var(--niva-color-muted)]", percentClassName)}>
           {percent.toFixed(percentDecimals)}%
         </span>
       </div>
       <Progress value={percent} className={progressClassName} />
-      <p className={cn("text-xs text-slate-500 dark:text-zinc-400", summaryClassName)}>
+      <p className={cn("text-xs text-[var(--niva-color-muted)]", summaryClassName)}>
         <CurrencyAmount value={spent} /> de <CurrencyAmount value={limit} />
       </p>
     </div>

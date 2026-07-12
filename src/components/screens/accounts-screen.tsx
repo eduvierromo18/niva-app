@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { CircleDollarSign, MoreHorizontal, Plus, WalletCards } from "lucide-react";
@@ -31,13 +31,13 @@ function typeLabel(type: string) {
   if (type === "Banco") return "Cuenta";
   if (type === "Tarjeta") return "Tarjeta";
   if (type === "Efectivo") return "Efectivo";
-  if (type === "Inversion") return "InversiÃ³n";
+  if (type === "Inversion") return "Inversión";
   return type;
 }
 
 function lastActivityText(lastMovement?: FinanceMovement | null) {
   if (!lastMovement) return "Sin actividad reciente";
-  return `${lastMovement.description} Â· ${lastMovement.date}`;
+  return `${lastMovement.description} · ${lastMovement.date}`;
 }
 
 function AccountsLoadingState() {
@@ -122,7 +122,7 @@ export function AccountsScreen() {
       <div className="mx-auto max-w-6xl space-y-10">
         <NivaSection
           eyebrow="Cuentas"
-          title="DÃ³nde estÃ¡ mi dinero"
+          title="Dónde está mi dinero"
           description="Una lectura simple de tus cuentas activas, separada por dinero disponible, impacto de tarjetas y espacios de ahorro."
           action={<NivaButton type="button" iconLeft={<Plus className="h-4 w-4" />} onClick={openNewAccount} className="hidden sm:inline-flex">Agregar cuenta</NivaButton>}
           className="[&_h2]:text-[clamp(2rem,5vw,4.5rem)] [&_h2]:font-semibold [&_h2]:leading-[0.98] [&_p:first-child]:text-[var(--niva-account-positive)] [&_p:first-child]:tracking-[0.16em] [&_p:not(:first-child)]:text-[var(--niva-account-muted)]"
@@ -143,7 +143,7 @@ export function AccountsScreen() {
                       {formatCurrency(totalMoney)}
                     </p>
                     <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--niva-account-muted)]">
-                      {lowBalanceCount > 0 ? "Hay cuentas por revisar, pero la distribuciÃ³n principal estÃ¡ visible." : "Todo listo: tus cuentas activas estÃ¡n organizadas abajo."}
+                      {lowBalanceCount > 0 ? "Hay cuentas por revisar, pero la distribución principal está visible." : "Todo listo: tus cuentas activas están organizadas abajo."}
                     </p>
                     <NivaLayoutSurface className="mt-5 rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-subtle)] p-4 shadow-none lg:hidden">
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Disponible</p>
@@ -163,7 +163,7 @@ export function AccountsScreen() {
                   <p className="mt-2 text-3xl font-semibold text-[var(--niva-account-positive)]">{formatCurrency(availableMoney)}</p>
                 </NivaLayoutSurface>
                 <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Ahorro / inversiÃ³n</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--niva-account-muted)]">Ahorro / inversión</p>
                   <p className="mt-2 text-2xl font-semibold text-[var(--niva-account-foreground)]">{formatCurrency(reservedMoney)}</p>
                 </NivaLayoutSurface>
                 <NivaLayoutSurface className="rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] p-5 shadow-none">
@@ -173,7 +173,7 @@ export function AccountsScreen() {
               </div>
             </section>
 
-            <NivaSection title="DistribuciÃ³n" description="DÃ³nde vive el dinero, sin instituciones vacÃ­as ocupando espacio." className="[&_h2]:text-[var(--niva-account-foreground)] [&_p]:text-[var(--niva-account-muted)]">
+            <NivaSection title="Distribución" description="Dónde vive el dinero, sin instituciones vacías ocupando espacio." className="[&_h2]:text-[var(--niva-account-foreground)] [&_p]:text-[var(--niva-account-muted)]">
               <NivaLayoutSurface className="divide-y divide-[var(--niva-account-border)] rounded-[var(--niva-radius-lg)] border-[var(--niva-account-border)] bg-[var(--niva-account-surface)] shadow-none">
                 {moneyDistribution.map((item) => {
                   const Icon = item.icon;
@@ -195,12 +195,12 @@ export function AccountsScreen() {
               </NivaLayoutSurface>
             </NivaSection>
 
-            <NivaSection title="Cuentas activas" description="Agrupadas por instituciÃ³n o tipo. Solo aparecen espacios con cuentas." className="[&_h2]:text-[var(--niva-account-foreground)] [&_p]:text-[var(--niva-account-muted)]">
+            <NivaSection title="Cuentas activas" description="Agrupadas por institución o tipo. Solo aparecen espacios con cuentas." className="[&_h2]:text-[var(--niva-account-foreground)] [&_p]:text-[var(--niva-account-muted)]">
               <div className="space-y-5">
                 {activeInstitutionGroups.length === 0 ? (
                   <NivaEmptyState
-                    title="AÃºn no hay cuentas"
-                    description="Agrega una cuenta para ver tu dinero organizado por instituciÃ³n."
+                    title="Aún no hay cuentas"
+                    description="Agrega una cuenta para ver tu dinero organizado por institución."
                     actionLabel="Agregar cuenta"
                     icon={<WalletCards className="h-8 w-8" />}
                     onAction={openNewAccount}
@@ -250,8 +250,8 @@ export function AccountsScreen() {
                               </div>
                               <div className="min-w-0">
                                 <h4 className="truncate text-base font-semibold text-[var(--niva-account-foreground)]">{account.name}</h4>
-                                <p className="mt-1 text-sm text-[var(--niva-account-muted)]">{typeLabel(account.type)} Â· {account.alias ?? group.displayName}</p>
-                                <p className="mt-2 text-xs leading-5 text-[var(--niva-account-muted)]">Ãšltima actividad: {lastActivityText(lastMovement)}</p>
+                                <p className="mt-1 text-sm text-[var(--niva-account-muted)]">{typeLabel(account.type)} · {account.alias ?? group.displayName}</p>
+                                <p className="mt-2 text-xs leading-5 text-[var(--niva-account-muted)]">Última actividad: {lastActivityText(lastMovement)}</p>
                               </div>
                             </div>
 
@@ -341,7 +341,7 @@ export function AccountsScreen() {
         <NivaModal
           open={Boolean(pendingDelete)}
           title="Eliminar cuenta"
-          description={pendingDelete ? `Vas a eliminar ${pendingDelete.account.name}. Esta acciÃ³n no se puede deshacer.` : undefined}
+          description={pendingDelete ? `Vas a eliminar ${pendingDelete.account.name}. Esta acción no se puede deshacer.` : undefined}
           onClose={() => setPendingDelete(null)}
           footer={
             <div className="mt-6 flex justify-end gap-3">
@@ -360,6 +360,3 @@ export function AccountsScreen() {
     </div>
   );
 }
-
-
-

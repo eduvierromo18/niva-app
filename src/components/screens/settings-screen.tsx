@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useMemo, useState } from "react";
 import { Copy, KeyRound, RefreshCw, ShieldCheck, UserPlus } from "lucide-react";
@@ -95,12 +95,12 @@ export function SettingsScreen() {
         </CardHeader>
         <CardContent>
           <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-950 text-xl font-bold text-white dark:bg-zinc-100 dark:text-zinc-950">
+            <div className="flex h-16 w-16 items-center justify-center rounded-[var(--niva-radius-xl)] bg-[var(--niva-color-inverse-surface)] text-xl font-bold text-white">
               {initials}
             </div>
             <div>
               <p className="text-lg font-bold">{fullName}</p>
-              <p className="text-sm text-slate-500">{email}</p>
+              <p className="text-sm text-[var(--niva-color-muted)]">{email}</p>
             </div>
           </div>
           <form
@@ -123,7 +123,7 @@ export function SettingsScreen() {
                 <option>EUR</option>
               </select>
             </Field>
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+            <div className="rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-accent-surface)] p-4 text-sm text-[var(--niva-color-foreground)]">
               <div className="mb-1 flex items-center gap-2 font-bold">
                 <ShieldCheck className="h-4 w-4" />
                 Preparado para Supabase Auth
@@ -131,7 +131,7 @@ export function SettingsScreen() {
               Por ahora esto guarda la experiencia en pantalla. El siguiente paso es conectar estos datos con `profiles` y Auth.
             </div>
             {saveMessage ? (
-              <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+              <div className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-accent-surface)] p-3 text-sm font-semibold text-[var(--niva-color-accent)]">
                 {saveMessage}
               </div>
             ) : null}
@@ -164,7 +164,7 @@ export function SettingsScreen() {
               </Field>
             </div>
             {createError ? (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              <div className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-3 text-sm text-[var(--niva-color-foreground)]">
                 {createError}
               </div>
             ) : null}
@@ -176,21 +176,21 @@ export function SettingsScreen() {
 
           <div className="mt-6 space-y-3">
             {credentials.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-zinc-800">
+              <div className="rounded-[var(--niva-radius-lg)] border border-dashed border-[var(--niva-color-border)] p-6 text-center text-sm text-[var(--niva-color-muted)]">
                 Aun no has generado credenciales.
               </div>
             ) : (
               credentials.map((credential) => (
-                <div key={credential.id} className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800">
+                <div key={credential.id} className="rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-bold">{credential.name}</p>
                         <Badge>{credential.role}</Badge>
                       </div>
-                      <p className="mt-2 text-sm text-slate-500">Usuario</p>
+                      <p className="mt-2 text-sm text-[var(--niva-color-muted)]">Usuario</p>
                       <p className="font-mono text-sm font-bold">{credential.username}</p>
-                      <p className="mt-2 text-sm text-slate-500">Contrasena temporal</p>
+                      <p className="mt-2 text-sm text-[var(--niva-color-muted)]">Contrasena temporal</p>
                       <p className="font-mono text-sm font-bold">{credential.password}</p>
                     </div>
                     <div className="flex gap-2">
@@ -212,7 +212,7 @@ export function SettingsScreen() {
               ))
             )}
           </div>
-          <div className="mt-5 flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-zinc-900 dark:text-zinc-300">
+          <div className="mt-5 flex items-start gap-3 rounded-[var(--niva-radius-lg)] bg-[var(--niva-color-muted-surface)] p-4 text-sm text-[var(--niva-color-muted)]">
             <KeyRound className="mt-0.5 h-4 w-4 shrink-0" />
             Las invitaciones permanecen deshabilitadas hasta implementar roles verificables, enlaces de activacion y auditoria.
           </div>
@@ -221,5 +221,3 @@ export function SettingsScreen() {
     </div>
   );
 }
-
-

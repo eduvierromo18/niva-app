@@ -104,7 +104,7 @@ export function NivaModal({
         <NivaIconButton icon={<X className="h-4 w-4" />} label="Cerrar" variant="ghost" size="sm" onClick={onClose} />
       </div>
       <div className="mt-5 space-y-4">{children}</div>
-      {footer ?? (
+      {footer !== undefined ? footer : (
         <div className="mt-6 flex justify-end gap-3">
           <NivaButton variant="secondary" size="sm" onClick={onSecondaryAction ?? onClose}>
             {secondaryAction}

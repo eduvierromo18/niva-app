@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
@@ -40,7 +40,7 @@ export function NivaSidebar({ brand, items, activeHref, groupOrder = ["primary",
   return (
     <aside
       className={cn(
-        "flex h-full min-h-[520px] w-full max-w-64 flex-col rounded-[var(--niva-radius-2xl)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] p-3 text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-sm)]",
+        "flex h-full min-h-[520px] w-full max-w-64 flex-col rounded-[var(--niva-radius-2xl)] border border-[var(--niva-color-inverse-subtle)] bg-[var(--niva-color-inverse-surface)] p-3 text-[var(--niva-color-inverse-foreground)] shadow-[var(--niva-shadow-lg)]",
         className,
       )}
     >
@@ -50,12 +50,12 @@ export function NivaSidebar({ brand, items, activeHref, groupOrder = ["primary",
         </span>
         <div className="min-w-0">
           {brand.wordmark ?? <p className="truncate text-lg font-bold leading-tight text-[var(--niva-color-foreground)]">{brand.name}</p>}
-          {brand.description ? <p className="truncate text-xs font-medium text-[var(--niva-color-muted)]">{brand.description}</p> : null}
+          {brand.description ? <p className="truncate text-xs font-medium text-[var(--niva-color-inverse-muted)]">{brand.description}</p> : null}
         </div>
       </div>
       <nav aria-label={label} className="mt-6 space-y-3">
         {groups.map((group, groupIndex) => (
-          <div key={group.key} className={cn(groupIndex > 0 && "border-t border-[var(--niva-color-border)] pt-3")}>
+          <div key={group.key} className={cn(groupIndex > 0 && "border-t border-[var(--niva-color-inverse-subtle)] pt-3")}>
             <div className="space-y-1">
               {group.items.map((item) => {
                 const active = isActiveRoute(item.href, activeHref);
@@ -76,18 +76,18 @@ export function NivaSidebar({ brand, items, activeHref, groupOrder = ["primary",
                       onNavigate?.();
                     }}
                     className={cn(
-                      "flex min-h-10 items-center gap-3 rounded-[var(--niva-radius-xl)] px-3 py-2.5 text-sm font-semibold text-[var(--niva-color-muted)]",
+                      "flex min-h-10 items-center gap-3 rounded-[var(--niva-radius-xl)] px-3 py-2.5 text-sm font-semibold text-[var(--niva-color-inverse-muted)]",
                       nivaTransition,
                       nivaFocusRing,
-                      "hover:bg-[var(--niva-color-muted-surface)] hover:text-[var(--niva-color-foreground)]",
-                      active && "bg-[var(--niva-color-accent-surface)] text-[var(--niva-color-accent)] shadow-[inset_3px_0_0_var(--niva-color-accent)]",
+                      "hover:bg-white/10 hover:text-[var(--niva-color-inverse-foreground)]",
+                      active && "bg-white/10 text-[var(--niva-color-inverse-foreground)] shadow-[inset_3px_0_0_var(--niva-color-accent)]",
                       item.disabled && "pointer-events-none opacity-50",
                     )}
                   >
                     {Icon ? (
                       <Icon
                         aria-hidden={true}
-                        className={cn("h-4 w-4 shrink-0 text-[var(--niva-color-placeholder)]", active && "text-[var(--niva-color-accent)]")}
+                        className={cn("h-4 w-4 shrink-0 text-[var(--niva-color-inverse-muted)]", active && "text-[var(--niva-color-inverse-foreground)]")}
                       />
                     ) : null}
                     <span className="truncate">{item.title}</span>

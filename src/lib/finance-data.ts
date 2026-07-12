@@ -14,10 +14,10 @@ import {
 import type { FinanceAccount, FinanceMetric, FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
 
 export const accounts: FinanceAccount[] = [
-  { id: "cash", name: "Efectivo", alias: "Caja diaria", type: "Efectivo", balance: 3000, color: "bg-cyan-500", icon: CircleDollarSign },
-  { id: "payroll", name: "Cuenta nomina", alias: "Nomina", type: "Banco", balance: 38250, color: "bg-blue-700", icon: WalletCards, bank_name: "bbva" },
-  { id: "savings", name: "Ahorro", alias: "Reserva", type: "Banco", balance: 33150, color: "bg-amber-500", icon: PiggyBank, bank_name: "nu" },
-  { id: "nu-card", name: "Tarjeta credito", alias: "Credito", type: "Tarjeta", balance: -2150, color: "bg-violet-700", icon: CreditCard, bank_name: "nu" },
+  { id: "cash", name: "Efectivo", alias: "Caja diaria", type: "Efectivo", balance: 3000, color: "bg-[var(--niva-color-info)]", icon: CircleDollarSign },
+  { id: "payroll", name: "Cuenta nomina", alias: "Nomina", type: "Banco", balance: 38250, color: "bg-[var(--niva-color-foreground)]", icon: WalletCards, bank_name: "bbva" },
+  { id: "savings", name: "Ahorro", alias: "Reserva", type: "Banco", balance: 33150, color: "bg-[var(--niva-color-accent)]", icon: PiggyBank, bank_name: "nu" },
+  { id: "nu-card", name: "Tarjeta credito", alias: "Credito", type: "Tarjeta", balance: -2150, color: "bg-[var(--niva-color-muted)]", icon: CreditCard, bank_name: "nu" },
 ];
 
 export const metrics: FinanceMetric[] = [
@@ -28,11 +28,11 @@ export const metrics: FinanceMetric[] = [
 ];
 
 export const categoryData = [
-  { name: "Comida", value: 7250, color: "#16a34a", icon: Utensils },
-  { name: "Vivienda", value: 6800, color: "#2563eb", icon: Home },
-  { name: "Transporte", value: 3450, color: "#ef4444", icon: Car },
-  { name: "Compras", value: 2950, color: "#f59e0b", icon: ShoppingBag },
-  { name: "Servicios", value: 1900, color: "#8b5cf6", icon: Bike },
+  { name: "Comida", value: 7250, color: "#1E7A4E", icon: Utensils },
+  { name: "Vivienda", value: 6800, color: "#454B57", icon: Home },
+  { name: "Transporte", value: 3450, color: "#5B6472", icon: Car },
+  { name: "Compras", value: 2950, color: "#6B7280", icon: ShoppingBag },
+  { name: "Servicios", value: 1900, color: "#9CA3AF", icon: Bike },
 ];
 
 export const chartSeries = [

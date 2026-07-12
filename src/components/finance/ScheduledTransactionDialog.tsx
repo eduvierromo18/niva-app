@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { AccountSelect } from "@/components/finance/AccountSelect";
@@ -165,7 +165,7 @@ export function ScheduledTransactionDialog({
         <Field label="Notas">
           <textarea className={`${inputClass} min-h-20 py-2`} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Notas internas opcionales" />
         </Field>
-        {error ? <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-100">{error}</div> : null}
+        {error ? <div className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-3 text-sm font-semibold text-[var(--niva-color-danger)]">{error}</div> : null}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
           <Button type="submit">Guardar programado</Button>
@@ -174,4 +174,3 @@ export function ScheduledTransactionDialog({
     </Dialog>
   );
 }
-

@@ -48,22 +48,22 @@ export function FinanceFilters({ title }: { title: string }) {
     <Card className="h-fit lg:sticky lg:top-24 lg:w-72 lg:shrink-0 xl:w-80">
       <div className="p-5">
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-950 dark:text-zinc-50">{title}</h2>
+          <h2 className="text-2xl font-bold text-[var(--niva-color-foreground)]">{title}</h2>
           <Button type="button" variant="secondary" className="h-9 w-9 px-0" onClick={resetFilters} aria-label="Restablecer filtros">
             <Filter className="h-4 w-4" />
           </Button>
         </div>
         <details className="lg:open" open>
-          <summary className="mb-3 cursor-pointer rounded-lg bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 lg:hidden">
+          <summary className="mb-3 cursor-pointer rounded-[var(--niva-radius-md)] bg-[var(--niva-color-muted-surface)] px-3 py-2 text-sm font-bold text-[var(--niva-color-body)] lg:hidden">
             Mostrar filtros
           </summary>
         <div className="space-y-4">
           <div>
             <p className="mb-2 text-sm font-bold">Mi filtro</p>
             <div className="relative">
-              <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--niva-color-placeholder)]" />
               <select
-                className={`${inputClass} w-full pl-9 text-slate-500`}
+                className={`${inputClass} w-full pl-9 text-[var(--niva-color-muted)]`}
                 value={savedFilter}
                 onChange={(event) => setSavedFilter(event.target.value)}
               >
@@ -77,7 +77,7 @@ export function FinanceFilters({ title }: { title: string }) {
           <div>
             <p className="mb-2 text-sm font-bold">Buscar</p>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--niva-color-placeholder)]" />
               <input
                 className={`${inputClass} w-full pl-9`}
                 value={search}
@@ -90,9 +90,9 @@ export function FinanceFilters({ title }: { title: string }) {
             <div key={item.label}>
               <p className="mb-2 text-sm font-bold">{item.label}</p>
               <div className="relative">
-                <item.icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <item.icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--niva-color-placeholder)]" />
                 <select
-                  className={`${inputClass} w-full pl-9 text-slate-500`}
+                  className={`${inputClass} w-full pl-9 text-[var(--niva-color-muted)]`}
                   value={filters[item.key]}
                   onChange={(event) => updateFilter(item.key, event.target.value)}
                 >
@@ -106,7 +106,7 @@ export function FinanceFilters({ title }: { title: string }) {
           <div>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-sm font-bold">Rango de cantidad</p>
-              <span className="text-xs text-slate-500">MXN</span>
+              <span className="text-xs text-[var(--niva-color-muted)]">MXN</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <input className={inputClass} type="number" value={minAmount} onChange={(event) => setMinAmount(event.target.value)} aria-label="Cantidad minima" />

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { NivaButton } from "@/design-system/components/NivaButton";
 import { NivaIconButton } from "@/design-system/components/NivaIconButton";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
-import { NivaLayoutSurface, NivaPageContainer } from "@/design-system/layout/NivaLayoutPrimitives";
+import { NivaPageContainer } from "@/design-system/layout/NivaLayoutPrimitives";
 import { NivaSidebar } from "@/design-system/layout/NivaSidebar";
 import { NivaTopbar } from "@/design-system/layout/NivaTopbar";
 import type { NivaNavigationGroup, NivaNavigationItem, NivaShellBrand, NivaShellUser } from "@/design-system/layout/types";
@@ -129,15 +129,9 @@ export function NivaAppShell({
               }
               actions={<NivaShellActions isHome={isHome} user={user} primaryAction={primaryAction} />}
             />
-            {isHome ? (
-              <div className="mt-8 min-w-0">{children}</div>
-            ) : (
-              <NivaLayoutSurface className="mt-5 overflow-hidden p-3 sm:p-5">
-                <NivaPageContainer width="full" className="px-0">
-                  {children}
-                </NivaPageContainer>
-              </NivaLayoutSurface>
-            )}
+            <div className="mt-8 min-w-0">
+              {children}
+            </div>
           </NivaPageContainer>
         </div>
       </main>

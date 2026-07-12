@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <NivaAppShell
       navigation={appNavigation}
-      brand={{ name: "Niva", description: "Finanzas personales", mark: <NivaMark />, wordmark: <NivaWordmark /> }}
+      brand={{ name: "Niva", description: "Finanzas personales", mark: <NivaMark tone="dark" />, wordmark: <NivaWordmark inverse /> }}
       user={{ name: "Luis Eduvier Romo", initials: "LR", href: "/settings" }}
       groupOrder={sidebarGroupOrder}
       homeTitle="Hola Luis."
@@ -36,12 +36,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
       }
       sidebarFooter={
-        <NivaLayoutSurface variant="subtle" className="p-4">
+        <NivaLayoutSurface className="border-[var(--niva-color-inverse-subtle)] bg-white/5 p-4 text-[var(--niva-color-inverse-foreground)] shadow-none">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-[var(--niva-radius-full)] bg-[var(--niva-color-success)]" />
-            <p className="text-sm font-bold text-[var(--niva-color-foreground)]">Todo al dia</p>
+            <span className="h-2 w-2 rounded-[var(--niva-radius-full)] bg-[var(--niva-color-accent)]" />
+            <p className="text-sm font-semibold text-[var(--niva-color-inverse-foreground)]">Todo al día</p>
           </div>
-          <p className="mt-2 text-xs leading-5 text-[var(--niva-color-muted)]">Niva mantiene tu lectura financiera clara y sin ruido.</p>
+          <p className="mt-2 text-xs leading-5 text-[var(--niva-color-inverse-muted)]">Una lectura clara, sin ruido.</p>
         </NivaLayoutSurface>
       }
     >

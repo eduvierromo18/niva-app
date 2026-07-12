@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { NivaIconButton } from "@/design-system";
 
 const periods = ["Este mes", "Mes anterior", "Ultimos 3 meses", "Este ano", "Personalizado"];
 
@@ -18,18 +19,17 @@ export function DateRangeControl() {
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-4">
-      <button
-        className="rounded-full p-2 text-slate-700 hover:bg-white disabled:opacity-40"
-        aria-label="Periodo anterior"
+    <div className="flex items-center justify-center gap-2">
+      <NivaIconButton
+        icon={<ChevronLeft className="h-4 w-4" />}
+        label="Periodo anterior"
+        variant="ghost"
+        size="sm"
         disabled={periodIndex === 0}
         onClick={previousPeriod}
-        type="button"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
+      />
       <select
-        className="h-10 min-w-36 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium shadow-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:min-w-60 sm:px-8"
+        className="h-10 min-w-40 rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] px-4 text-sm font-medium text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-xs)] outline-none focus:border-[var(--niva-color-accent)] focus:ring-2 focus:ring-[var(--niva-color-accent-surface)] sm:min-w-52"
         value={period}
         onChange={(event) => setPeriodIndex(periods.indexOf(event.target.value))}
         aria-label="Seleccionar periodo"
@@ -38,15 +38,14 @@ export function DateRangeControl() {
           <option key={item}>{item}</option>
         ))}
       </select>
-      <button
-        className="rounded-full p-2 text-slate-700 hover:bg-white disabled:opacity-40"
-        aria-label="Periodo siguiente"
+      <NivaIconButton
+        icon={<ChevronRight className="h-4 w-4" />}
+        label="Periodo siguiente"
+        variant="ghost"
+        size="sm"
         disabled={periodIndex === periods.length - 1}
         onClick={nextPeriod}
-        type="button"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
+      />
     </div>
   );
 }

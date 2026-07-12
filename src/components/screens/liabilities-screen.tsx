@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
@@ -32,8 +32,8 @@ export function LiabilitiesScreen() {
       description="Controla tarjetas, prestamos, fechas de corte y pago."
       action={<Button onClick={openNewLiability}>Nueva deuda</Button>}
     >
-      {error ? <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div> : null}
-      {isLoading ? <p className="text-sm text-slate-500">Cargando deudas...</p> : null}
+      {error ? <div className="mb-4 rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-4 text-sm text-[var(--niva-color-danger)]">{error}</div> : null}
+      {isLoading ? <p className="text-sm text-[var(--niva-color-muted)]">Cargando deudas...</p> : null}
       <div className="grid gap-4 xl:grid-cols-2">
         {liabilities.map((item, index) => {
           const percent = item.limit > 0 ? (item.balance / item.limit) * 100 : 0;
@@ -41,25 +41,25 @@ export function LiabilitiesScreen() {
             <Card key={item.id}>
               <CardContent>
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[var(--niva-radius-lg)] bg-[var(--niva-color-muted-surface)] text-[var(--niva-color-info)]">
                     <item.icon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold">{item.name}</h3>
                     <p className="mt-2 text-2xl font-bold">{formatCurrency(item.balance)}</p>
                     <Progress value={percent} className="mt-4" />
-                    <div className="mt-4 grid gap-2 text-sm text-slate-500 sm:grid-cols-2">
-                      <p>Corte: <span className="font-semibold text-slate-800 dark:text-zinc-200">{item.closing}</span></p>
-                      <p>Pago: <span className="font-semibold text-slate-800 dark:text-zinc-200">{item.due}</span></p>
-                      <p>Uso: <span className="font-semibold text-slate-800 dark:text-zinc-200">{percent.toFixed(1)}%</span></p>
-                      <p>Limite: <span className="font-semibold text-slate-800 dark:text-zinc-200">{formatCurrency(item.limit)}</span></p>
+                    <div className="mt-4 grid gap-2 text-sm text-[var(--niva-color-muted)] sm:grid-cols-2">
+                      <p>Corte: <span className="font-semibold text-[var(--niva-color-body)]">{item.closing}</span></p>
+                      <p>Pago: <span className="font-semibold text-[var(--niva-color-body)]">{item.due}</span></p>
+                      <p>Uso: <span className="font-semibold text-[var(--niva-color-body)]">{percent.toFixed(1)}%</span></p>
+                      <p>Limite: <span className="font-semibold text-[var(--niva-color-body)]">{formatCurrency(item.limit)}</span></p>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Button type="button" variant="secondary" className="h-9 px-3" onClick={() => { setEditingIndex(index); setOpen(true); }}>
                         <Edit3 className="h-4 w-4" />
                         Editar
                       </Button>
-                      <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={() => void remove("liabilities", item.id)}>
+                      <Button type="button" variant="ghost" className="h-9 px-3 text-[var(--niva-color-danger)]" onClick={() => void remove("liabilities", item.id)}>
                         <Trash2 className="h-4 w-4" />
                         Eliminar
                       </Button>
@@ -97,5 +97,3 @@ export function LiabilitiesScreen() {
     </PageScaffold>
   );
 }
-
-

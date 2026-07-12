@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Pencil, Plus, ReceiptText, Trash2 } from "lucide-react";
@@ -67,7 +67,7 @@ function parseMovementDate(date: string) {
     return yesterday;
   }
 
-  const dayMonthMatch = normalized.match(/^(\d{1,2})\s+([a-zÃ¡Ã©Ã­Ã³ÃºÃ±]{3})/i);
+  const dayMonthMatch = normalized.match(/^(\d{1,2})\s+([a-záéíóúñ]{3})/i);
   if (!dayMonthMatch) return null;
 
   const monthKey = dayMonthMatch[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -351,7 +351,3 @@ export function MovementsScreen() {
     </div>
   );
 }
-
-
-
-

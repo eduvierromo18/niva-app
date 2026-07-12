@@ -17,7 +17,7 @@ export function NivaTopbar({ title, subtitle, searchLabel = "Buscar", searchPlac
   return (
     <header
       className={cn(
-        "flex w-full min-w-0 flex-col gap-4 rounded-[var(--niva-radius-2xl)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] px-5 py-4 text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-sm)] 2xl:flex-row 2xl:items-center 2xl:justify-between",
+        "flex w-full min-w-0 flex-col gap-4 border-b border-[var(--niva-color-border)] bg-[rgb(250_251_252/0.92)] px-1 py-4 text-[var(--niva-color-foreground)] backdrop-blur-xl 2xl:flex-row 2xl:items-center 2xl:justify-between",
         className,
       )}
     >

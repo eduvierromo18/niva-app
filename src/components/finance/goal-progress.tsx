@@ -16,7 +16,7 @@ export function GoalProgress({
         <CurrencyAmount value={current} />
       </p>
       <Progress value={percent} className="mt-4" />
-      <p className="mt-3 text-sm text-slate-500">
+      <p className="mt-3 text-sm text-[var(--niva-color-muted)]">
         {percent.toFixed(1)}% de <CurrencyAmount value={target} />
       </p>
     </>

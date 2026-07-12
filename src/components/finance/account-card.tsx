@@ -29,28 +29,28 @@ export function AccountCard({
 
   return (
     <article
-      className={cn("group overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950", compact ? "min-w-60" : "min-h-40")}
+      className={cn("group overflow-hidden rounded-[var(--niva-radius-xl)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] p-4 shadow-[var(--niva-shadow-sm)] transition hover:-translate-y-0.5 hover:shadow-[var(--niva-shadow-md)]", compact ? "min-w-60" : "min-h-40")}
       style={{ borderTopColor: showBankAvatar ? bankConfig.color : undefined, borderTopWidth: showBankAvatar ? 3 : undefined }}
     >
       <div className="flex items-start justify-between gap-3">
         {showBankAvatar ? (
           <BankAvatar bankName={account.bank_name} bankCustomName={account.bank_custom_name} size="lg" />
         ) : (
-          <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-sm", account.color)}>
+          <div className={cn("flex h-12 w-12 items-center justify-center rounded-[var(--niva-radius-xl)] text-white shadow-[var(--niva-shadow-sm)]", account.color)}>
             <Icon className="h-6 w-6" />
           </div>
         )}
         <Badge>{bank ?? account.type}</Badge>
       </div>
       <div className="mt-4">
-        <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">{account.alias || account.type}</p>
-        <h3 className="mt-1 truncate text-lg font-bold text-slate-950 dark:text-zinc-50">{account.name}</h3>
-        <p className="mt-3 text-2xl font-bold tracking-tight text-slate-950 dark:text-zinc-50">{formatCurrency(account.balance)}</p>
+        <p className="text-sm font-semibold text-[var(--niva-color-muted)]">{account.alias || account.type}</p>
+        <h3 className="mt-1 truncate text-lg font-bold text-[var(--niva-color-foreground)]">{account.name}</h3>
+        <p className="mt-3 text-2xl font-bold tracking-tight text-[var(--niva-color-foreground)]">{formatCurrency(account.balance)}</p>
       </div>
       {onEdit || onDelete ? (
         <div className="mt-4 flex flex-wrap gap-2">
           {onEdit ? <Button type="button" variant="secondary" className="h-9 px-3" onClick={onEdit}>Editar</Button> : null}
-          {onDelete ? <Button type="button" variant="ghost" className="h-9 px-3 text-rose-600" onClick={onDelete}>Eliminar</Button> : null}
+          {onDelete ? <Button type="button" variant="ghost" className="h-9 px-3 text-[var(--niva-color-danger)]" onClick={onDelete}>Eliminar</Button> : null}
         </div>
       ) : null}
     </article>

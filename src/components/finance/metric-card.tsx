@@ -24,12 +24,12 @@ export function MetricCard({
   return (
     <Card>
       <CardContent className="flex items-start gap-4">
-        <div className={cn("flex h-12 w-12 items-center justify-center rounded-full", positive ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600")}>
+        <div className={cn("flex h-12 w-12 items-center justify-center rounded-full", positive ? "bg-[var(--niva-color-accent-surface)] text-[var(--niva-color-accent)]" : "bg-[var(--niva-color-muted-surface)] text-[var(--niva-color-danger)]")}>
           <Icon className="h-6 w-6" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-600 dark:text-zinc-400">{label}</p>
-          <p className="mt-2 text-2xl font-bold text-slate-950 dark:text-zinc-50">
+          <p className="text-sm font-semibold text-[var(--niva-color-muted)]">{label}</p>
+          <p className="mt-2 text-2xl font-bold text-[var(--niva-color-foreground)]">
             {percent ? `${value.toFixed(1)}%` : formatCurrency(value)}
           </p>
           <div className="mt-3">

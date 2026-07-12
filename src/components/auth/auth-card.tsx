@@ -1,7 +1,6 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { NivaBrandLockup } from "@/components/brand/niva-brand";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { NivaButton } from "@/design-system";
 import { inputClass } from "@/components/ui/dialog";
 
 export function AuthCard({
@@ -17,42 +16,59 @@ export function AuthCard({
 }) {
   const isLogin = mode === "login";
   const friendlyError = error?.includes("For security purposes")
-    ? "Supabase limito los intentos por seguridad. Espera alrededor de 1 minuto antes de volver a intentar."
+    ? "Supabase limitó los intentos por seguridad. Espera alrededor de un minuto antes de volver a intentar."
     : error;
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardContent className="p-6 sm:p-8">
-          <div className="mb-8">
-            <NivaBrandLockup />
-            <h1 className="mt-8 font-[family-name:var(--font-niva-display)] text-xl font-semibold tracking-[-0.02em] text-slate-950 dark:text-zinc-50">
-              {isLogin ? "Entrar a Niva" : "Crear cuenta"}
-            </h1>
-            <p className="mt-2 text-sm text-slate-500">
-              {isLogin ? "Accede a tu centro de control financiero." : "Empieza con un espacio financiero personal y seguro."}
-            </p>
-          </div>
+    <div className="grid min-h-screen bg-[var(--niva-color-background)] lg:grid-cols-[minmax(22rem,0.85fr)_minmax(30rem,1.15fr)]">
+      <section className="hidden bg-[var(--niva-color-inverse-surface)] px-10 py-12 text-[var(--niva-color-inverse-foreground)] lg:flex lg:flex-col lg:justify-between">
+        <NivaBrandLockup ground="dark" />
+        <div className="max-w-md">
+          <p className="font-[family-name:var(--font-niva-mono)] text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--niva-color-inverse-muted)]">
+            Tu espacio financiero
+          </p>
+          <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] text-[var(--niva-color-inverse-foreground)]">
+            Tu dinero, con calma.
+          </h2>
+          <p className="mt-5 text-base leading-7 text-[var(--niva-color-inverse-muted)]">
+            Una lectura clara de lo disponible, lo reservado y lo que viene después.
+          </p>
+        </div>
+        <p className="text-xs text-[var(--niva-color-inverse-muted)]">Privado por diseño · Controlado por ti</p>
+      </section>
+
+      <main className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
+        <div className="w-full max-w-md">
+          <NivaBrandLockup className="lg:hidden" />
+          <p className="mt-10 font-[family-name:var(--font-niva-mono)] text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--niva-color-accent)]">
+            {isLogin ? "Acceso personal" : "Nuevo espacio"}
+          </p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-[-0.035em] text-[var(--niva-color-foreground)]">
+            {isLogin ? "Entrar a Niva" : "Crear tu cuenta"}
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[var(--niva-color-muted)]">
+            {isLogin ? "Continúa con tu centro de control financiero." : "Empieza con un espacio financiero personal y seguro."}
+          </p>
 
           {friendlyError ? (
-            <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+            <div className="mt-6 rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-4 text-sm leading-6 text-[var(--niva-color-foreground)]">
               {friendlyError}
             </div>
           ) : null}
 
-          <form action={action} className="grid gap-4">
+          <form action={action} className="mt-8 grid gap-5">
             {!isLogin ? (
-              <label className="grid gap-2 text-sm font-semibold">
+              <label className="grid gap-2 text-sm font-semibold text-[var(--niva-color-foreground)]">
                 Nombre completo
                 <input className={inputClass} name="fullName" autoComplete="name" required />
               </label>
             ) : null}
-            <label className="grid gap-2 text-sm font-semibold">
+            <label className="grid gap-2 text-sm font-semibold text-[var(--niva-color-foreground)]">
               Correo
               <input className={inputClass} name="email" type="email" autoComplete="email" required />
             </label>
-            <label className="grid gap-2 text-sm font-semibold">
-              Contrasena
+            <label className="grid gap-2 text-sm font-semibold text-[var(--niva-color-foreground)]">
+              Contraseña
               <input
                 className={inputClass}
                 name="password"
@@ -63,19 +79,19 @@ export function AuthCard({
               />
             </label>
             {next ? <input type="hidden" name="next" value={next} /> : null}
-            <Button type="submit" className="mt-2 w-full">
+            <NivaButton type="submit" size="lg" className="mt-1 w-full">
               {isLogin ? "Entrar" : "Crear cuenta"}
-            </Button>
+            </NivaButton>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
-            {isLogin ? "No tienes cuenta?" : "Ya tienes cuenta?"}{" "}
-            <Link className="font-bold text-emerald-700" href={isLogin ? "/signup" : "/login"}>
-              {isLogin ? "Crear una" : "Iniciar sesion"}
+          <p className="mt-8 text-center text-sm text-[var(--niva-color-muted)]">
+            {isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
+            <Link className="font-semibold text-[var(--niva-color-accent)] hover:text-[var(--niva-color-accent-hover)]" href={isLogin ? "/signup" : "/login"}>
+              {isLogin ? "Crear una" : "Iniciar sesión"}
             </Link>
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </main>
     </div>
   );
 }

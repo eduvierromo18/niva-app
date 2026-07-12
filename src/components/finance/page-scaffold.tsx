@@ -17,13 +17,16 @@ export function PageScaffold({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
+    <div className="flex flex-col gap-5 lg:flex-row lg:gap-6">
       {sidebar}
       <section className="min-w-0 flex-1">
-        <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mb-7 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-zinc-50">{title}</h1>
-            {description ? <p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">{description}</p> : null}
+            <p className="font-[family-name:var(--font-niva-mono)] text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--niva-color-muted)]">
+              Niva · espacio financiero
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-[var(--niva-color-foreground)]">{title}</h1>
+            {description ? <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">{description}</p> : null}
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="hidden sm:block">
