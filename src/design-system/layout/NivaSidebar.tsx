@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
@@ -45,11 +45,11 @@ export function NivaSidebar({ brand, items, activeHref, groupOrder = ["primary",
       )}
     >
       <div className="flex items-center gap-3 px-3 py-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--niva-radius-lg)] bg-[var(--niva-color-accent)] text-lg font-bold text-[var(--niva-color-accent-foreground)] shadow-[var(--niva-shadow-sm)]">
+        <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--niva-radius-lg)] text-lg font-bold", brand.mark ? "bg-transparent" : "bg-[var(--niva-color-accent)] text-[var(--niva-color-accent-foreground)] shadow-[var(--niva-shadow-sm)]")}>
           {brand.mark ?? brand.name.slice(0, 1)}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold leading-tight text-[var(--niva-color-foreground)]">{brand.name}</p>
+          {brand.wordmark ?? <p className="truncate text-lg font-bold leading-tight text-[var(--niva-color-foreground)]">{brand.name}</p>}
           {brand.description ? <p className="truncate text-xs font-medium text-[var(--niva-color-muted)]">{brand.description}</p> : null}
         </div>
       </div>

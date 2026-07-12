@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from "react";
+﻿import type { ComponentType, ReactNode } from "react";
 
 export type NivaNavigationGroup = "primary" | "workspace" | "support" | string;
 
@@ -14,6 +14,7 @@ export type NivaShellBrand = {
   name: string;
   description?: string;
   mark?: ReactNode;
+  wordmark?: ReactNode;
 };
 
 export type NivaShellUser = {

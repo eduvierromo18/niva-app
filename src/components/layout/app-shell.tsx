@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
+import { NivaMark, NivaWordmark } from "@/components/brand/niva-brand";
 import { appNavigation } from "@/lib/navigation";
 import { NivaAppShell, NivaLayoutSurface } from "@/design-system";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
@@ -14,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <NivaAppShell
       navigation={appNavigation}
-      brand={{ name: "Niva", description: "Finanzas personales" }}
+      brand={{ name: "Niva", description: "Finanzas personales", mark: <NivaMark />, wordmark: <NivaWordmark /> }}
       user={{ name: "Luis Eduvier Romo", initials: "LR", href: "/settings" }}
       groupOrder={sidebarGroupOrder}
       homeTitle="Hola Luis."

@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { WalletCards } from "lucide-react";
+﻿import Link from "next/link";
+import { NivaBrandLockup } from "@/components/brand/niva-brand";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { inputClass } from "@/components/ui/dialog";
@@ -24,18 +24,14 @@ export function AuthCard({
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardContent className="p-6 sm:p-8">
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-700 text-white">
-              <WalletCards className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-950 dark:text-zinc-50">
-                {isLogin ? "Entrar a Finanzas" : "Crear cuenta"}
-              </h1>
-              <p className="text-sm text-slate-500">
-                {isLogin ? "Accede a tu panel personal." : "Empieza con un usuario seguro."}
-              </p>
-            </div>
+          <div className="mb-8">
+            <NivaBrandLockup />
+            <h1 className="mt-8 font-[family-name:var(--font-niva-display)] text-xl font-semibold tracking-[-0.02em] text-slate-950 dark:text-zinc-50">
+              {isLogin ? "Entrar a Niva" : "Crear cuenta"}
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              {isLogin ? "Accede a tu centro de control financiero." : "Empieza con un espacio financiero personal y seguro."}
+            </p>
           </div>
 
           {friendlyError ? (

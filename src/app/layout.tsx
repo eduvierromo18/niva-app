@@ -1,9 +1,12 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Finanzas Personales",
-  description: "Control manual de ingresos, gastos, presupuestos y metas.",
+  applicationName: "Niva",
+  title: { default: "Niva", template: "%s · Niva" },
+  description: "Tu centro personal de control financiero.",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
 
 export default function RootLayout({
