@@ -1,8 +1,7 @@
-import type { LucideIcon } from "lucide-react";
+﻿import type { LucideIcon } from "lucide-react";
 import type { BankCatalogItem } from "@/config/banks";
 
 export type BankName = BankCatalogItem["id"] | string;
-
 export type AccountType = "Banco" | "Efectivo" | "Ahorro" | "Tarjeta" | "Inversion" | "Deuda";
 
 export type FinanceAccount = {
@@ -11,6 +10,9 @@ export type FinanceAccount = {
   alias?: string;
   type: AccountType;
   balance: number;
+  initialBalance?: number;
+  currencyCode?: string;
+  isArchived?: boolean;
   color: string;
   icon: LucideIcon;
   bank_name?: BankName | string;
@@ -27,10 +29,15 @@ export type AccountFormValue = {
 };
 
 export type FinanceMovement = {
+  id?: string;
+  occurredOn?: string;
   date: string;
   description: string;
+  accountId?: string;
   account: string;
+  destinationAccountId?: string;
   destinationAccount?: string;
+  categoryId?: string;
   category: string;
   type: string;
   amount: number;

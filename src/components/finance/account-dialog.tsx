@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useId, useState } from "react";
 import { defaultBankOptions, findBank } from "@/config/banks";
@@ -26,7 +26,7 @@ export function AccountDialog({
   open: boolean;
   initialValue?: AccountFormValue | null;
   onClose: () => void;
-  onSave: (account: AccountFormValue) => boolean | void;
+  onSave: (account: AccountFormValue) => Promise<boolean | void> | boolean | void;
 }) {
   const formId = useId();
   const [name, setName] = useState("");
@@ -48,7 +48,7 @@ export function AccountDialog({
     setErrors({});
   }, [initialValue, open]);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const isBank = type === "Banco";
     const isCustomBank = isBank && bankName === "other";
@@ -56,13 +56,13 @@ export function AccountDialog({
     const nextErrors: AccountDialogErrors = {};
 
     if (!name.trim()) nextErrors.name = "El nombre de la cuenta es obligatorio.";
-    if (!Number.isFinite(parsedBalance)) nextErrors.balance = "Ingresa un saldo válido.";
+    if (!Number.isFinite(parsedBalance)) nextErrors.balance = "Ingresa un saldo vÃ¡lido.";
     if (isCustomBank && !bankCustomName.trim()) nextErrors.bankCustomName = "Ingresa el nombre del banco.";
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    const didSave = onSave({
+    const didSave = await onSave({
       name: name.trim(),
       alias: alias.trim() || undefined,
       type,
@@ -158,3 +158,4 @@ export function AccountDialog({
     </NivaModal>
   );
 }
+

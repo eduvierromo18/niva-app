@@ -1,11 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { CalendarClock, Flag, Lightbulb, Plus, ReceiptText, WalletCards } from "lucide-react";
 import { AccountDialog, type AccountFormValue } from "@/components/finance/account-dialog";
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
-import { accounts as initialAccounts, goals, movements as initialMovements, scheduledTransactions } from "@/lib/finance-data";
+import { goals, scheduledTransactions } from "@/lib/finance-data";
+import { useMovements } from "@/hooks/use-movements";
+import { useAccounts } from "@/hooks/use-accounts";
 import { cn, formatCurrency } from "@/lib/utils";
 import { NivaBadge, NivaButton, NivaContentGrid, NivaLayoutSurface, NivaProgress, NivaSection } from "@/design-system";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
@@ -46,8 +48,8 @@ export function DashboardScreen() {
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [movementDialogOpen, setMovementDialogOpen] = useState(false);
   const [movementType, setMovementType] = useState("Gasto");
-  const [accounts, setAccounts] = useState(initialAccounts);
-  const [movements, setMovements] = useState(initialMovements);
+  const { accounts, categories, movements, saveMovement, reload } = useMovements();
+  const { saveAccount } = useAccounts();
 
   const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
   const reservedBalance = accounts
@@ -71,15 +73,10 @@ export function DashboardScreen() {
   const featuredGoalProgress = Math.round((featuredGoal.current / featuredGoal.target) * 100);
   const availableRatio = availableToday > 0 ? Math.round((spendableToday / availableToday) * 100) : 0;
 
-  function addAccount(account: AccountFormValue) {
-    setAccounts((current) => [
-      ...current,
-      {
-        ...account,
-        color: "bg-[var(--niva-color-foreground)]",
-        icon: initialAccounts[0].icon,
-      },
-    ]);
+  async function addAccount(account: AccountFormValue) {
+    const saved = await saveAccount(account, null);
+    if (saved) await reload();
+    return saved;
   }
 
   function openMovement(type: string) {
@@ -87,8 +84,8 @@ export function DashboardScreen() {
     setMovementDialogOpen(true);
   }
 
-  function addMovement(movement: MovementFormValue) {
-    setMovements((current) => [movement, ...current]);
+  async function addMovement(movement: MovementFormValue) {
+    return saveMovement(movement);
   }
 
   return (
@@ -257,7 +254,9 @@ export function DashboardScreen() {
       </section>
 
       <AccountDialog open={accountDialogOpen} onClose={() => setAccountDialogOpen(false)} onSave={addAccount} />
-      <MovementDialog open={movementDialogOpen} defaultType={movementType} accounts={accounts} onClose={() => setMovementDialogOpen(false)} onSave={addMovement} />
+      <MovementDialog open={movementDialogOpen} defaultType={movementType} accounts={accounts} categories={categories} onClose={() => setMovementDialogOpen(false)} onSave={addMovement} />
     </div>
   );
 }
+
+

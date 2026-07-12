@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Pencil, Plus, ReceiptText, Trash2 } from "lucide-react";
 import { MovementDialog, type MovementFormValue } from "@/components/finance/movement-dialog";
-import { movements as initialMovements } from "@/lib/finance-data";
+import { useMovements } from "@/hooks/use-movements";
 import { cn, formatCurrency } from "@/lib/utils";
-import { NivaButton, NivaEmptyState, NivaIconButton, NivaLayoutSurface, NivaSearch, NivaSection } from "@/design-system";
+import { NivaAlert, NivaButton, NivaEmptyState, NivaIconButton, NivaLayoutSurface, NivaSearch, NivaSection } from "@/design-system";
 
 const filters = ["Todos", "Gastos", "Ingresos", "Transferencias"];
 const timelineGroups = [
@@ -55,6 +55,10 @@ function normalizeToday() {
 function parseMovementDate(date: string) {
   const normalized = date.trim().toLowerCase();
   const today = normalizeToday();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    const parsedIso = new Date(`${normalized}T00:00:00`);
+    return Number.isNaN(parsedIso.getTime()) ? null : parsedIso;
+  }
 
   if (normalized === "hoy" || normalized === "today") return today;
   if (normalized === "ayer" || normalized === "yesterday") {
@@ -63,7 +67,7 @@ function parseMovementDate(date: string) {
     return yesterday;
   }
 
-  const dayMonthMatch = normalized.match(/^(\d{1,2})\s+([a-záéíóúñ]{3})/i);
+  const dayMonthMatch = normalized.match(/^(\d{1,2})\s+([a-zÃ¡Ã©Ã­Ã³ÃºÃ±]{3})/i);
   if (!dayMonthMatch) return null;
 
   const monthKey = dayMonthMatch[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -141,7 +145,7 @@ function signedAmount(movement: TimelineMovement) {
 
 export function MovementsScreen() {
   const [open, setOpen] = useState(false);
-  const [movements, setMovements] = useState(initialMovements);
+  const { accounts, categories, movements, isLoading, error, saveMovement, deleteMovement } = useMovements();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("Todos");
@@ -175,14 +179,11 @@ export function MovementsScreen() {
     setOpen(true);
   }
 
-  function addMovement(movement: MovementFormValue) {
-    setMovements((current) => {
-      if (editingIndex !== null) {
-        return current.map((item, index) => (index === editingIndex ? movement : item));
-      }
-      return [movement, ...current];
-    });
-    setEditingIndex(null);
+  async function addMovement(movement: MovementFormValue) {
+    const editingId = editingIndex !== null ? movements[editingIndex]?.id : undefined;
+    const saved = await saveMovement(movement, editingId);
+    if (saved) setEditingIndex(null);
+    return saved;
   }
 
   function originalIndex(movement: TimelineMovement) {
@@ -229,11 +230,13 @@ export function MovementsScreen() {
         </div>
       </NivaLayoutSurface>
 
+      {error ? <NivaAlert tone="danger" title={error} /> : null}
+
       <NivaSection aria-label="Activity timeline">
         {filteredMovements.length === 0 ? (
           <NivaEmptyState
-            title="Aun no aparece actividad"
-            description="Crea un registro o ajusta los filtros para ver tus movimientos."
+            title={isLoading ? "Cargando actividad" : "Aun no aparece actividad"}
+            description={isLoading ? "Estamos consultando tus registros." : "Crea un registro o ajusta los filtros para ver tus movimientos."}
             actionLabel="Nuevo registro"
             icon={<ReceiptText className="h-8 w-8" />}
             onAction={openNewMovement}
@@ -304,7 +307,7 @@ export function MovementsScreen() {
                                   icon={<Trash2 className="h-4 w-4" />}
                                   label="Eliminar registro"
                                   variant="ghost"
-                                  onClick={() => setMovements((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                                  onClick={() => void deleteMovement(movement.id)}
                                 />
                               </div>
                             </div>
@@ -323,6 +326,8 @@ export function MovementsScreen() {
       <MovementDialog
         open={open}
         initialValue={editingIndex !== null ? movements[editingIndex] : null}
+        accounts={accounts}
+        categories={categories}
         onClose={() => {
           setOpen(false);
           setEditingIndex(null);
@@ -332,3 +337,5 @@ export function MovementsScreen() {
     </div>
   );
 }
+
+

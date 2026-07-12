@@ -1,59 +1,80 @@
-"use client";
+﻿"use client";
 
-import { useCallback, useMemo, useState } from "react";
-import {
-  createFinanceAccount,
-  deleteAccountAtIndex,
-  getAccountTotals,
-  getInstitutionGroups,
-  getMoneyDistribution,
-  updateAccountAtIndex,
-} from "@/lib/accounts";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { mapAccount, uiToDbType } from "@/lib/finance-mappers";
+import { getAccountTotals, getInstitutionGroups, getMoneyDistribution } from "@/lib/accounts";
 import type { AccountFormValue, FinanceAccount } from "@/lib/finance-types";
 
-export function useAccounts(initialAccounts: FinanceAccount[]) {
-  const [accounts, setAccounts] = useState<FinanceAccount[]>(initialAccounts);
-  const [isLoading] = useState(false);
+export function useAccounts() {
+  const [accounts, setAccounts] = useState<FinanceAccount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const totals = useMemo(() => getAccountTotals(accounts), [accounts]);
   const moneyDistribution = useMemo(() => getMoneyDistribution(accounts), [accounts]);
   const institutionGroups = useMemo(() => getInstitutionGroups(accounts), [accounts]);
   const clearError = useCallback(() => setError(null), []);
 
-  const saveAccount = useCallback((account: AccountFormValue, editingIndex: number | null) => {
+  const loadAccounts = useCallback(async () => {
+    setIsLoading(true);
+    const supabase = createClient();
+    const { data, error: queryError } = await supabase
+      .from("account_balances")
+      .select("*")
+      .eq("is_archived", false)
+      .order("created_at");
+    if (queryError) setError(queryError.message);
+    else setAccounts((data ?? []).map(mapAccount));
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => { void loadAccounts(); }, [loadAccounts]);
+
+  const saveAccount = useCallback(async (account: AccountFormValue, editingIndex: number | null) => {
     try {
-      setAccounts((current) => {
-        if (editingIndex !== null) return updateAccountAtIndex(current, editingIndex, account);
-        return [...current, createFinanceAccount(account)];
-      });
+      const supabase = createClient();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Tu sesion ya no es valida.");
+      const current = editingIndex === null ? null : accounts[editingIndex];
+      const payload = {
+        user_id: user.id,
+        name: account.name,
+        alias: account.alias ?? null,
+        type: uiToDbType[account.type],
+        initial_balance: account.balance,
+        bank_name: account.bank_name ?? null,
+        bank_custom_name: account.bank_custom_name ?? null,
+        color: "bg-[var(--niva-color-foreground)]",
+      };
+      const mutation = current?.id
+        ? supabase.from("accounts").update(payload).eq("id", current.id)
+        : supabase.from("accounts").insert(payload);
+      const { error: mutationError } = await mutation;
+      if (mutationError) throw mutationError;
+      await loadAccounts();
       setError(null);
       return true;
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "No pudimos guardar la cuenta.");
       return false;
     }
-  }, []);
+  }, [accounts, loadAccounts]);
 
-  const deleteAccount = useCallback((index: number) => {
+  const archiveAccount = useCallback(async (index: number) => {
     try {
-      setAccounts((current) => deleteAccountAtIndex(current, index));
+      const account = accounts[index];
+      if (!account?.id) throw new Error("No encontramos la cuenta.");
+      const supabase = createClient();
+      const { error: mutationError } = await supabase.from("accounts").update({ is_archived: true }).eq("id", account.id);
+      if (mutationError) throw mutationError;
+      setAccounts((current) => current.filter((item) => item.id !== account.id));
       setError(null);
       return true;
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "No pudimos eliminar la cuenta.");
+      setError(caughtError instanceof Error ? caughtError.message : "No pudimos archivar la cuenta.");
       return false;
     }
-  }, []);
+  }, [accounts]);
 
-  return {
-    accounts,
-    isLoading,
-    error,
-    clearError,
-    saveAccount,
-    deleteAccount,
-    totals,
-    moneyDistribution,
-    institutionGroups,
-  };
+  return { accounts, isLoading, error, clearError, saveAccount, deleteAccount: archiveAccount, totals, moneyDistribution, institutionGroups };
 }
