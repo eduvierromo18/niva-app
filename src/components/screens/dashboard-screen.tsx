@@ -8,6 +8,7 @@ import { MovementDialog, type MovementFormValue } from "@/components/finance/mov
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { useMovements } from "@/hooks/use-movements";
 import { useAccounts } from "@/hooks/use-accounts";
+import { getFeaturedGoalProgress } from "@/lib/dashboard";
 import { cn, formatCurrency } from "@/lib/utils";
 import { NivaBadge, NivaButton, NivaContentGrid, NivaLayoutSurface, NivaProgress, NivaSection } from "@/design-system";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
@@ -71,7 +72,8 @@ export function DashboardScreen() {
   const nextScheduledDays = nextScheduled ? daysUntil(nextScheduled.nextDueDate) : null;
   const recentMovements = movements.slice(0, 5);
   const featuredGoal = goals[0];
-  const featuredGoalProgress = Math.round((featuredGoal.current / featuredGoal.target) * 100);
+  const featuredGoalProgress = getFeaturedGoalProgress(featuredGoal);
+
   const availableRatio = availableToday > 0 ? Math.round((spendableToday / availableToday) * 100) : 0;
 
   async function addAccount(account: AccountFormValue) {
@@ -221,12 +223,29 @@ export function DashboardScreen() {
               </div>
               <p className="text-xs font-bold uppercase text-[var(--niva-color-muted)]">Primary Goal</p>
             </div>
-            <h3 className="mt-5 text-xl font-semibold text-[var(--niva-color-foreground)]">{featuredGoal.name}</h3>
-            <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">
-              {formatCurrency(featuredGoal.current)} de {formatCurrency(featuredGoal.target)} para {featuredGoal.date}
-            </p>
-            <NivaProgress value={featuredGoalProgress} label={featuredGoal.name} className="mt-6" />
-            <p className="mt-3 text-sm font-semibold text-[var(--niva-color-success)]">{featuredGoalProgress}% completado</p>
+            {featuredGoal ? (
+              <>
+                <h3 className="mt-5 text-xl font-semibold text-[var(--niva-color-foreground)]">{featuredGoal.name}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">
+                  {formatCurrency(featuredGoal.current)} de {formatCurrency(featuredGoal.target)} para {featuredGoal.date}
+                </p>
+                <NivaProgress value={featuredGoalProgress} label={featuredGoal.name} className="mt-6" />
+                <p className="mt-3 text-sm font-semibold text-[var(--niva-color-success)]">{featuredGoalProgress}% completado</p>
+              </>
+            ) : (
+              <>
+                <h3 className="mt-5 text-xl font-semibold text-[var(--niva-color-foreground)]">Define tu primera meta</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--niva-color-muted)]">
+                  Convierte un objetivo importante en una cantidad y una fecha concretas.
+                </p>
+                <Link
+                  href="/goals"
+                  className={cn("mt-5 inline-flex min-h-9 items-center rounded-[var(--niva-radius-lg)] px-3 text-sm font-semibold text-[var(--niva-color-info)]", nivaTransition, nivaFocusRing, "hover:bg-[var(--niva-color-muted-surface)]")}
+                >
+                  Crear una meta
+                </Link>
+              </>
+            )}
           </NivaLayoutSurface>
 
           <NivaLayoutSurface className="p-5">
@@ -259,6 +278,3 @@ export function DashboardScreen() {
     </div>
   );
 }
-
-
-
