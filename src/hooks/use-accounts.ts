@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -76,5 +76,5 @@ export function useAccounts() {
     }
   }, [accounts]);
 
-  return { accounts, isLoading, error, clearError, saveAccount, deleteAccount: archiveAccount, totals, moneyDistribution, institutionGroups };
+  return { accounts, isLoading, error, clearError, reload: loadAccounts, saveAccount, deleteAccount: archiveAccount, totals, moneyDistribution, institutionGroups };
 }

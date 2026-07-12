@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { type ReactNode, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { NivaMark, NivaWordmark } from "@/components/brand/niva-brand";
+import { isNivaMobileRoute, NivaMobileExperience } from "@/components/mobile/niva-mobile-experience";
 import { NivaAppShell, NivaLayoutSurface } from "@/design-system";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
 import { appNavigation } from "@/lib/navigation";
@@ -32,8 +34,22 @@ function getInitials(name: string) {
 }
 
 export function AppShell({ children, user }: AppShellProps) {
+  const pathname = usePathname();
+  const [isMobile, setIsMobile] = useState(false);
   const firstName = user.name.trim().split(/\s+/)[0] || "Usuario";
   const initials = getInitials(user.name) || "N";
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  if (isMobile && isNivaMobileRoute(pathname)) {
+    return <NivaMobileExperience firstName={firstName} />;
+  }
 
   return (
     <NivaAppShell
@@ -46,7 +62,7 @@ export function AppShell({ children, user }: AppShellProps) {
       }}
       user={{ name: user.name, initials, href: "/settings" }}
       groupOrder={sidebarGroupOrder}
-      homeTitle={`Hola, ${firstName}.`}
+      homeTitle={"Hola, " + firstName + "."}
       homeSubtitle="Así está tu dinero hoy."
       searchPlaceholder="Buscar registros, cuentas o categorías…"
       primaryAction={

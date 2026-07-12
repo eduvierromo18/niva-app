@@ -154,3 +154,30 @@ h3 {
 a {
   text-underline-offset: 0.2em;
 }
+
+html {
+  background: var(--niva-color-background);
+  overscroll-behavior-y: none;
+}
+
+body {
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  button,
+  a,
+  select,
+  input {
+    touch-action: manipulation;
+  }
+}
