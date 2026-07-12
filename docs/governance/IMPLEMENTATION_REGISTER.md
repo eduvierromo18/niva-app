@@ -1,4 +1,4 @@
-# Niva UI v5 Implementation Register
+﻿# Niva UI v5 Implementation Register
 
 ## Release Candidate
 
@@ -15,8 +15,8 @@
 | --- | --- | --- | --- |
 | 0 | Compliance audit | Route matrix, token delta, priorities | Complete |
 | 1 | Governance baseline | Canonical register, ADR, traceability | Complete |
-| 2 | Meridian implementation | Approved SVG variants, wordmark, icons, font assets | Planned |
-| 3 | Design System v4 | Tokens, primitives, accessibility baseline | Planned |
+| 2 | Meridian implementation | Approved SVG variants, wordmark, icons, font assets | Complete |
+| 3 | Design System v4 | Tokens, primitives, accessibility baseline | Complete |
 | 4 | UI v5 screens | Route-by-route implementation and responsive review | Planned |
 | 5 | Product language | Spanish copy, real user identity, empty states | Planned |
 | 6 | Release verification | Unit, type, lint, build, browser, Supabase security | Planned |
@@ -36,4 +36,3 @@ A phase is complete only when:
 ## Exceptions
 
 Exceptions require an ADR or RFC. Temporary implementation convenience is not an exception.
-

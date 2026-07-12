@@ -41,10 +41,10 @@
 }
 
 @theme inline {
-  --color-background: #f4f6f8;
-  --color-foreground: #0f172a;
+  --color-background: #fafbfc;
+  --color-foreground: #111827;
   --color-card: #ffffff;
-  --color-border: #d8dee5;
+  --color-border: #e5e7eb;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -53,105 +53,62 @@
   --font-niva-display: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-niva-mono: "IBM Plex Mono", ui-monospace, monospace;
   --font-niva-brand: "Archivo", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --background: #f4f6f8;
-  --foreground: #0f172a;
+  --background: #fafbfc;
+  --foreground: #111827;
   --surface: #ffffff;
-  --niva-color-background: #fafaf8;
-  --niva-color-foreground: #181816;
+  --niva-color-background: #fafbfc;
+  --niva-color-foreground: #111827;
+  --niva-color-body: #1f2937;
   --niva-color-surface: #ffffff;
-  --niva-color-border: #e8e8e2;
-  --niva-color-muted: #74746a;
-  --niva-color-muted-surface: #f5f5f2;
-  --niva-color-placeholder: #a6a69b;
-  --niva-color-ring: #3f8f5b;
-  --niva-color-accent: #3f8f5b;
-  --niva-color-accent-hover: #2f7047;
+  --niva-color-border: #e5e7eb;
+  --niva-color-muted: #6b7280;
+  --niva-color-muted-surface: #f3f4f6;
+  --niva-color-placeholder: #9ca3af;
+  --niva-color-ring: #1e7a4e;
+  --niva-color-accent: #1e7a4e;
+  --niva-color-accent-hover: #186640;
   --niva-color-accent-foreground: #ffffff;
-  --niva-color-accent-surface: #e1f0e6;
-  --niva-color-success: #3f8f5b;
-  --niva-color-success-surface: #e1f0e6;
-  --niva-color-warning: #c97912;
-  --niva-color-warning-surface: #fdecc8;
-  --niva-color-danger: #d94a38;
-  --niva-color-danger-surface: #fee4e0;
-  --niva-color-danger-surface-strong: #fecac3;
-  --niva-color-info: #2f7ba3;
-  --niva-color-info-surface: #dcecf5;
-  --niva-color-neutral-300: #d8d8cf;
-  --niva-color-overlay: rgb(24 24 22 / 0.35);
-  --niva-color-inverse-surface: #181816;
-  --niva-color-inverse-foreground: #ffffff;
-  --niva-color-inverse-muted: rgb(255 255 255 / 0.62);
-  --niva-color-inverse-subtle: rgb(255 255 255 / 0.14);
-  --niva-account-background: #f4ede2;
-  --niva-account-surface: #fbf7ef;
-  --niva-account-subtle: #f7f1e8;
-  --niva-account-border: #d8cdbd;
-  --niva-account-foreground: #211f1b;
-  --niva-account-muted: #6e655b;
-  --niva-account-positive: #0f6b4d;
-  --niva-account-positive-surface: #eef6f1;
-  --niva-account-positive-border: #b7d7c6;
-  --niva-account-review: #9a4b35;
-  --niva-account-review-surface: #f7eee8;
-  --niva-account-review-border: #e7c8b8;
+  --niva-color-accent-surface: #dcefe4;
+  --niva-color-success: #1e7a4e;
+  --niva-color-success-surface: #dcefe4;
+  --niva-color-warning: #6b7280;
+  --niva-color-warning-surface: #f3f4f6;
+  --niva-color-danger: #454b57;
+  --niva-color-danger-surface: #f3f4f6;
+  --niva-color-danger-surface-strong: #e5e7eb;
+  --niva-color-info: #5b6472;
+  --niva-color-info-surface: #f3f4f6;
+  --niva-color-neutral-300: #c3c8d0;
+  --niva-color-overlay: rgb(17 24 39 / 0.35);
+  --niva-color-inverse-surface: #111827;
+  --niva-color-inverse-foreground: #fcfcfd;
+  --niva-color-inverse-muted: #c3c8d0;
+  --niva-color-inverse-subtle: rgb(252 252 253 / 0.14);
+  --niva-account-background: #f3f4f6;
+  --niva-account-surface: #ffffff;
+  --niva-account-subtle: #fafbfc;
+  --niva-account-border: #e5e7eb;
+  --niva-account-foreground: #111827;
+  --niva-account-muted: #6b7280;
+  --niva-account-positive: #1e7a4e;
+  --niva-account-positive-surface: #dcefe4;
+  --niva-account-positive-border: #b9dec9;
+  --niva-account-review: #454b57;
+  --niva-account-review-surface: #f3f4f6;
+  --niva-account-review-border: #c3c8d0;
   --niva-radius-md: 0.5rem;
   --niva-radius-lg: 0.75rem;
-  --niva-radius-xl: 1rem;
-  --niva-radius-2xl: 1.25rem;
+  --niva-radius-xl: 1.125rem;
+  --niva-radius-2xl: 1.375rem;
+  --niva-radius-3xl: 1.625rem;
   --niva-radius-full: 9999px;
-  --niva-shadow-xs: 0 1px 2px rgb(24 24 22 / 0.05);
-  --niva-shadow-sm: 0 4px 12px rgb(24 24 22 / 0.06);
-  --niva-shadow-xl: 0 24px 48px rgb(24 24 22 / 0.1);
+  --niva-shadow-xs: 0 1px 2px rgb(16 24 40 / 0.04);
+  --niva-shadow-sm: 0 4px 12px rgb(16 24 40 / 0.06);
+  --niva-shadow-md: 0 12px 24px rgb(16 24 40 / 0.08);
+  --niva-shadow-xl: 0 24px 48px rgb(16 24 40 / 0.1);
   --niva-motion-base: 180ms;
   --niva-ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
-
-.dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --surface: #111113;
-  --niva-color-background: #181816;
-  --niva-color-foreground: #fafaf8;
-  --niva-color-surface: #292925;
-  --niva-color-border: #3d3d37;
-  --niva-color-muted: #a6a69b;
-  --niva-color-muted-surface: #292925;
-  --niva-color-placeholder: #74746a;
-  --niva-color-ring: #97c9a8;
-  --niva-color-accent: #63aa7d;
-  --niva-color-accent-hover: #97c9a8;
-  --niva-color-accent-foreground: #181816;
-  --niva-color-accent-surface: #1e3c2b;
-  --niva-color-success: #97c9a8;
-  --niva-color-success-surface: #1e3c2b;
-  --niva-color-warning: #f4bd59;
-  --niva-color-warning-surface: #573116;
-  --niva-color-danger: #f99f93;
-  --niva-color-danger-surface: #682720;
-  --niva-color-danger-surface-strong: #7e2b24;
-  --niva-color-info: #86bcd8;
-  --niva-color-info-surface: #1e384b;
-  --niva-color-neutral-300: #55554d;
-  --niva-color-overlay: rgb(0 0 0 / 0.55);
-  --niva-color-inverse-surface: #fafaf8;
-  --niva-color-inverse-foreground: #181816;
-  --niva-color-inverse-muted: rgb(24 24 22 / 0.68);
-  --niva-color-inverse-subtle: rgb(24 24 22 / 0.14);
-  --niva-account-background: #181816;
-  --niva-account-surface: #292925;
-  --niva-account-subtle: #3d3d37;
-  --niva-account-border: #55554d;
-  --niva-account-foreground: #fafaf8;
-  --niva-account-muted: #d8d8cf;
-  --niva-account-positive: #97c9a8;
-  --niva-account-positive-surface: #1e3c2b;
-  --niva-account-positive-border: #285a3b;
-  --niva-account-review: #f99f93;
-  --niva-account-review-surface: #682720;
-  --niva-account-review-border: #982f25;
-}
-
 body {
   min-height: 100vh;
   background: var(--background);
@@ -182,4 +139,18 @@ body {
 .niva-progress::-moz-progress-bar {
   background: var(--niva-color-accent);
   border-radius: var(--niva-radius-full);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-niva-display);
+}
+
+::selection {
+  background: var(--niva-color-accent-surface);
+}
+
+a {
+  text-underline-offset: 0.2em;
 }

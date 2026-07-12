@@ -1,41 +1,51 @@
-# Niva Visual Tokens
+﻿# Niva Design Tokens
 
-## Purpose
+## Authority
 
-The Niva visual token layer defines the first technical foundation for the Niva Design Language. Tokens are plain TypeScript values that describe color, typography, spacing, radius, shadows, motion, and surfaces for a calm financial interface.
+Niva Design Manual v4.0 governs product tokens. Niva Meridian Identity v1.0 governs only the mark and wordmark.
 
-This sprint only creates the system foundation. Do not apply these tokens globally until a later implementation sprint.
+## Product Foundation
 
-## Source
+| Role | Token | Value |
+| --- | --- | --- |
+| Canvas | `--niva-color-background` | `#FAFBFC` |
+| Surface | `--niva-color-surface` | `#FFFFFF` |
+| Ink | `--niva-color-foreground` | `#111827` |
+| Body | `--niva-color-body` | `#1F2937` |
+| Muted | `--niva-color-muted` | `#6B7280` |
+| Border | `--niva-color-border` | `#E5E7EB` |
+| Accent | `--niva-color-accent` | `#1E7A4E` |
+| Accent hover | `--niva-color-accent-hover` | `#186640` |
+| Accent wash | `--niva-color-accent-surface` | `#DCEFE4` |
+| Negative | `--niva-color-danger` | `#454B57` |
+| Information | `--niva-color-info` | `#5B6472` |
 
-Use the token modules in `src/design/tokens` or the composed theme in `src/design/theme.ts`.
+Ultramarine `#27409A` and lifted ultramarine `#6E8AD6` are brand-mark colors and cannot be used for product actions.
 
-```ts
-import { nivaTheme } from "@/design/theme";
-import { colors, spacing } from "@/design/tokens";
-```
+## Typography
 
-## Token Groups
+- Inter: body, labels, controls and tables.
+- Manrope: titles and primary financial figures.
+- IBM Plex Mono: tracked eyebrows, dates and identifiers.
+- Archivo Light: Meridian wordmark only.
 
-- `colors`: White-first neutrals, restrained green accent, financial state colors, and semantic aliases.
-- `typography`: Modern sans-serif stack, type sizes, line heights, weights, and reusable text styles.
-- `spacing`: A generous spacing scale for layout rhythm and component padding.
-- `radius`: Rounded values for light cards, panels, controls, and full pills.
-- `shadows`: Minimal elevation for quiet hierarchy and focus treatment.
-- `motion`: Short, calm durations and easing values for subtle interaction.
-- `surfaces`: Composed surface recipes for app backgrounds, panels, cards, and subtle sections.
+All production fonts are served locally from `public/fonts`.
 
-## Usage Guidance
+## Shape
 
-Prefer semantic tokens when building product UI. For example, use `colors.semantic.accent` for a primary action accent instead of choosing a raw green shade directly.
+Approved radius scale: 8, 12, 18, 22 and 26 pixels. Full radius is reserved for pills and circular controls.
 
-Use surface tokens for new Niva primitives when a component needs a complete visual recipe. They bundle background, border, radius, and shadow decisions so cards remain light and consistent.
+## Elevation
 
-Use raw scale tokens when the component needs a specific primitive value, such as `spacing[6]`, `radius.lg`, or `typography.textStyle.bodySmall`.
+Shadows use cool neutral `rgb(16 24 40)` values. Warm-tinted shadows are not allowed.
 
-## Boundaries
+## Motion
 
-- Do not import these tokens into global CSS yet.
-- Do not replace existing Aurora styles as part of this sprint.
-- Do not change business logic, routing, hooks, queries, or Supabase code when consuming tokens.
-- Keep future token adoption incremental and component-scoped.
+Product transitions use 180ms and the standard `cubic-bezier(0.2, 0, 0, 1)` curve unless an approved component specification says otherwise.
+
+## Implementation
+
+- Typed values: `src/design/tokens/`
+- CSS values: `src/app/globals.css`
+- Components: `src/design-system/`
+- Live catalogue: `/design-system`

@@ -1,4 +1,4 @@
-import { colors } from "./colors";
+﻿import { colors } from "./colors";
 import { radius } from "./radius";
 import { shadows } from "./shadows";
 
@@ -32,7 +32,7 @@ export const surfaces = {
     boxShadow: shadows.sm,
   },
   subtle: {
-    background: colors.neutral[50],
+    background: colors.neutral[100],
     borderColor: colors.neutral[200],
     borderWidth: "1px",
     borderStyle: "solid",
