@@ -11,7 +11,10 @@ export type QuickCreateValue = {
   current?: number;
   extra?: string;
   extraAmount?: number;
+  categoryId?: string;
 };
+
+export type CategoryOption = { id: string; name: string };
 
 export function QuickCreateDialog({
   open,
@@ -24,6 +27,8 @@ export function QuickCreateDialog({
   extraLabel,
   extraPlaceholder,
   extraAmountLabel,
+  categoryOptions,
+  categoryLabel,
   initialValue,
   onClose,
   onSave,
@@ -38,6 +43,8 @@ export function QuickCreateDialog({
   extraLabel?: string;
   extraPlaceholder?: string;
   extraAmountLabel?: string;
+  categoryOptions?: CategoryOption[];
+  categoryLabel?: string;
   initialValue?: QuickCreateValue | null;
   onClose: () => void;
   onSave: (value: QuickCreateValue) => Promise<boolean | void> | boolean | void;
@@ -48,6 +55,7 @@ export function QuickCreateDialog({
   const [current, setCurrent] = useState("");
   const [extra, setExtra] = useState("");
   const [extraAmount, setExtraAmount] = useState("");
+  const [categoryId, setCategoryId] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -57,18 +65,27 @@ export function QuickCreateDialog({
     setCurrent(initialValue?.current !== undefined ? String(initialValue.current) : "");
     setExtra(initialValue?.extra ?? "");
     setExtraAmount(initialValue?.extraAmount !== undefined ? String(initialValue.extraAmount) : "");
+    setCategoryId(initialValue?.categoryId ?? "");
   }, [initialValue, open]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!name.trim()) return;
+    // When a category selector is used, the picked category is the record's
+    // identity — validate it instead of the free-text name.
+    if (categoryOptions) {
+      if (!categoryId) return;
+    } else if (!name.trim()) {
+      return;
+    }
+    const selectedCategory = categoryOptions?.find((option) => option.id === categoryId);
     const saved = await onSave({
-      name: name.trim(),
+      name: selectedCategory ? selectedCategory.name : name.trim(),
       amount: Number(amount) || 0,
       secondary,
       current: Number(current) || 0,
       extra,
       extraAmount: Number(extraAmount) || 0,
+      categoryId: categoryOptions ? categoryId : undefined,
     });
     if (saved === false) return;
     setName("");
@@ -77,15 +94,27 @@ export function QuickCreateDialog({
     setCurrent("");
     setExtra("");
     setExtraAmount("");
+    setCategoryId("");
     onClose();
   }
 
   return (
     <Dialog open={open} title={title} description={description} onClose={onClose}>
       <form className="grid gap-4" onSubmit={submit}>
-        <Field label="Nombre">
-          <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />
-        </Field>
+        {categoryOptions ? (
+          <Field label={categoryLabel ?? "Categoría"}>
+            <select className={inputClass} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+              <option value="">Selecciona una categoría</option>
+              {categoryOptions.map((option) => (
+                <option key={option.id} value={option.id}>{option.name}</option>
+              ))}
+            </select>
+          </Field>
+        ) : (
+          <Field label="Nombre">
+            <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} />
+          </Field>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={amountLabel}>
             <input className={inputClass} type="number" value={amount} onChange={(event) => setAmount(event.target.value)} />

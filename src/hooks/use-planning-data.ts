@@ -8,6 +8,7 @@ import type { FinanceAccount, ScheduledTransaction } from "@/lib/finance-types";
 import { mapAccount } from "@/lib/finance-mappers";
 
 export type BudgetItem = { id: string; categoryId: string; name: string; spent: number; limit: number; icon: typeof ReceiptText };
+export type CategoryOption = { id: string; name: string };
 export type GoalItem = { id: string; name: string; current: number; target: number; date: string };
 export type LiabilityItem = { id: string; name: string; balance: number; limit: number; closing: string; due: string; icon: typeof CreditCard };
 
@@ -28,6 +29,7 @@ export function usePlanningData() {
   const [liabilities, setLiabilities] = useState<LiabilityItem[]>([]);
   const [scheduled, setScheduled] = useState<ScheduledTransaction[]>([]);
   const [accounts, setAccounts] = useState<FinanceAccount[]>([]);
+  const [expenseCategories, setExpenseCategories] = useState<CategoryOption[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,6 +50,7 @@ export function usePlanningData() {
     if (queryError) setError(queryError.message);
     else {
       const categories = categoryResult.data ?? [];
+      setExpenseCategories(categories.filter((category) => category.type === "expense").map((category) => ({ id: category.id, name: category.name })));
       const spending = new Map((spendingResult.data ?? []).map((item) => [item.category_id, Number(item.amount ?? 0)]));
       setBudgets((budgetResult.data ?? []).map((item) => ({
         id: item.id,
@@ -83,13 +86,15 @@ export function usePlanningData() {
     const supabase = createClient();
     const auth = await supabase.auth.getUser();
     if (!auth.data.user) return false;
-    const categories = await supabase.from("categories").select("id,name").eq("type", "expense").eq("is_archived", false);
-    const category = categories.data?.find((item) => item.name.toLowerCase() === value.name.toLowerCase()) ?? categories.data?.[0];
-    if (!category) { setError("Crea una categoria de gasto antes del presupuesto."); return false; }
+    // Use the category id chosen in the form. No fuzzy name-matching and no
+    // silent fallback to "the first expense category" — that could save the
+    // budget against the wrong category without telling the user.
+    const categoryId = value.categoryId ?? editing?.categoryId;
+    if (!categoryId) { setError("Selecciona una categoria de gasto para el presupuesto."); return false; }
     const month = new Date().toISOString().slice(0, 7) + "-01";
     const result = editing
-      ? await supabase.from("monthly_budgets").update({ category_id: category.id, amount: value.amount, month }).eq("id", editing.id)
-      : await supabase.from("monthly_budgets").upsert({ user_id: auth.data.user.id, category_id: category.id, amount: value.amount, month }, { onConflict: "user_id,category_id,month" });
+      ? await supabase.from("monthly_budgets").update({ category_id: categoryId, amount: value.amount, month }).eq("id", editing.id)
+      : await supabase.from("monthly_budgets").upsert({ user_id: auth.data.user.id, category_id: categoryId, amount: value.amount, month }, { onConflict: "user_id,category_id,month" });
     if (result.error) { setError(result.error.message); return false; }
     await load(); return true;
   }, [load]);
@@ -151,6 +156,6 @@ export function usePlanningData() {
     await load(); return true;
   }, [load]);
 
-  return { budgets, goals, liabilities, scheduled, accounts, error, isLoading, saveBudget, saveGoal, saveLiability, saveScheduled, toggleScheduled, confirmScheduled, remove, reload: load };
+  return { budgets, goals, liabilities, scheduled, accounts, expenseCategories, error, isLoading, saveBudget, saveGoal, saveLiability, saveScheduled, toggleScheduled, confirmScheduled, remove, reload: load };
 }
 

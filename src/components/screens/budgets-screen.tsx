@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export function BudgetsScreen() {
   const [open, setOpen] = useState(false);
-  const { budgets, error, isLoading, saveBudget, remove } = usePlanningData();
+  const { budgets, expenseCategories, error, isLoading, saveBudget, remove } = usePlanningData();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   function openNewBudget() {
@@ -80,11 +80,14 @@ export function BudgetsScreen() {
         currentLabel="Gastado inicial"
         secondaryLabel="Mes"
         secondaryPlaceholder="Ej. Junio 2026"
+        categoryOptions={expenseCategories}
+        categoryLabel="Categoria"
         initialValue={editingIndex !== null ? {
           name: budgets[editingIndex].name,
           amount: budgets[editingIndex].limit,
           current: budgets[editingIndex].spent,
           secondary: "",
+          categoryId: budgets[editingIndex].categoryId,
         } : null}
         onClose={() => {
           setOpen(false);

@@ -40,6 +40,7 @@ import { useMovements } from "@/hooks/use-movements";
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { getFeaturedGoalProgress } from "@/lib/dashboard";
 import { categoryData, metrics } from "@/lib/finance-data";
+import { getSpendableSummary } from "@/lib/dashboard";
 import type { FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -117,7 +118,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
       {pathname === "/accounts" ? <MobileAccounts accounts={accountsData.accounts} distribution={accountsData.moneyDistribution} groups={accountsData.institutionGroups} total={accountsData.totals.totalMoney} reviewCount={accountsData.totals.lowBalanceCount} loading={accountsData.isLoading} error={accountsData.error} onReload={accountsData.reload} onCreate={() => { setEditingAccountIndex(null); setAccountOpen(true); }} onEdit={(index) => { setEditingAccountIndex(index); setAccountOpen(true); }} onArchive={accountsData.deleteAccount} /> : null}
       {pathname === "/goals" ? <MobileGoals goals={planningData.goals} loading={planningData.isLoading} onCreate={() => { setEditingGoal(null); setGoalOpen(true); }} onEdit={(goal) => { setEditingGoal(goal); setGoalOpen(true); }} onDelete={(id) => planningData.remove("savings_goals", id)} /> : null}
       {pathname === "/programados" ? <MobileScheduled items={planningData.scheduled} loading={planningData.isLoading} error={planningData.error} onReload={planningData.reload} onCreate={() => openScheduled()} onEdit={openScheduled} onToggle={planningData.toggleScheduled} onConfirm={async (id) => { const saved = await planningData.confirmScheduled(id); if (saved) await Promise.all([movementsData.reload(), accountsData.reload()]); return saved; }} onDelete={(id) => planningData.remove("scheduled_transactions", id)} /> : null}
-      {pathname === "/budgets" ? <MobileBudgets items={planningData.budgets} loading={planningData.isLoading} onSave={planningData.saveBudget} onDelete={(id) => planningData.remove("monthly_budgets", id)} /> : null}
+      {pathname === "/budgets" ? <MobileBudgets items={planningData.budgets} categories={planningData.expenseCategories} loading={planningData.isLoading} onSave={planningData.saveBudget} onDelete={(id) => planningData.remove("monthly_budgets", id)} /> : null}
       {pathname === "/liabilities" ? <MobileLiabilities items={planningData.liabilities} loading={planningData.isLoading} onSave={planningData.saveLiability} onDelete={(id) => planningData.remove("liabilities", id)} /> : null}
       {pathname === "/settings" ? <MobileSettings user={user} /> : null}
 
@@ -182,14 +183,7 @@ function MobileHome({
   onAddExpense,
 }: MobileHomeProps) {
   const total = accounts.reduce((sum, account) => sum + account.balance, 0);
-  const reserved = accounts
-    .filter((account) => account.alias === "Reserva" || account.name.toLowerCase().includes("ahorro"))
-    .reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
-  const positiveCash = accounts
-    .filter((account) => account.type !== "Tarjeta")
-    .reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
-  const available = Math.max(positiveCash - reserved, 0);
-  const margin = positiveCash > 0 ? Math.round((available / positiveCash) * 100) : 0;
+  const { reserved, spendable: available, spendableRatio: margin } = getSpendableSummary(accounts);
   const nextScheduled = scheduled.filter((item) => item.status === "active").sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))[0];
   const upcomingTotal = scheduled.filter((item) => item.status === "active" && item.type !== "income").reduce((sum, item) => sum + item.amount, 0);
   const goal = goals[0];
@@ -449,9 +443,9 @@ function MobileScheduled({ items, loading, error, onReload, onCreate, onEdit, on
   </MobilePage>;
 }
 
-function MobileBudgets({ items, loading, onSave, onDelete }: { items: ReturnType<typeof usePlanningData>["budgets"]; loading: boolean; onSave: ReturnType<typeof usePlanningData>["saveBudget"]; onDelete: (id: string) => void }) {
+function MobileBudgets({ items, categories, loading, onSave, onDelete }: { items: ReturnType<typeof usePlanningData>["budgets"]; categories: ReturnType<typeof usePlanningData>["expenseCategories"]; loading: boolean; onSave: ReturnType<typeof usePlanningData>["saveBudget"]; onDelete: (id: string) => void }) {
   const [open, setOpen] = useState(false); const [editing, setEditing] = useState<ReturnType<typeof usePlanningData>["budgets"][number] | null>(null);
-  return <><MobilePage title="Presupuestos" subtitle="Límites mensuales por categoría" action={<button type="button" onClick={() => { setEditing(null); setOpen(true); }} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nuevo</button>}>{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={`${formatCurrency(item.spent)} de ${formatCurrency(item.limit)}`} progress={item.limit ? Math.min((item.spent / item.limit) * 100, 100) : 0} onEdit={() => { setEditing(item); setOpen(true); }} onDelete={() => onDelete(item.id)} />)}{!items.length ? <MobileEmpty title="Sin presupuestos" /> : null}</div>}</MobilePage><QuickCreateDialog open={open} title={editing ? "Editar presupuesto" : "Nuevo presupuesto"} description="Define el límite mensual para una categoría." amountLabel="Límite" secondaryLabel="Mes" secondaryPlaceholder="Mes actual" initialValue={editing ? { name: editing.name, amount: editing.limit, secondary: "" } : null} onClose={() => setOpen(false)} onSave={(value) => onSave(value, editing ?? undefined)} /></>;
+  return <><MobilePage title="Presupuestos" subtitle="Límites mensuales por categoría" action={<button type="button" onClick={() => { setEditing(null); setOpen(true); }} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nuevo</button>}>{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={`${formatCurrency(item.spent)} de ${formatCurrency(item.limit)}`} progress={item.limit ? Math.min((item.spent / item.limit) * 100, 100) : 0} onEdit={() => { setEditing(item); setOpen(true); }} onDelete={() => onDelete(item.id)} />)}{!items.length ? <MobileEmpty title="Sin presupuestos" /> : null}</div>}</MobilePage><QuickCreateDialog open={open} title={editing ? "Editar presupuesto" : "Nuevo presupuesto"} description="Define el límite mensual para una categoría." amountLabel="Límite" secondaryLabel="Mes" secondaryPlaceholder="Mes actual" categoryOptions={categories} categoryLabel="Categoría" initialValue={editing ? { name: editing.name, amount: editing.limit, secondary: "", categoryId: editing.categoryId } : null} onClose={() => setOpen(false)} onSave={(value) => onSave(value, editing ?? undefined)} /></>;
 }
 
 function MobileLiabilities({ items, loading, onSave, onDelete }: { items: ReturnType<typeof usePlanningData>["liabilities"]; loading: boolean; onSave: ReturnType<typeof usePlanningData>["saveLiability"]; onDelete: (id: string) => void }) {

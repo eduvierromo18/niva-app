@@ -8,14 +8,14 @@ import { MovementDialog, type MovementFormValue } from "@/components/finance/mov
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { useMovements } from "@/hooks/use-movements";
 import { useAccounts } from "@/hooks/use-accounts";
-import { getFeaturedGoalProgress } from "@/lib/dashboard";
+import { getFeaturedGoalProgress, getSpendableSummary } from "@/lib/dashboard";
 import { cn, formatCurrency } from "@/lib/utils";
 import { NivaBadge, NivaButton, NivaContentGrid, NivaLayoutSurface, NivaProgress, NivaSection } from "@/design-system";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
 
-const today = new Date("2026-06-29T00:00:00");
-
 function daysUntil(date: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const due = new Date(`${date}T00:00:00`);
   return Math.ceil((due.getTime() - today.getTime()) / 86400000);
 }
@@ -54,13 +54,7 @@ export function DashboardScreen() {
   const { goals, scheduled: scheduledTransactions } = usePlanningData();
 
   const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
-  const reservedBalance = accounts
-    .filter((account) => account.alias === "Reserva" || account.name.toLowerCase().includes("ahorro"))
-    .reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
-  const availableToday = accounts
-    .filter((account) => account.type !== "Tarjeta")
-    .reduce((sum, account) => sum + Math.max(account.balance, 0), 0);
-  const spendableToday = Math.max(availableToday - reservedBalance, 0);
+  const { reserved: reservedBalance, spendable: spendableToday, spendableRatio: availableRatio } = getSpendableSummary(accounts);
   const upcomingScheduled = scheduledTransactions
     .filter((item) => item.status === "active")
     .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
@@ -73,8 +67,6 @@ export function DashboardScreen() {
   const recentMovements = movements.slice(0, 5);
   const featuredGoal = goals[0];
   const featuredGoalProgress = getFeaturedGoalProgress(featuredGoal);
-
-  const availableRatio = availableToday > 0 ? Math.round((spendableToday / availableToday) * 100) : 0;
 
   async function addAccount(account: AccountFormValue) {
     const saved = await saveAccount(account, null);
