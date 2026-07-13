@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit3, Target, Trash2 } from "lucide-react";
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { PageScaffold } from "@/components/finance/page-scaffold";
 import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
 import { GoalProgress } from "@/components/finance/goal-progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NivaEmptyState } from "@/design-system";
 
 export function GoalsScreen() {
   const [open, setOpen] = useState(false);
@@ -33,6 +34,15 @@ export function GoalsScreen() {
     >
       {error ? <div className="mb-4 rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-4 text-sm text-[var(--niva-color-danger)]">{error}</div> : null}
       {isLoading ? <p className="text-sm text-[var(--niva-color-muted)]">Cargando metas...</p> : null}
+      {!isLoading && goals.length === 0 ? (
+        <NivaEmptyState
+          title="Aún no tienes metas"
+          description="Define un objetivo de ahorro y avanza a tu ritmo, sin presión."
+          actionLabel="Crear primera meta"
+          icon={<Target className="h-8 w-8" />}
+          onAction={openNewGoal}
+        />
+      ) : (
       <div className="grid gap-4 xl:grid-cols-3">
         {goals.map((goal, index) => {
           return (
@@ -56,6 +66,7 @@ export function GoalsScreen() {
           );
         })}
       </div>
+      )}
       <QuickCreateDialog
         open={open}
         title="Nueva meta"

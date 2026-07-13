@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit3, Trash2 } from "lucide-react";
+import { CreditCard, Edit3, Trash2 } from "lucide-react";
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { formatCurrency } from "@/lib/utils";
 import { PageScaffold } from "@/components/finance/page-scaffold";
@@ -9,6 +9,7 @@ import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/q
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { NivaEmptyState } from "@/design-system";
 
 export function LiabilitiesScreen() {
   const [open, setOpen] = useState(false);
@@ -34,6 +35,15 @@ export function LiabilitiesScreen() {
     >
       {error ? <div className="mb-4 rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-4 text-sm text-[var(--niva-color-danger)]">{error}</div> : null}
       {isLoading ? <p className="text-sm text-[var(--niva-color-muted)]">Cargando deudas...</p> : null}
+      {!isLoading && liabilities.length === 0 ? (
+        <NivaEmptyState
+          title="Sin deudas registradas"
+          description="Registra una tarjeta o préstamo para tener claridad total de lo que debes."
+          actionLabel="Registrar primera deuda"
+          icon={<CreditCard className="h-8 w-8" />}
+          onAction={openNewLiability}
+        />
+      ) : (
       <div className="grid gap-4 xl:grid-cols-2">
         {liabilities.map((item, index) => {
           const percent = item.limit > 0 ? (item.balance / item.limit) * 100 : 0;
@@ -71,6 +81,7 @@ export function LiabilitiesScreen() {
           );
         })}
       </div>
+      )}
       <QuickCreateDialog
         open={open}
         title="Nueva deuda o tarjeta"

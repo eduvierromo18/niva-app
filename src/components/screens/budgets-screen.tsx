@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit3, ReceiptText, Trash2 } from "lucide-react";
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { PageScaffold } from "@/components/finance/page-scaffold";
 import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
 import { BudgetProgress } from "@/components/finance/budget-progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NivaEmptyState } from "@/design-system";
 
 export function BudgetsScreen() {
   const [open, setOpen] = useState(false);
@@ -33,6 +34,15 @@ export function BudgetsScreen() {
     >
       {error ? <div className="mb-4 rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-4 text-sm text-[var(--niva-color-danger)]">{error}</div> : null}
       {isLoading ? <p className="text-sm text-[var(--niva-color-muted)]">Cargando presupuestos...</p> : null}
+      {!isLoading && budgets.length === 0 ? (
+        <NivaEmptyState
+          title="Aún no hay presupuestos"
+          description="Ponle un límite tranquilo a una categoría y cuida tu gasto sin agobios."
+          actionLabel="Crear primer presupuesto"
+          icon={<ReceiptText className="h-8 w-8" />}
+          onAction={openNewBudget}
+        />
+      ) : (
       <div className="grid gap-4 xl:grid-cols-2">
         {budgets.map((budget, index) => {
           return (
@@ -72,6 +82,7 @@ export function BudgetsScreen() {
           );
         })}
       </div>
+      )}
       <QuickCreateDialog
         open={open}
         title="Nuevo presupuesto"

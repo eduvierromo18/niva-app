@@ -114,7 +114,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
     <div className={cn("min-h-[100dvh] overflow-x-hidden pb-[calc(6.25rem+env(safe-area-inset-bottom))] niva-mobile-ios", pathname === "/dashboard" && darkHome ? "bg-[#0F1726] text-[#FCFCFD]" : "bg-[#F7F8FA] text-[var(--niva-color-foreground)]")}>
       {pathname === "/dashboard" ? <MobileHome firstName={firstName} dark={darkHome} onToggleAppearance={() => setDarkHome((current) => !current)} accounts={movementsData.accounts} movements={movementsData.movements} scheduled={planningData.scheduled} goals={planningData.goals} loading={movementsData.isLoading || planningData.isLoading} error={movementsData.error || planningData.error} onRetry={() => { void movementsData.reload(); void planningData.reload(); }} onAddExpense={() => openMovement("Gasto")} /> : null}
       {pathname === "/movements" ? <MobileActivity movements={movementsData.movements} loading={movementsData.isLoading} error={movementsData.error} onReload={movementsData.reload} onDelete={movementsData.deleteMovement} onCreate={() => openMovement("Gasto")} onEdit={(item) => openMovement(item.type, item)} /> : null}
-      {pathname === "/categories" ? <MobileAnalytics movements={movementsData.movements} /> : null}
+      {pathname === "/categories" ? <MobileAnalytics movements={movementsData.movements} loading={movementsData.isLoading} error={movementsData.error} onReload={movementsData.reload} /> : null}
       {pathname === "/accounts" ? <MobileAccounts accounts={accountsData.accounts} distribution={accountsData.moneyDistribution} groups={accountsData.institutionGroups} total={accountsData.totals.totalMoney} reviewCount={accountsData.totals.lowBalanceCount} loading={accountsData.isLoading} error={accountsData.error} onReload={accountsData.reload} onCreate={() => { setEditingAccountIndex(null); setAccountOpen(true); }} onEdit={(index) => { setEditingAccountIndex(index); setAccountOpen(true); }} onArchive={accountsData.deleteAccount} /> : null}
       {pathname === "/goals" ? <MobileGoals goals={planningData.goals} loading={planningData.isLoading} onCreate={() => { setEditingGoal(null); setGoalOpen(true); }} onEdit={(goal) => { setEditingGoal(goal); setGoalOpen(true); }} onDelete={(id) => planningData.remove("savings_goals", id)} /> : null}
       {pathname === "/programados" ? <MobileScheduled items={planningData.scheduled} loading={planningData.isLoading} error={planningData.error} onReload={planningData.reload} onCreate={() => openScheduled()} onEdit={openScheduled} onToggle={planningData.toggleScheduled} onConfirm={async (id) => { const saved = await planningData.confirmScheduled(id); if (saved) await Promise.all([movementsData.reload(), accountsData.reload()]); return saved; }} onDelete={(id) => planningData.remove("scheduled_transactions", id)} /> : null}
@@ -358,7 +358,7 @@ function MobileActivity({
   );
 }
 
-function MobileAnalytics({ movements }: { movements: FinanceMovement[] }) {
+function MobileAnalytics({ movements, loading, error, onReload }: { movements: FinanceMovement[]; loading: boolean; error: string | null; onReload: () => Promise<void> }) {
   const income = movements.filter((item) => item.type === "Ingreso").reduce((sum, item) => sum + Math.abs(item.amount), 0);
   const expense = movements.filter((item) => item.type === "Gasto").reduce((sum, item) => sum + Math.abs(item.amount), 0);
   const balance = income - expense;
@@ -374,6 +374,10 @@ function MobileAnalytics({ movements }: { movements: FinanceMovement[] }) {
 
   return (
     <MobilePage title="Análisis" action={<select aria-label="Periodo" className="rounded-full border border-[#E0E3E8] bg-white px-4 py-2 text-xs font-semibold"><option>Este mes</option></select>}>
+      {loading ? <MobileSkeleton /> : null}
+      {error ? <MobileError message="No pudimos sincronizar tu análisis." onRetry={() => void onReload()} /> : null}
+      {!loading && !error ? (
+      <>
       <div className="no-scrollbar -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2">
         {data.map((metric) => (
           <article key={metric.label} className="w-[46%] shrink-0 snap-start rounded-2xl border border-[#E0E3E8] bg-white p-4">
@@ -399,6 +403,8 @@ function MobileAnalytics({ movements }: { movements: FinanceMovement[] }) {
           })}
         </div>
       </section>
+      </>
+      ) : null}
     </MobilePage>
   );
 }
