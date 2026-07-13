@@ -162,6 +162,15 @@ Enums clave: `account_type` (`cash`, `checking`, `savings`, `credit_card`,
 8. **Sin importación CSV/Excel, sin OCR de tickets, sin integración bancaria
    real (Plaid/Belvo/Open Finance)** — si alguna función nueva asume esto,
    confirmar que no existe antes de construir sobre ello.
+9. **Historial de migraciones desfasado**: el constraint
+   `scheduled_transactions_amount_positive` se aplicó manualmente vía SQL
+   Editor de Supabase (no por `supabase db push`), así que el historial de
+   migraciones remoto no tiene registrada la versión `20260713123000`. La
+   migración ya quedó escrita de forma idempotente para que no falle si se
+   corre después. Pendiente no urgente: correr
+   `supabase migration repair --status applied 20260713123000` cuando el CLI
+   esté autenticado, para sincronizar el historial. Quitar esta nota una vez
+   hecho.
 
 ## Estados obligatorios en toda función nueva
 
