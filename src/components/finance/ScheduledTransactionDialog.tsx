@@ -76,6 +76,11 @@ export function ScheduledTransactionDialog({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!name.trim()) return;
+    const numericAmount = Math.abs(Number(amount) || 0);
+    if (numericAmount <= 0) {
+      setError("Ingresa un monto mayor a $0.");
+      return;
+    }
     if ((type === "transfer" || type === "debt_payment") && account === destinationAccount) {
       setError("La cuenta origen y destino deben ser diferentes.");
       return;
@@ -85,7 +90,7 @@ export function ScheduledTransactionDialog({
       id: initialValue?.id ?? crypto.randomUUID(),
       name: name.trim(),
       type,
-      amount: Math.abs(Number(amount) || 0),
+      amount: numericAmount,
       account,
       destinationAccount: type === "transfer" || type === "debt_payment" ? destinationAccount : undefined,
       category: type === "transfer" ? "Transferencia" : category,

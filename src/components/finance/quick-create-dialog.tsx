@@ -29,6 +29,7 @@ export function QuickCreateDialog({
   extraAmountLabel,
   categoryOptions,
   categoryLabel,
+  requirePositiveAmount = false,
   initialValue,
   onClose,
   onSave,
@@ -45,6 +46,9 @@ export function QuickCreateDialog({
   extraAmountLabel?: string;
   categoryOptions?: CategoryOption[];
   categoryLabel?: string;
+  // Opt-in: reject amount <= 0 with a visible error. Off by default so records
+  // that legitimately allow $0 (e.g. a paid-off liability) keep working.
+  requirePositiveAmount?: boolean;
   initialValue?: QuickCreateValue | null;
   onClose: () => void;
   onSave: (value: QuickCreateValue) => Promise<boolean | void> | boolean | void;
@@ -56,6 +60,7 @@ export function QuickCreateDialog({
   const [extra, setExtra] = useState("");
   const [extraAmount, setExtraAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -66,6 +71,7 @@ export function QuickCreateDialog({
     setExtra(initialValue?.extra ?? "");
     setExtraAmount(initialValue?.extraAmount !== undefined ? String(initialValue.extraAmount) : "");
     setCategoryId(initialValue?.categoryId ?? "");
+    setError("");
   }, [initialValue, open]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -77,10 +83,15 @@ export function QuickCreateDialog({
     } else if (!name.trim()) {
       return;
     }
+    const numericAmount = Number(amount) || 0;
+    if (requirePositiveAmount && numericAmount <= 0) {
+      setError("Ingresa un monto mayor a $0.");
+      return;
+    }
     const selectedCategory = categoryOptions?.find((option) => option.id === categoryId);
     const saved = await onSave({
       name: selectedCategory ? selectedCategory.name : name.trim(),
-      amount: Number(amount) || 0,
+      amount: numericAmount,
       secondary,
       current: Number(current) || 0,
       extra,
@@ -95,6 +106,7 @@ export function QuickCreateDialog({
     setExtra("");
     setExtraAmount("");
     setCategoryId("");
+    setError("");
     onClose();
   }
 
@@ -138,6 +150,7 @@ export function QuickCreateDialog({
             </Field>
           ) : null}
         </div>
+        {error ? <div className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-3 text-sm font-semibold text-[var(--niva-color-danger)]">{error}</div> : null}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
           <Button type="submit">Guardar</Button>

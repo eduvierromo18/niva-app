@@ -82,6 +82,7 @@ export function BudgetsScreen() {
         secondaryPlaceholder="Ej. Junio 2026"
         categoryOptions={expenseCategories}
         categoryLabel="Categoria"
+        requirePositiveAmount
         initialValue={editingIndex !== null ? {
           name: budgets[editingIndex].name,
           amount: budgets[editingIndex].limit,
