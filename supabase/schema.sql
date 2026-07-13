@@ -187,7 +187,7 @@ create table public.scheduled_transactions (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint scheduled_transactions_name_not_empty check (length(trim(name)) > 0),
-  constraint scheduled_transactions_amount_nonnegative check (amount >= 0),
+  constraint scheduled_transactions_amount_positive check (amount > 0),
   constraint scheduled_transactions_type_valid check (type in ('expense', 'income', 'transfer', 'debt_payment', 'subscription')),
   constraint scheduled_transactions_frequency_valid check (frequency in ('weekly', 'biweekly', 'monthly', 'yearly', 'custom')),
   constraint scheduled_transactions_status_valid check (status in ('active', 'paused', 'finished'))
