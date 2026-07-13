@@ -39,10 +39,9 @@ import { useAccounts } from "@/hooks/use-accounts";
 import { useMovements } from "@/hooks/use-movements";
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { getFeaturedGoalProgress } from "@/lib/dashboard";
-import { categoryData } from "@/lib/finance-data";
 import { getSpendableSummary } from "@/lib/dashboard";
 import { useAnalytics } from "@/hooks/use-analytics";
-import type { MonthlyKpis } from "@/lib/analytics";
+import { computeCategoryBreakdown, currentMonthPrefix, type MonthlyKpis } from "@/lib/analytics";
 import type { FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -117,7 +116,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
     <div className={cn("min-h-[100dvh] overflow-x-hidden pb-[calc(6.25rem+env(safe-area-inset-bottom))] niva-mobile-ios", pathname === "/dashboard" && darkHome ? "bg-[#0F1726] text-[#FCFCFD]" : "bg-[#F7F8FA] text-[var(--niva-color-foreground)]")}>
       {pathname === "/dashboard" ? <MobileHome firstName={firstName} dark={darkHome} onToggleAppearance={() => setDarkHome((current) => !current)} accounts={movementsData.accounts} movements={movementsData.movements} scheduled={planningData.scheduled} goals={planningData.goals} loading={movementsData.isLoading || planningData.isLoading} error={movementsData.error || planningData.error} onRetry={() => { void movementsData.reload(); void planningData.reload(); }} onAddExpense={() => openMovement("Gasto")} /> : null}
       {pathname === "/movements" ? <MobileActivity movements={movementsData.movements} loading={movementsData.isLoading} error={movementsData.error} onReload={movementsData.reload} onDelete={movementsData.deleteMovement} onCreate={() => openMovement("Gasto")} onEdit={(item) => openMovement(item.type, item)} /> : null}
-      {pathname === "/categories" ? <MobileAnalytics movements={movementsData.movements} kpis={analyticsData.kpis} loading={movementsData.isLoading || analyticsData.isLoading} error={movementsData.error ?? analyticsData.error} onReload={async () => { await Promise.all([movementsData.reload(), analyticsData.reload()]); }} /> : null}
+      {pathname === "/categories" ? <MobileAnalytics movements={movementsData.movements} categories={movementsData.categories} kpis={analyticsData.kpis} loading={movementsData.isLoading || analyticsData.isLoading} error={movementsData.error ?? analyticsData.error} onReload={async () => { await Promise.all([movementsData.reload(), analyticsData.reload()]); }} /> : null}
       {pathname === "/accounts" ? <MobileAccounts accounts={accountsData.accounts} distribution={accountsData.moneyDistribution} groups={accountsData.institutionGroups} total={accountsData.totals.totalMoney} reviewCount={accountsData.totals.lowBalanceCount} loading={accountsData.isLoading} error={accountsData.error} onReload={accountsData.reload} onCreate={() => { setEditingAccountIndex(null); setAccountOpen(true); }} onEdit={(index) => { setEditingAccountIndex(index); setAccountOpen(true); }} onArchive={accountsData.deleteAccount} /> : null}
       {pathname === "/goals" ? <MobileGoals goals={planningData.goals} loading={planningData.isLoading} onCreate={() => { setEditingGoal(null); setGoalOpen(true); }} onEdit={(goal) => { setEditingGoal(goal); setGoalOpen(true); }} onDelete={(id) => planningData.remove("savings_goals", id)} /> : null}
       {pathname === "/programados" ? <MobileScheduled items={planningData.scheduled} loading={planningData.isLoading} error={planningData.error} onReload={planningData.reload} onCreate={() => openScheduled()} onEdit={openScheduled} onToggle={planningData.toggleScheduled} onConfirm={async (id) => { const saved = await planningData.confirmScheduled(id); if (saved) await Promise.all([movementsData.reload(), accountsData.reload()]); return saved; }} onDelete={(id) => planningData.remove("scheduled_transactions", id)} /> : null}
@@ -361,7 +360,7 @@ function MobileActivity({
   );
 }
 
-function MobileAnalytics({ movements, kpis, loading, error, onReload }: { movements: FinanceMovement[]; kpis: MonthlyKpis | null; loading: boolean; error: string | null; onReload: () => Promise<void> }) {
+function MobileAnalytics({ movements, categories, kpis, loading, error, onReload }: { movements: FinanceMovement[]; categories: { id: string; name: string; color: string | null }[]; kpis: MonthlyKpis | null; loading: boolean; error: string | null; onReload: () => Promise<void> }) {
   // KPI values come from the shared useAnalytics source (current calendar month).
   // Deltas are omitted until the delta phase.
   const kpiCards = [
@@ -370,10 +369,8 @@ function MobileAnalytics({ movements, kpis, loading, error, onReload }: { moveme
     { label: "Balance", value: kpis ? formatCurrency(kpis.balance) : "—" },
     { label: "Ahorro", value: kpis?.savingsRate != null ? `${kpis.savingsRate.toFixed(1)}%` : "—" },
   ];
-  const categoryTotals = new Map<string, number>();
-  movements.filter((item) => item.type === "Gasto").forEach((item) => categoryTotals.set(item.category, (categoryTotals.get(item.category) ?? 0) + Math.abs(item.amount)));
-  const categories = [...categoryTotals.entries()].sort((a, b) => b[1] - a[1]);
-  const categorySum = categories.reduce((sum, [, value]) => sum + value, 0);
+  const breakdown = computeCategoryBreakdown(movements, categories, currentMonthPrefix());
+  const categorySum = breakdown.reduce((sum, item) => sum + item.amount, 0);
 
   return (
     <MobilePage title="Análisis" action={<select aria-label="Periodo" className="rounded-full border border-[#E0E3E8] bg-white px-4 py-2 text-xs font-semibold"><option>Este mes</option></select>}>
@@ -399,10 +396,11 @@ function MobileAnalytics({ movements, kpis, loading, error, onReload }: { moveme
       <section className="mt-5 rounded-2xl border border-[#E0E3E8] bg-white p-5">
         <div className="flex items-center justify-between"><h2 className="font-medium">Gasto por categoría</h2><span className="text-sm">{formatCurrency(categorySum)}</span></div>
         <div className="mt-4 space-y-4">
-          {(categories.length ? categories : categoryData.map((item) => [item.name, 0] as const)).slice(0, 5).map(([name, value]) => {
-            const percent = categorySum > 0 ? (value / categorySum) * 100 : 0;
-            return <div key={name}><div className="flex justify-between text-sm"><span className="font-semibold">{name}</span><span className="text-[#8B95A7]">{formatCurrency(value)} · {percent.toFixed(1)}%</span></div><div className="mt-2 h-1 overflow-hidden rounded bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${percent}%` }} /></div></div>;
+          {breakdown.slice(0, 5).map((item) => {
+            const percent = categorySum > 0 ? (item.amount / categorySum) * 100 : 0;
+            return <div key={item.key}><div className="flex justify-between text-sm"><span className="flex items-center gap-2 font-semibold"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />{item.name}</span><span className="text-[#8B95A7]">{formatCurrency(item.amount)} · {percent.toFixed(1)}%</span></div><div className="mt-2 h-1 overflow-hidden rounded bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${percent}%` }} /></div></div>;
           })}
+          {breakdown.length === 0 ? <MobileEmpty title="Sin gastos este mes" /> : null}
         </div>
       </section>
       </>

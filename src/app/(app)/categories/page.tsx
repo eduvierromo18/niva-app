@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NivaAlert, NivaSkeleton } from "@/design-system";
 import { useAnalytics } from "@/hooks/use-analytics";
-import { categoryData } from "@/lib/finance-data";
+import { useMovements } from "@/hooks/use-movements";
+import { computeCategoryBreakdown, currentMonthPrefix } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/utils";
 
 const tabs = ["Informe", "Tendencia", "Flujo de caja", "Reportes"];
@@ -20,6 +21,7 @@ export default function CategoriesPage() {
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [exportMessage, setExportMessage] = useState("");
   const { kpis, isLoading, error } = useAnalytics();
+  const { movements, categories, isLoading: categoryLoading, error: categoryError } = useMovements();
 
   // Deltas ("vs mes anterior") are intentionally omitted here until the delta
   // phase — MetricCard hides the badge when no delta is passed.
@@ -31,6 +33,10 @@ export default function CategoriesPage() {
         { label: "Ahorro", value: kpis.savingsRate, icon: PiggyBank, percent: true },
       ]
     : [];
+
+  const breakdown = computeCategoryBreakdown(movements, categories, currentMonthPrefix());
+  const breakdownTotal = breakdown.reduce((sum, item) => sum + item.amount, 0);
+  const categoryChartData = breakdown.map((item) => ({ name: item.name, value: item.amount, color: item.color }));
 
   function exportReport() {
     setExportMessage("Reporte preparado para exportar.");
@@ -71,9 +77,10 @@ export default function CategoriesPage() {
           ? [0, 1, 2, 3].map((index) => <NivaSkeleton key={index} className="h-28 w-full rounded-[var(--niva-radius-lg)]" />)
           : kpiCards.map((card) => <MetricCard key={card.label} {...card} />)}
       </div>
+      {categoryError ? <NivaAlert tone="danger" title={categoryError} /> : null}
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.05fr]">
         <IncomeExpenseChart />
-        <CategoryDonutChart />
+        {categoryLoading ? <NivaSkeleton className="h-80 w-full rounded-[var(--niva-radius-lg)]" /> : <CategoryDonutChart data={categoryChartData} />}
       </div>
       <Card className="mt-4">
         <CardHeader>
@@ -91,23 +98,27 @@ export default function CategoriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {categoryData.map((item, index) => {
-                  const total = categoryData.reduce((sum, current) => sum + current.value, 0);
-                  const percent = (item.value / total) * 100;
+                {breakdown.map((item) => {
+                  const percent = breakdownTotal > 0 ? (item.amount / breakdownTotal) * 100 : 0;
                   return (
-                    <tr key={item.name} className="border-t border-slate-100 dark:border-zinc-800">
+                    <tr key={item.key} className="border-t border-slate-100 dark:border-zinc-800">
                       <td className="px-5 py-4 font-semibold">{item.name}</td>
-                      <td className="px-5 py-4 text-right font-bold">{formatCurrency(item.value)}</td>
+                      <td className="px-5 py-4 text-right font-bold">{formatCurrency(item.amount)}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <Progress value={percent} className="w-32" />
                           <span className="text-slate-500">{percent.toFixed(1)}%</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-right">{48 - index * 7}</td>
+                      <td className="px-5 py-4 text-right">{item.count}</td>
                     </tr>
                   );
                 })}
+                {!categoryLoading && breakdown.length === 0 ? (
+                  <tr className="border-t border-slate-100 dark:border-zinc-800">
+                    <td className="px-5 py-6 text-center text-slate-500" colSpan={4}>Aún no hay gastos registrados este mes.</td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>

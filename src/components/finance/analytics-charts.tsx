@@ -1,7 +1,7 @@
 "use client";
 
 import { Area, AreaChart, Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { categoryData, chartSeries } from "@/lib/finance-data";
+import { chartSeries } from "@/lib/finance-data";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -68,8 +68,8 @@ export function IncomeExpenseChart() {
   );
 }
 
-export function CategoryDonutChart() {
-  const total = categoryData.reduce((sum, item) => sum + item.value, 0);
+export function CategoryDonutChart({ data }: { data: { name: string; value: number; color: string }[] }) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <Card>
@@ -78,36 +78,40 @@ export function CategoryDonutChart() {
         <span className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] px-3 py-1 text-xs font-semibold text-[var(--niva-color-muted)]">Este mes</span>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
-          <div className="relative h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={categoryData} dataKey="value" innerRadius={64} outerRadius={96} paddingAngle={2}>
-                  {categoryData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center text-sm font-semibold">
-              <span className="text-[var(--niva-color-muted)]">Total</span>
-              <span className="text-[var(--niva-color-foreground)]">{formatCurrency(total)}</span>
+        {data.length === 0 ? (
+          <p className="py-10 text-center text-sm text-[var(--niva-color-muted)]">Aún no hay gastos este mes.</p>
+        ) : (
+          <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+            <div className="relative h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={data} dataKey="value" innerRadius={64} outerRadius={96} paddingAngle={2}>
+                    {data.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center text-sm font-semibold">
+                <span className="text-[var(--niva-color-muted)]">Total</span>
+                <span className="text-[var(--niva-color-foreground)]">{formatCurrency(total)}</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {data.map((item) => (
+                <div key={item.name} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 text-sm">
+                  <span className="flex items-center gap-2 text-[var(--niva-color-muted)]">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    {item.name}
+                  </span>
+                  <span className="font-semibold text-[var(--niva-color-foreground)]">{formatCurrency(item.value)}</span>
+                  <span className="w-12 text-right text-[var(--niva-color-muted)]">{total > 0 ? ((item.value / total) * 100).toFixed(1) : "0.0"}%</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="space-y-3">
-            {categoryData.map((item) => (
-              <div key={item.name} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 text-sm">
-                <span className="flex items-center gap-2 text-[var(--niva-color-muted)]">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  {item.name}
-                </span>
-                <span className="font-semibold text-[var(--niva-color-foreground)]">{formatCurrency(item.value)}</span>
-                <span className="w-12 text-right text-[var(--niva-color-muted)]">{((item.value / total) * 100).toFixed(1)}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
