@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { NivaAlert, NivaSkeleton } from "@/design-system";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useMovements } from "@/hooks/use-movements";
-import { computeCategoryBreakdown, computeDailyFlow, currentMonthPrefix } from "@/lib/analytics";
+import { computeCategoryBreakdown, computeDailyFlow, computeMonthOverMonth, currentMonthPrefix } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/utils";
 
 const tabs = ["Informe", "Tendencia", "Flujo de caja", "Reportes"];
@@ -23,14 +23,15 @@ export default function CategoriesPage() {
   const { kpis, isLoading, error } = useAnalytics();
   const { movements, categories, isLoading: categoryLoading, error: categoryError } = useMovements();
 
-  // Deltas ("vs mes anterior") are intentionally omitted here until the delta
-  // phase — MetricCard hides the badge when no delta is passed.
+  // Deltas come from movements (both months are in memory). While movements are
+  // still loading, pass undefined so no delta flashes before it can be computed.
+  const mom = computeMonthOverMonth(movements);
   const kpiCards = kpis
     ? [
-        { label: "Ingresos", value: kpis.income, icon: Banknote },
-        { label: "Gastos", value: kpis.expenses, icon: ReceiptText },
-        { label: "Balance", value: kpis.balance, icon: WalletCards },
-        { label: "Ahorro", value: kpis.savingsRate, icon: PiggyBank, percent: true },
+        { label: "Ingresos", value: kpis.income, icon: Banknote, delta: categoryLoading ? undefined : mom.income },
+        { label: "Gastos", value: kpis.expenses, icon: ReceiptText, delta: categoryLoading ? undefined : mom.expenses },
+        { label: "Balance", value: kpis.balance, icon: WalletCards, delta: categoryLoading ? undefined : mom.balance },
+        { label: "Ahorro", value: kpis.savingsRate, icon: PiggyBank, percent: true, delta: categoryLoading ? undefined : mom.savingsRate },
       ]
     : [];
 

@@ -20,6 +20,11 @@ export function currentMonthPrefix(reference: Date = new Date()): string {
   return reference.toISOString().slice(0, 7);
 }
 
+/** Calendar month before `reference`, as `YYYY-MM`. */
+export function previousMonthPrefix(reference: Date = new Date()): string {
+  return new Date(Date.UTC(reference.getUTCFullYear(), reference.getUTCMonth() - 1, 1)).toISOString().slice(0, 7);
+}
+
 /**
  * First day of the calendar month for `reference`, as `YYYY-MM-01`.
  * Matches how monthly_budgets / category_spending_summary key the month, so the
@@ -111,4 +116,79 @@ export function computeDailyFlow(movements: FinanceMovement[], reference: Date =
     else if (movement.type === "Gasto") point.expenses += Math.abs(movement.amount);
   }
   return points;
+}
+
+/**
+ * One KPI's month-over-month change. `null` means "no comparable previous data"
+ * (render "Sin mes anterior aún"). `direction` is the raw numeric movement;
+ * `favorable` decides the color (green/red) and is metric-specific (for expenses
+ * spending less is favorable). `percent` is null for direction-only metrics
+ * (Balance, Ahorro) whose base can be negative/zero, so only the arrow is shown.
+ */
+export type MetricDelta = {
+  percent: number | null;
+  favorable: boolean;
+  direction: "up" | "down" | "flat";
+} | null;
+
+export type MonthOverMonth = {
+  hasPrevious: boolean;
+  income: MetricDelta;
+  expenses: MetricDelta;
+  balance: MetricDelta;
+  savingsRate: MetricDelta;
+};
+
+function metricDelta(
+  current: number | null,
+  previous: number | null,
+  mode: { lowerIsBetter?: boolean; directionOnly?: boolean },
+): MetricDelta {
+  if (current === null || previous === null) return null;
+  const direction = current === previous ? "flat" : current > previous ? "up" : "down";
+  const favorable = mode.lowerIsBetter ? direction === "down" : direction === "up";
+  if (mode.directionOnly) return { percent: null, favorable, direction };
+  if (previous <= 0) return null; // a percentage needs a positive base
+  return { percent: ((current - previous) / previous) * 100, favorable, direction };
+}
+
+/**
+ * KPI deltas comparing the current month-to-date (day 1 → today) against the
+ * SAME period of the previous month (day 1 → same day) — a fair like-for-like
+ * that isn't skewed by the current month being partial. Derived from the already
+ * loaded movements (both months are in memory), so no extra query.
+ */
+export function computeMonthOverMonth(movements: FinanceMovement[], reference: Date = new Date()): MonthOverMonth {
+  const throughDay = Number(reference.toISOString().slice(8, 10));
+  const sumPeriod = (prefix: string) => {
+    let income = 0;
+    let expenses = 0;
+    for (const movement of movements) {
+      const occurred = movement.occurredOn ?? movement.date;
+      if (!occurred || occurred.slice(0, 7) !== prefix) continue;
+      const day = Number(occurred.slice(8, 10));
+      if (!(day >= 1 && day <= throughDay)) continue;
+      if (movement.type === "Ingreso") income += Math.abs(movement.amount);
+      else if (movement.type === "Gasto") expenses += Math.abs(movement.amount);
+    }
+    return { income, expenses };
+  };
+
+  const current = sumPeriod(currentMonthPrefix(reference));
+  const previous = sumPeriod(previousMonthPrefix(reference));
+  const hasPrevious = previous.income > 0 || previous.expenses > 0;
+  if (!hasPrevious) {
+    return { hasPrevious: false, income: null, expenses: null, balance: null, savingsRate: null };
+  }
+
+  const rate = (income: number, balance: number) => (income > 0 ? (balance / income) * 100 : null);
+  const currentBalance = current.income - current.expenses;
+  const previousBalance = previous.income - previous.expenses;
+  return {
+    hasPrevious: true,
+    income: metricDelta(current.income, previous.income, { lowerIsBetter: false }),
+    expenses: metricDelta(current.expenses, previous.expenses, { lowerIsBetter: true }),
+    balance: metricDelta(currentBalance, previousBalance, { directionOnly: true }),
+    savingsRate: metricDelta(rate(current.income, currentBalance), rate(previous.income, previousBalance), { directionOnly: true }),
+  };
 }

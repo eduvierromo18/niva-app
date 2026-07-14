@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeCategoryBreakdown, computeDailyFlow, computeMonthlyKpis, currentMonthStart, UNCATEGORIZED_KEY } from "@/lib/analytics";
+import { computeCategoryBreakdown, computeDailyFlow, computeMonthlyKpis, computeMonthOverMonth, currentMonthStart, UNCATEGORIZED_KEY } from "@/lib/analytics";
 import type { FinanceMovement } from "@/lib/finance-types";
 
 describe("currentMonthStart", () => {
@@ -135,5 +135,54 @@ describe("computeDailyFlow", () => {
   it("handles a month that just started (single day)", () => {
     const series = computeDailyFlow([mv({ occurredOn: "2026-07-01", amount: -100 })], new Date("2026-07-01T08:00:00Z"));
     expect(series).toEqual([{ day: 1, income: 0, expenses: 100 }]);
+  });
+});
+
+describe("computeMonthOverMonth", () => {
+  const reference = new Date("2026-07-15T12:00:00Z"); // through day 15
+  function mv(overrides: Partial<FinanceMovement>): FinanceMovement {
+    return { date: "2026-07-10", occurredOn: "2026-07-10", description: "x", account: "A", category: "Comida", type: "Gasto", amount: -100, ...overrides };
+  }
+
+  it("reports 'no previous' when the prior same-period had no activity", () => {
+    const result = computeMonthOverMonth([mv({ occurredOn: "2026-07-05", type: "Ingreso", amount: 1000 })], reference);
+    expect(result).toEqual({ hasPrevious: false, income: null, expenses: null, balance: null, savingsRate: null });
+  });
+
+  it("computes an income % delta (more income is favorable)", () => {
+    const result = computeMonthOverMonth([
+      mv({ occurredOn: "2026-06-10", type: "Ingreso", amount: 1000 }),
+      mv({ occurredOn: "2026-07-10", type: "Ingreso", amount: 1200 }),
+    ], reference);
+    expect(result.income).toEqual({ percent: 20, favorable: true, direction: "up" });
+  });
+
+  it("inverts favorability for expenses: spending less is favorable", () => {
+    const result = computeMonthOverMonth([
+      mv({ occurredOn: "2026-06-10", type: "Gasto", amount: -1000 }),
+      mv({ occurredOn: "2026-07-10", type: "Gasto", amount: -800 }),
+    ], reference);
+    // spending dropped 20% → direction down but favorable (green)
+    expect(result.expenses).toEqual({ percent: -20, favorable: true, direction: "down" });
+  });
+
+  it("only compares the same day window (day 1..today) of each month", () => {
+    const result = computeMonthOverMonth([
+      mv({ occurredOn: "2026-06-10", type: "Gasto", amount: -500 }),
+      mv({ occurredOn: "2026-06-25", type: "Gasto", amount: -9999 }), // day 25 > through day 15, excluded
+      mv({ occurredOn: "2026-07-10", type: "Gasto", amount: -500 }),
+    ], reference);
+    expect(result.expenses).toEqual({ percent: 0, favorable: false, direction: "flat" });
+  });
+
+  it("gives balance a direction-only delta (no percent) and honors 'more is better'", () => {
+    const result = computeMonthOverMonth([
+      mv({ occurredOn: "2026-06-10", type: "Ingreso", amount: 1000 }),
+      mv({ occurredOn: "2026-06-11", type: "Gasto", amount: -900 }), // prev balance 100
+      mv({ occurredOn: "2026-07-10", type: "Ingreso", amount: 1000 }),
+      mv({ occurredOn: "2026-07-11", type: "Gasto", amount: -400 }), // current balance 600
+    ], reference);
+    expect(result.balance).toEqual({ percent: null, favorable: true, direction: "up" });
+    expect(result.savingsRate).toEqual({ percent: null, favorable: true, direction: "up" });
   });
 });

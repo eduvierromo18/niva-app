@@ -41,7 +41,7 @@ import { usePlanningData } from "@/hooks/use-planning-data";
 import { getFeaturedGoalProgress } from "@/lib/dashboard";
 import { getSpendableSummary } from "@/lib/dashboard";
 import { useAnalytics } from "@/hooks/use-analytics";
-import { computeCategoryBreakdown, computeDailyFlow, currentMonthPrefix, type MonthlyKpis } from "@/lib/analytics";
+import { computeCategoryBreakdown, computeDailyFlow, computeMonthOverMonth, currentMonthPrefix, type MetricDelta, type MonthlyKpis } from "@/lib/analytics";
 import type { FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -361,13 +361,14 @@ function MobileActivity({
 }
 
 function MobileAnalytics({ movements, categories, kpis, loading, error, onReload }: { movements: FinanceMovement[]; categories: { id: string; name: string; color: string | null }[]; kpis: MonthlyKpis | null; loading: boolean; error: string | null; onReload: () => Promise<void> }) {
-  // KPI values come from the shared useAnalytics source (current calendar month).
-  // Deltas are omitted until the delta phase.
+  // KPI values from the shared useAnalytics source (current month); deltas from
+  // movements (same-period month-over-month). This block only renders once loaded.
+  const mom = computeMonthOverMonth(movements);
   const kpiCards = [
-    { label: "Ingresos", value: kpis ? formatCurrency(kpis.income) : "—" },
-    { label: "Gastos", value: kpis ? formatCurrency(kpis.expenses) : "—" },
-    { label: "Balance", value: kpis ? formatCurrency(kpis.balance) : "—" },
-    { label: "Ahorro", value: kpis?.savingsRate != null ? `${kpis.savingsRate.toFixed(1)}%` : "—" },
+    { label: "Ingresos", value: kpis ? formatCurrency(kpis.income) : "—", delta: mom.income },
+    { label: "Gastos", value: kpis ? formatCurrency(kpis.expenses) : "—", delta: mom.expenses },
+    { label: "Balance", value: kpis ? formatCurrency(kpis.balance) : "—", delta: mom.balance },
+    { label: "Ahorro", value: kpis?.savingsRate != null ? `${kpis.savingsRate.toFixed(1)}%` : "—", delta: mom.savingsRate },
   ];
   const breakdown = computeCategoryBreakdown(movements, categories, currentMonthPrefix());
   const categorySum = breakdown.reduce((sum, item) => sum + item.amount, 0);
@@ -385,6 +386,7 @@ function MobileAnalytics({ movements, categories, kpis, loading, error, onReload
           <article key={card.label} className="w-[46%] shrink-0 snap-start rounded-2xl border border-[#E0E3E8] bg-white p-4">
             <MobileEyebrow>{card.label}</MobileEyebrow>
             <p className="mt-3 text-2xl font-light">{card.value}</p>
+            <MobileDelta delta={card.delta} />
           </article>
         ))}
       </div>
@@ -571,6 +573,17 @@ function MobileTab({ label, href, icon: Icon, active }: { label: string; href: s
 
 function MobileEyebrow({ children }: { children: ReactNode }) {
   return <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9AA4B5]">{children}</p>;
+}
+
+function MobileDelta({ delta }: { delta: MetricDelta }) {
+  if (delta === null) return <p className="mt-2 text-[10px] font-semibold text-[#8B95A7]">Sin mes anterior aún</p>;
+  if (delta.direction === "flat") return <p className="mt-2 text-[10px] font-semibold text-[#8B95A7]">Sin cambio</p>;
+  const arrow = delta.direction === "up" ? "▲" : "▼";
+  return (
+    <p className={cn("mt-2 text-[10px] font-semibold", delta.favorable ? "text-[#1E7A4E]" : "text-[#A24A4A]")}>
+      {arrow} {delta.percent !== null ? `${Math.abs(delta.percent).toFixed(1)}% ` : ""}vs mes ant.
+    </p>
+  );
 }
 
 function MobileEmpty({ title }: { title: string }) {
