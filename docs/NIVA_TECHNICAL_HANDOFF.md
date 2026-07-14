@@ -84,8 +84,7 @@ Este documento resume lo que existe en el codigo actual. No asume piezas externa
 - API routes propias:
   - Solo existe `POST /api/admin/users`, pero devuelve `403` con mensaje de invitaciones deshabilitadas.
 - Datos mock/locales:
-  - `src/lib/finance-data.ts` contiene cuentas, metricas, categorias, series, movimientos, presupuestos, metas, deudas y programados hardcodeados.
-  - Actualmente se usa en analytics desktop y parte de analytics/home movil para metricas base, deltas o fallback visual.
+  - Ya no hay mock de datos de dominio: `src/lib/finance-data.ts` fue eliminado. Analytics (KPIs, gasto por categoria, grafica diaria y deltas) usa datos reales de Supabase via `lib/analytics.ts` + `useAnalytics`.
 - No vi llamadas a APIs externas distintas de Supabase.
 
 ### Manejo de estado
@@ -224,7 +223,7 @@ Este documento resume lo que existe en el codigo actual. No asume piezas externa
 | `/programados` | Desktop | Parcial real | Supabase `scheduled_transactions` + RPC `confirm_scheduled_transaction` | Error bloque; empty por seccion; no loading visible aunque el hook lo tiene |
 | `/budgets` | Desktop | Parcial real | Supabase `monthly_budgets`, `category_spending_summary`, `categories` | Loading texto; error bloque; no empty explicito |
 | `/liabilities` | Desktop | Parcial real | Supabase `liabilities` | Loading texto; error bloque; no empty explicito |
-| `/categories` | Desktop | Solo estatica/mock | `finance-data.ts` para metricas, charts y tabla | No loading/error; tabs locales; export solo cambia mensaje local |
+| `/categories` | Desktop | Real | `monthly_financial_summary` (KPIs) + movimientos via `lib/analytics.ts` (categorias, grafica diaria dia 1-hoy, deltas MTD) | Loading skeleton + error; tabs secundarias y export siguen placeholder |
 | `/settings` | Desktop | Parcial real | Server fetch de perfil; update a `profiles`; `auth.updateUser`; signOut | Success/error de guardado; no loading inicial |
 | `/design-system` | Publica/estatica | Estatica | Tokens/brand hardcodeados | No loading/error |
 | `/api/admin/users` | API | Deshabilitada | Sin datos; devuelve `403` | No aplica |
@@ -249,7 +248,7 @@ Rutas mobile soportadas en `mobileRoutes`:
 | --- | --- | --- | --- |
 | `/dashboard` | Parcial real | Cuentas/movimientos/programados/metas reales; algunos calculos locales | Loading skeleton; error con retry; empty parcial para secciones |
 | `/movements` | Funcional real | Movimientos reales | Loading list skeleton; error con retry; empty si no hay filtrados; detalle sheet; editar/eliminar |
-| `/categories` | Parcial/mock mixto | Calcula totales desde movimientos reales; usa `metrics` de `finance-data.ts` para delta/iconos y barras hardcodeadas de ultimos 7 dias | No loading/error propio; fallback categorias mock en cero |
+| `/categories` | Real | KPIs reales (misma fuente que desktop), gasto por categoria y gasto diario reales, deltas MTD vs mes anterior | Loading/error propios; sin fallback mock |
 | `/accounts` | Funcional real | Cuentas reales | Loading skeleton; error con retry; empty; pull-to-refresh manual por touch |
 | `/goals` | Parcial real | Metas reales | Loading skeleton; empty; no error propio en componente |
 | `/programados` | Funcional real | Programados reales; confirmar usa RPC | Loading list skeleton; error con retry; empty; editar/pausar/confirmar/eliminar |
@@ -265,7 +264,7 @@ Rutas mobile soportadas en `mobileRoutes`:
 - Tipos de BD: `src/types/database.ts`.
 - Schema/migraciones: `supabase/schema.sql` y `supabase/migrations/*`.
 - Proyecto Supabase vinculado localmente: `aowzjfixyelpjudkfwnw` con nombre `finanzas-personales`, segun `supabase/.temp/linked-project.json`.
-- Datos mock/hardcodeados aun existentes: `src/lib/finance-data.ts`.
+- Sin datos mock/hardcodeados de dominio: `src/lib/finance-data.ts` fue eliminado.
 
 ### Modelos principales en BD
 
@@ -486,7 +485,7 @@ Definidos en `src/lib/finance-types.ts`.
 ### Inconsistencias y deuda de datos
 
 - `scheduled_transactions.type`, `frequency` y `status` son `string` en la BD, pero el UI los castea a unions TypeScript. La BD no expresa esos enums en `database.ts`.
-- `src/lib/finance-data.ts` conserva mock data; todavia alimenta analytics desktop y parte de analytics mobile.
+- `src/lib/finance-data.ts` fue eliminado; analytics (desktop y mobile) usa datos reales via `lib/analytics.ts`.
 - `useMovements` siembra categorias por defecto desde el cliente cuando no hay categorias. Esto mezcla inicializacion de datos con carga de pantalla.
 - `saveBudget` busca una categoria por nombre del formulario y si no la encuentra usa la primera categoria de gasto. Esto puede guardar un presupuesto en una categoria distinta a la que el usuario escribio.
 - En `BudgetsScreen`, el campo "Mes" del dialogo no se usa realmente; `saveBudget` siempre usa el mes actual.

@@ -62,8 +62,8 @@ versionado — el deploy depende de configuración externa de Vercel/GitHub.
   No usar para código nuevo; candidato a limpieza/remoción.
 - `src/hooks` — `use-accounts`, `use-movements`, `use-planning-data` (data
   fetching real contra Supabase).
-- `src/lib` — utilidades, mapeadores, tipos UI, cálculos, navegación,
-  `finance-data.ts` (mock, ver abajo), clientes Supabase.
+- `src/lib` — utilidades, mapeadores, tipos UI, cálculos (incl.
+  `analytics.ts`), navegación, clientes Supabase.
 - `src/types/database.ts` — tipos de Supabase.
 - `supabase/` — schema, migraciones.
 
@@ -125,7 +125,7 @@ se construyen. No tocar ni extender `aurora`.
 | `/programados` | Parcial real, sin loading visible | Funcional real | Supabase + RPC `confirm_scheduled_transaction` |
 | `/budgets` | Parcial real, sin empty explícito | Parcial real | Supabase (con bug de categoría, ver abajo) |
 | `/liabilities` | Parcial real, sin empty explícito | Parcial real | Supabase |
-| `/categories` (Análisis) | **Solo mock**, sin loading/error | Parcial/mock mixto | `finance-data.ts` |
+| `/categories` (Análisis) | Real con loading/error (tabs secundarias y botón Exportar aún placeholder) | Real, misma fuente compartida | Supabase (`monthly_financial_summary` + movimientos, vía `lib/analytics.ts`) |
 | `/settings` | Parcial real | Parcial real | Supabase (perfil + auth) |
 
 ## Modelo de datos (tablas reales en Supabase)
@@ -142,27 +142,16 @@ Enums clave: `account_type` (`cash`, `checking`, `savings`, `credit_card`,
 
 ## Deuda técnica conocida — resolver antes o junto con features nuevas
 
-1. **Fecha hardcodeada**: `DashboardScreen` usa `new Date("2026-06-29...")`
-   en vez de la fecha real — los vencimientos calculan mal.
-2. **Cálculos duplicados**: disponible/reservado/próximo programado/KPIs se
-   calculan por separado en desktop y mobile. Consolidar en un solo lugar
-   compartido antes de agregar más pantallas que dependan de estos números.
-3. **Bug de categoría en presupuestos**: `saveBudget` busca la categoría por
-   nombre del formulario y si no la encuentra usa la primera categoría de
-   gasto por default — puede guardar en la categoría equivocada sin avisar.
-4. **Análisis/Categorías sigue en mock**: `finance-data.ts` alimenta
-   analytics desktop completo y parte de mobile (deltas, barras de 7 días).
-   No es dato real todavía.
-5. **Encoding roto**: mojibake en el código fuente (`AnalÃ­tica`, `NÃ³mina`,
+1. **Encoding roto**: mojibake en el código fuente (`AnalÃ­tica`, `NÃ³mina`,
    `ContraseÃ±a`, etc.) y mezcla inglés/español en Movements.
-6. **Mobile concentrado en un archivo**: `niva-mobile-experience.tsx` mezcla
+2. **Mobile concentrado en un archivo**: `niva-mobile-experience.tsx` mezcla
    muchas pantallas y helpers — dividir por pantalla facilita mantenerlo.
-7. **`useMovements` siembra categorías por defecto desde el cliente** cuando
+3. **`useMovements` siembra categorías por defecto desde el cliente** cuando
    no existen — mezcla inicialización de datos con carga de pantalla.
-8. **Sin importación CSV/Excel, sin OCR de tickets, sin integración bancaria
+4. **Sin importación CSV/Excel, sin OCR de tickets, sin integración bancaria
    real (Plaid/Belvo/Open Finance)** — si alguna función nueva asume esto,
    confirmar que no existe antes de construir sobre ello.
-9. **Historial de migraciones desfasado**: el constraint
+5. **Historial de migraciones desfasado**: el constraint
    `scheduled_transactions_amount_positive` se aplicó manualmente vía SQL
    Editor de Supabase (no por `supabase db push`), así que el historial de
    migraciones remoto no tiene registrada la versión `20260713123000`. La
