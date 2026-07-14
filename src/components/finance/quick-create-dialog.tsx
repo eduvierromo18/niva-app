@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, Field, inputClass } from "@/components/ui/dialog";
+import { ModalDiagnostics } from "@/components/finance/modal-diagnostics";
 
 export type QuickCreateValue = {
   name: string;
@@ -30,6 +31,7 @@ export function QuickCreateDialog({
   categoryOptions,
   categoryLabel,
   requirePositiveAmount = false,
+  debug = false,
   initialValue,
   onClose,
   onSave,
@@ -49,6 +51,8 @@ export function QuickCreateDialog({
   // Opt-in: reject amount <= 0 with a visible error. Off by default so records
   // that legitimately allow $0 (e.g. a paid-off liability) keep working.
   requirePositiveAmount?: boolean;
+  // TEMP: show the on-screen modal-scroll diagnostic. Remove after diagnosis.
+  debug?: boolean;
   initialValue?: QuickCreateValue | null;
   onClose: () => void;
   onSave: (value: QuickCreateValue) => Promise<boolean | void> | boolean | void;
@@ -113,6 +117,7 @@ export function QuickCreateDialog({
   return (
     <Dialog open={open} title={title} description={description} onClose={onClose}>
       <form className="grid gap-4" onSubmit={submit}>
+        {debug ? <ModalDiagnostics label={title} /> : null}
         {categoryOptions ? (
           <Field label={categoryLabel ?? "Categoría"}>
             <select className={inputClass} value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
