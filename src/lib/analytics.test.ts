@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeCategoryBreakdown, computeMonthlyKpis, currentMonthStart, UNCATEGORIZED_KEY } from "@/lib/analytics";
+import { computeCategoryBreakdown, computeDailyFlow, computeMonthlyKpis, currentMonthStart, UNCATEGORIZED_KEY } from "@/lib/analytics";
 import type { FinanceMovement } from "@/lib/finance-types";
 
 describe("currentMonthStart", () => {
@@ -97,5 +97,43 @@ describe("computeCategoryBreakdown", () => {
       "2026-07",
     );
     expect(result).toEqual([]);
+  });
+});
+
+describe("computeDailyFlow", () => {
+  function mv(overrides: Partial<FinanceMovement>): FinanceMovement {
+    return { date: "2026-07-02", occurredOn: "2026-07-02", description: "x", account: "A", category: "Comida", type: "Gasto", amount: -100, ...overrides };
+  }
+  const reference = new Date("2026-07-03T12:00:00Z"); // through day 3
+
+  it("covers day 1 through today with zero-filled empty days", () => {
+    const series = computeDailyFlow([mv({ occurredOn: "2026-07-02", type: "Gasto", amount: -100 })], reference);
+    expect(series.map((point) => point.day)).toEqual([1, 2, 3]);
+    expect(series[0]).toEqual({ day: 1, income: 0, expenses: 0 });
+    expect(series[1]).toEqual({ day: 2, income: 0, expenses: 100 });
+    expect(series[2]).toEqual({ day: 3, income: 0, expenses: 0 });
+  });
+
+  it("sums multiple movements on the same day and separates income from expenses", () => {
+    const series = computeDailyFlow([
+      mv({ occurredOn: "2026-07-01", type: "Gasto", amount: -40 }),
+      mv({ occurredOn: "2026-07-01", type: "Gasto", amount: -60 }),
+      mv({ occurredOn: "2026-07-01", type: "Ingreso", amount: 500 }),
+    ], reference);
+    expect(series[0]).toEqual({ day: 1, income: 500, expenses: 100 });
+  });
+
+  it("excludes transfers, other months, and days beyond today", () => {
+    const series = computeDailyFlow([
+      mv({ occurredOn: "2026-07-02", type: "Transferencia", amount: 1000 }),
+      mv({ occurredOn: "2026-06-30", type: "Gasto", amount: -999 }),
+      mv({ occurredOn: "2026-07-10", type: "Gasto", amount: -5 }),
+    ], reference);
+    expect(series.reduce((sum, point) => sum + point.income + point.expenses, 0)).toBe(0);
+  });
+
+  it("handles a month that just started (single day)", () => {
+    const series = computeDailyFlow([mv({ occurredOn: "2026-07-01", amount: -100 })], new Date("2026-07-01T08:00:00Z"));
+    expect(series).toEqual([{ day: 1, income: 0, expenses: 100 }]);
   });
 });

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { NivaAlert, NivaSkeleton } from "@/design-system";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useMovements } from "@/hooks/use-movements";
-import { computeCategoryBreakdown, currentMonthPrefix } from "@/lib/analytics";
+import { computeCategoryBreakdown, computeDailyFlow, currentMonthPrefix } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/utils";
 
 const tabs = ["Informe", "Tendencia", "Flujo de caja", "Reportes"];
@@ -37,6 +37,7 @@ export default function CategoriesPage() {
   const breakdown = computeCategoryBreakdown(movements, categories, currentMonthPrefix());
   const breakdownTotal = breakdown.reduce((sum, item) => sum + item.amount, 0);
   const categoryChartData = breakdown.map((item) => ({ name: item.name, value: item.amount, color: item.color }));
+  const dailyFlow = computeDailyFlow(movements);
 
   function exportReport() {
     setExportMessage("Reporte preparado para exportar.");
@@ -79,7 +80,7 @@ export default function CategoriesPage() {
       </div>
       {categoryError ? <NivaAlert tone="danger" title={categoryError} /> : null}
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.05fr]">
-        <IncomeExpenseChart />
+        {categoryLoading ? <NivaSkeleton className="h-80 w-full rounded-[var(--niva-radius-lg)]" /> : <IncomeExpenseChart data={dailyFlow} />}
         {categoryLoading ? <NivaSkeleton className="h-80 w-full rounded-[var(--niva-radius-lg)]" /> : <CategoryDonutChart data={categoryChartData} />}
       </div>
       <Card className="mt-4">

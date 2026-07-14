@@ -41,7 +41,7 @@ import { usePlanningData } from "@/hooks/use-planning-data";
 import { getFeaturedGoalProgress } from "@/lib/dashboard";
 import { getSpendableSummary } from "@/lib/dashboard";
 import { useAnalytics } from "@/hooks/use-analytics";
-import { computeCategoryBreakdown, currentMonthPrefix, type MonthlyKpis } from "@/lib/analytics";
+import { computeCategoryBreakdown, computeDailyFlow, currentMonthPrefix, type MonthlyKpis } from "@/lib/analytics";
 import type { FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -371,6 +371,8 @@ function MobileAnalytics({ movements, categories, kpis, loading, error, onReload
   ];
   const breakdown = computeCategoryBreakdown(movements, categories, currentMonthPrefix());
   const categorySum = breakdown.reduce((sum, item) => sum + item.amount, 0);
+  const daily = computeDailyFlow(movements);
+  const maxDailyExpense = Math.max(0, ...daily.map((point) => point.expenses));
 
   return (
     <MobilePage title="Análisis" action={<select aria-label="Periodo" className="rounded-full border border-[#E0E3E8] bg-white px-4 py-2 text-xs font-semibold"><option>Este mes</option></select>}>
@@ -387,11 +389,19 @@ function MobileAnalytics({ movements, categories, kpis, loading, error, onReload
         ))}
       </div>
       <section className="mt-5 rounded-2xl border border-[#E0E3E8] bg-white p-5">
-        <MobileEyebrow>Ingresos vs. gastos · últimos 7 días</MobileEyebrow>
-        <div className="mt-6 flex h-32 items-end justify-between gap-3 border-b border-[#E8EBEF] px-2">
-          {[42, 68, 58, 72, 88, 63, 76].map((height, index) => <div key={index} className="w-6 rounded-t bg-[#1E7A4E]" style={{ height: `${height}%` }} />)}
-        </div>
-        <div className="mt-3 flex justify-between px-2 font-mono text-[9px] text-[#A0A8B7]">{["L", "M", "M", "J", "V", "S", "D"].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div>
+        <MobileEyebrow>Gasto diario · este mes</MobileEyebrow>
+        {maxDailyExpense > 0 ? (
+          <>
+            <div className="mt-6 flex h-32 items-end gap-1 border-b border-[#E8EBEF] px-1">
+              {daily.map((point) => (
+                <div key={point.day} className="flex-1 rounded-t bg-[#1E7A4E]" style={{ height: `${(point.expenses / maxDailyExpense) * 100}%` }} title={`Día ${point.day}: ${formatCurrency(point.expenses)}`} />
+              ))}
+            </div>
+            <div className="mt-3 flex justify-between px-1 font-mono text-[9px] text-[#A0A8B7]"><span>Día 1</span><span>Día {daily.length}</span></div>
+          </>
+        ) : (
+          <div className="mt-4"><MobileEmpty title="Sin gastos este mes" /></div>
+        )}
       </section>
       <section className="mt-5 rounded-2xl border border-[#E0E3E8] bg-white p-5">
         <div className="flex items-center justify-between"><h2 className="font-medium">Gasto por categoría</h2><span className="text-sm">{formatCurrency(categorySum)}</span></div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Area, AreaChart, Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { chartSeries } from "@/lib/finance-data";
+import type { DailyFlowPoint } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -44,7 +44,9 @@ export function NetWorthChart() {
   );
 }
 
-export function IncomeExpenseChart() {
+export function IncomeExpenseChart({ data }: { data: DailyFlowPoint[] }) {
+  const hasData = data.some((point) => point.income > 0 || point.expenses > 0);
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
@@ -52,17 +54,21 @@ export function IncomeExpenseChart() {
         <span className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] px-3 py-1 text-xs font-semibold text-[var(--niva-color-muted)]">Diario</span>
       </CardHeader>
       <CardContent>
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartSeries}>
-              <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Bar dataKey="ingresos" fill="#1E7A4E" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="gastos" fill="#454B57" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {hasData ? (
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
+                <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} labelFormatter={(label) => `Día ${label}`} />
+                <Bar dataKey="income" name="Ingresos" fill="#1E7A4E" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="expenses" name="Gastos" fill="#454B57" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p className="py-10 text-center text-sm text-[var(--niva-color-muted)]">Aún no hay movimientos este mes.</p>
+        )}
       </CardContent>
     </Card>
   );

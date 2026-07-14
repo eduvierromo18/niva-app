@@ -87,3 +87,28 @@ export function computeCategoryBreakdown(
   }
   return [...groups.values()].sort((a, b) => b.amount - a.amount);
 }
+
+export type DailyFlowPoint = { day: number; income: number; expenses: number };
+
+/**
+ * Daily income/expense totals for the current month, from day 1 through today
+ * (no future days). Every elapsed day is present — days with no activity stay at
+ * zero so the timeline is continuous. Transfers are excluded, matching the KPIs
+ * and the category breakdown. Uses the same month/day basis as the other pieces.
+ */
+export function computeDailyFlow(movements: FinanceMovement[], reference: Date = new Date()): DailyFlowPoint[] {
+  const monthPrefix = currentMonthPrefix(reference);
+  const throughDay = Number(reference.toISOString().slice(8, 10));
+  const points: DailyFlowPoint[] = Array.from({ length: throughDay }, (_, index) => ({ day: index + 1, income: 0, expenses: 0 }));
+  for (const movement of movements) {
+    if (movement.type === "Transferencia") continue;
+    const occurred = movement.occurredOn ?? movement.date;
+    if (!occurred || occurred.slice(0, 7) !== monthPrefix) continue;
+    const day = Number(occurred.slice(8, 10));
+    if (!(day >= 1 && day <= throughDay)) continue;
+    const point = points[day - 1];
+    if (movement.type === "Ingreso") point.income += Math.abs(movement.amount);
+    else if (movement.type === "Gasto") point.expenses += Math.abs(movement.amount);
+  }
+  return points;
+}
