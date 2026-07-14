@@ -7,18 +7,37 @@ import { useEffect, useRef, useState } from "react";
 
 export function ModalDiagnostics({ label }: { label: string }) {
   const ref = useRef<HTMLPreElement>(null);
+  const safeAreaRef = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<string[]>(["midiendo…"]);
   const touchCounts = useRef({ start: 0, move: 0, end: 0 });
   const scrollCount = useRef(0);
-  const lastScrollTop = useRef<number | null>(null);
+  const submitTaps = useRef({ click: 0, pointerup: 0 });
 
   useEffect(() => {
+    const panel = ref.current?.closest('[role="dialog"]') as HTMLElement | null;
+    const submitBtn = panel?.querySelector<HTMLElement>('[data-diag-submit="true"]') ?? null;
+
     function measure() {
-      const panel = ref.current?.closest('[role="dialog"]') as HTMLElement | null;
       if (!panel) return;
       const cs = getComputedStyle(panel);
       const r = panel.getBoundingClientRect();
       const vv = window.visualViewport;
+      const safeAreaBottom = safeAreaRef.current ? getComputedStyle(safeAreaRef.current).paddingBottom : "n/a";
+
+      let btnLine = "submitBtn: not found";
+      if (submitBtn) {
+        const br = submitBtn.getBoundingClientRect();
+        const cx = br.left + br.width / 2;
+        const cy = br.top + br.height / 2;
+        const hit = document.elementFromPoint(cx, cy);
+        const hitIsBtn = hit === submitBtn || submitBtn.contains(hit);
+        btnLine =
+          `submitBtn top/bottom: ${Math.round(br.top)}/${Math.round(br.bottom)}\n` +
+          `submitBtn onscreen: ${br.bottom <= window.innerHeight && br.top >= 0}\n` +
+          `submitBtn hitTest ok: ${hitIsBtn} (hit=${hit?.tagName}${hit instanceof HTMLElement && hit.dataset.diagSubmit ? "[submit]" : ""})\n` +
+          `submitBtn taps click/pointerup: ${submitTaps.current.click}/${submitTaps.current.pointerup}`;
+      }
+
       setLines([
         `overflows: ${panel.scrollHeight > panel.clientHeight + 1}`,
         `scrollH/clientH: ${panel.scrollHeight}/${panel.clientHeight}`,
@@ -31,12 +50,12 @@ export function ModalDiagnostics({ label }: { label: string }) {
         `bottomCutOff: ${r.bottom > window.innerHeight + 1}`,
         `innerH/docClientH: ${window.innerHeight}/${document.documentElement.clientHeight}`,
         `visualViewport h/offsetTop: ${vv ? Math.round(vv.height) : "n/a"}/${vv ? Math.round(vv.offsetTop) : "n/a"}`,
+        `safeAreaInsetBottom: ${safeAreaBottom}`,
         `touch start/move/end: ${touchCounts.current.start}/${touchCounts.current.move}/${touchCounts.current.end}`,
         `scroll events: ${scrollCount.current}`,
+        btnLine,
       ]);
     }
-
-    const panel = ref.current?.closest('[role="dialog"]') as HTMLElement | null;
 
     function onTouchStart() {
       touchCounts.current.start += 1;
@@ -52,7 +71,14 @@ export function ModalDiagnostics({ label }: { label: string }) {
     }
     function onScroll() {
       scrollCount.current += 1;
-      lastScrollTop.current = panel?.scrollTop ?? null;
+      measure();
+    }
+    function onSubmitClick() {
+      submitTaps.current.click += 1;
+      measure();
+    }
+    function onSubmitPointerUp() {
+      submitTaps.current.pointerup += 1;
       measure();
     }
 
@@ -60,6 +86,9 @@ export function ModalDiagnostics({ label }: { label: string }) {
     panel?.addEventListener("touchmove", onTouchMove, { passive: true });
     panel?.addEventListener("touchend", onTouchEnd, { passive: true });
     panel?.addEventListener("scroll", onScroll, { passive: true });
+    // Capture phase so we still count the tap even if something else stops propagation.
+    submitBtn?.addEventListener("click", onSubmitClick, { capture: true });
+    submitBtn?.addEventListener("pointerup", onSubmitPointerUp, { capture: true });
 
     const raf = requestAnimationFrame(measure);
     const timer = setTimeout(measure, 400);
@@ -76,12 +105,17 @@ export function ModalDiagnostics({ label }: { label: string }) {
       panel?.removeEventListener("touchmove", onTouchMove);
       panel?.removeEventListener("touchend", onTouchEnd);
       panel?.removeEventListener("scroll", onScroll);
+      submitBtn?.removeEventListener("click", onSubmitClick, { capture: true });
+      submitBtn?.removeEventListener("pointerup", onSubmitPointerUp, { capture: true });
     };
   }, []);
 
   return (
-    <pre ref={ref} className="whitespace-pre-wrap rounded-md border-2 border-red-500 bg-yellow-100 p-2 font-mono text-[11px] leading-snug text-black">
-      {`DIAG · ${label}\n` + lines.join("\n")}
-    </pre>
+    <>
+      <div ref={safeAreaRef} style={{ paddingBottom: "env(safe-area-inset-bottom)" }} className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0" aria-hidden="true" />
+      <pre ref={ref} className="whitespace-pre-wrap rounded-md border-2 border-red-500 bg-yellow-100 p-2 font-mono text-[11px] leading-snug text-black">
+        {`DIAG · ${label}\n` + lines.join("\n")}
+      </pre>
+    </>
   );
 }

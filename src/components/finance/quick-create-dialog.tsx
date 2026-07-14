@@ -158,7 +158,7 @@ export function QuickCreateDialog({
         {error ? <div className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-3 text-sm font-semibold text-[var(--niva-color-danger)]">{error}</div> : null}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button type="submit">Guardar</Button>
+          <Button type="submit" data-diag-submit="true">Guardar</Button>
         </div>
       </form>
     </Dialog>
