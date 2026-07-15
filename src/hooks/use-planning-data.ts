@@ -61,8 +61,14 @@ export function usePlanningData() {
         icon: ReceiptText,
       })));
       setGoals((goalResult.data ?? []).map((item) => ({ id: item.id, name: item.name, current: Number(item.current_amount), target: Number(item.target_amount), date: item.target_date ?? "Sin fecha" })));
+      // Credit-card-linked liabilities (account_id set) derive their balance from the
+      // linked account's real balance instead of the manually captured principal_amount,
+      // which stays authoritative only for manual liabilities (loan/personal_debt/other).
+      const accountBalanceById = new Map((accountResult.data ?? []).map((row) => [row.id, Number(row.balance ?? 0)]));
       setLiabilities((liabilityResult.data ?? []).map((item) => ({
-        id: item.id, name: item.name, balance: Number(item.principal_amount), limit: Number(item.credit_limit ?? item.principal_amount),
+        id: item.id, name: item.name,
+        balance: item.account_id ? Math.max(-(accountBalanceById.get(item.account_id) ?? 0), 0) : Number(item.principal_amount),
+        limit: Number(item.credit_limit ?? item.principal_amount),
         closing: item.statement_closing_day ? `Día ${item.statement_closing_day}` : "Sin corte", due: item.payment_due_day ? `Día ${item.payment_due_day}` : "Sin fecha", icon: CreditCard,
       })));
       const mappedAccounts = (accountResult.data ?? []).map(mapAccount);

@@ -1,51 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { CreditCard, Edit3, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { CreditCard } from "lucide-react";
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { formatCurrency } from "@/lib/utils";
 import { PageScaffold } from "@/components/finance/page-scaffold";
-import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import { NivaEmptyState } from "@/design-system";
 
 export function LiabilitiesScreen() {
-  const [open, setOpen] = useState(false);
-  const { liabilities, error, isLoading, saveLiability, remove } = usePlanningData();
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-
-  function openNewLiability() {
-    setEditingIndex(null);
-    setOpen(true);
-  }
-
-  async function addLiability(value: QuickCreateValue) {
-    const saved = await saveLiability(value, editingIndex !== null ? liabilities[editingIndex] : undefined);
-    if (saved) setEditingIndex(null);
-    return saved;
-  }
+  const { liabilities, error, isLoading } = usePlanningData();
 
   return (
     <PageScaffold
       title="Deudas / tarjetas"
-      description="Controla tarjetas, prestamos, fechas de corte y pago."
-      action={<Button onClick={openNewLiability}>Nueva deuda</Button>}
+      description="Controla tarjetas, prestamos, fechas de corte y pago. Las tarjetas se administran desde Cuentas."
+      action={
+        <Link href="/accounts" className="text-sm font-semibold text-[var(--niva-color-info)] hover:text-[var(--niva-color-accent-hover)]">
+          Ir a Cuentas
+        </Link>
+      }
     >
       {error ? <div className="mb-4 rounded-[var(--niva-radius-lg)] border border-[var(--niva-color-border)] bg-[var(--niva-color-muted-surface)] p-4 text-sm text-[var(--niva-color-danger)]">{error}</div> : null}
       {isLoading ? <p className="text-sm text-[var(--niva-color-muted)]">Cargando deudas...</p> : null}
       {!isLoading && liabilities.length === 0 ? (
         <NivaEmptyState
           title="Sin deudas registradas"
-          description="Registra una tarjeta o préstamo para tener claridad total de lo que debes."
-          actionLabel="Registrar primera deuda"
+          description="Agrega una cuenta tipo Tarjeta para verla aquí con su saldo y fechas de corte y pago."
           icon={<CreditCard className="h-8 w-8" />}
-          onAction={openNewLiability}
         />
       ) : (
       <div className="grid gap-4 xl:grid-cols-2">
-        {liabilities.map((item, index) => {
+        {liabilities.map((item) => {
           const percent = item.limit > 0 ? (item.balance / item.limit) * 100 : 0;
           return (
             <Card key={item.id}>
@@ -64,16 +51,6 @@ export function LiabilitiesScreen() {
                       <p>Uso: <span className="font-semibold text-[var(--niva-color-body)]">{percent.toFixed(1)}%</span></p>
                       <p>Limite: <span className="font-semibold text-[var(--niva-color-body)]">{formatCurrency(item.limit)}</span></p>
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Button type="button" variant="secondary" className="h-9 px-3" onClick={() => { setEditingIndex(index); setOpen(true); }}>
-                        <Edit3 className="h-4 w-4" />
-                        Editar
-                      </Button>
-                      <Button type="button" variant="ghost" className="h-9 px-3 text-[var(--niva-color-danger)]" onClick={() => void remove("liabilities", item.id)}>
-                        <Trash2 className="h-4 w-4" />
-                        Eliminar
-                      </Button>
-                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -82,29 +59,6 @@ export function LiabilitiesScreen() {
         })}
       </div>
       )}
-      <QuickCreateDialog
-        open={open}
-        title="Nueva deuda o tarjeta"
-        description="Registra una deuda manual con saldo y fecha de corte."
-        amountLabel="Saldo actual"
-        secondaryLabel="Fecha de corte"
-        secondaryPlaceholder="Ej. 18 de cada mes"
-        extraLabel="Fecha limite de pago"
-        extraPlaceholder="Ej. 04 de cada mes"
-        extraAmountLabel="Limite o monto original"
-        initialValue={editingIndex !== null ? {
-          name: liabilities[editingIndex].name,
-          amount: liabilities[editingIndex].balance,
-          secondary: liabilities[editingIndex].closing,
-          extra: liabilities[editingIndex].due,
-          extraAmount: liabilities[editingIndex].limit,
-        } : null}
-        onClose={() => {
-          setOpen(false);
-          setEditingIndex(null);
-        }}
-        onSave={addLiability}
-      />
     </PageScaffold>
   );
 }

@@ -50,10 +50,33 @@ export function useAccounts() {
         color: "bg-[var(--niva-color-foreground)]",
       };
       const mutation = current?.id
-        ? supabase.from("accounts").update(payload).eq("id", current.id)
-        : supabase.from("accounts").insert(payload);
-      const { error: mutationError } = await mutation;
+        ? supabase.from("accounts").update(payload).eq("id", current.id).select("id").single()
+        : supabase.from("accounts").insert(payload).select("id").single();
+      const { data: savedAccount, error: mutationError } = await mutation;
       if (mutationError) throw mutationError;
+
+      const wasCard = current?.type === "Tarjeta";
+      const isCard = account.type === "Tarjeta";
+      if (isCard) {
+        const { error: liabilityError } = await supabase.from("liabilities").upsert(
+          {
+            user_id: user.id,
+            account_id: savedAccount.id,
+            type: "credit_card",
+            status: "active",
+            name: account.name,
+            statement_closing_day: account.statement_closing_day ?? null,
+            payment_due_day: account.payment_due_day ?? null,
+            credit_limit: account.credit_limit ?? null,
+          },
+          { onConflict: "account_id" },
+        );
+        if (liabilityError) throw liabilityError;
+      } else if (wasCard) {
+        const { error: closeError } = await supabase.from("liabilities").update({ status: "closed" }).eq("account_id", savedAccount.id);
+        if (closeError) throw closeError;
+      }
+
       await loadAccounts();
       setError(null);
       return true;
@@ -70,6 +93,10 @@ export function useAccounts() {
       const supabase = createClient();
       const { error: mutationError } = await supabase.from("accounts").update({ is_archived: true }).eq("id", account.id);
       if (mutationError) throw mutationError;
+      if (account.type === "Tarjeta") {
+        const { error: closeError } = await supabase.from("liabilities").update({ status: "closed" }).eq("account_id", account.id);
+        if (closeError) throw closeError;
+      }
       setAccounts((current) => current.filter((item) => item.id !== account.id));
       setError(null);
       return true;
