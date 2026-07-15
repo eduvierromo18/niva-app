@@ -31,14 +31,14 @@ select
   )::numeric(14,2) as balance,
   a.bank_name,
   a.bank_custom_name,
-  a.statement_closing_day,
-  a.payment_due_day,
-  a.credit_limit,
   a.color,
   a.icon,
   a.is_archived,
   a.created_at,
-  a.updated_at
+  a.updated_at,
+  a.statement_closing_day,
+  a.payment_due_day,
+  a.credit_limit
 from public.accounts a
 left join public.movements m
   on m.user_id = a.user_id
