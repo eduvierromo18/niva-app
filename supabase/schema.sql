@@ -42,12 +42,18 @@ create table public.accounts (
   initial_balance numeric(14,2) not null default 0,
   bank_name text,
   bank_custom_name text,
+  statement_closing_day smallint,
+  payment_due_day smallint,
+  credit_limit numeric(14,2),
   color text,
   icon text,
   is_archived boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint accounts_name_not_empty check (length(trim(name)) > 0)
+  constraint accounts_name_not_empty check (length(trim(name)) > 0),
+  constraint accounts_closing_day_valid check (statement_closing_day is null or statement_closing_day between 1 and 31),
+  constraint accounts_due_day_valid check (payment_due_day is null or payment_due_day between 1 and 31),
+  constraint accounts_credit_limit_nonnegative check (credit_limit is null or credit_limit >= 0)
 );
 
 create table public.categories (

@@ -5,7 +5,8 @@ describe("Supabase finance mappers", () => {
   it("maps persisted accounts to the UI domain", () => {
     const mapped = mapAccount({
       id: "account-1", user_id: "user-1", name: "Nomina", alias: null, type: "checking", currency_code: "MXN",
-      initial_balance: 1000, balance: 1250, bank_name: "bbva", bank_custom_name: null, color: null, icon: null,
+      initial_balance: 1000, balance: 1250, bank_name: "bbva", bank_custom_name: null,
+      statement_closing_day: null, payment_due_day: null, credit_limit: null, color: null, icon: null,
       is_archived: false, created_at: "2026-07-12T00:00:00Z", updated_at: "2026-07-12T00:00:00Z",
     });
     expect(mapped.type).toBe("Banco");
@@ -17,7 +18,8 @@ describe("Supabase finance mappers", () => {
   it("maps expenses with a negative display amount", () => {
     const accounts = [mapAccount({
       id: "account-1", user_id: "user-1", name: "Nomina", alias: null, type: "checking", currency_code: "MXN",
-      initial_balance: 1000, balance: 1000, bank_name: null, bank_custom_name: null, color: null, icon: null,
+      initial_balance: 1000, balance: 1000, bank_name: null, bank_custom_name: null,
+      statement_closing_day: null, payment_due_day: null, credit_limit: null, color: null, icon: null,
       is_archived: false, created_at: null, updated_at: null,
     })];
     const movement = mapMovement({

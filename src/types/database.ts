@@ -21,12 +21,15 @@ export type Database = {
           bank_name: string | null
           color: string | null
           created_at: string
+          credit_limit: number | null
           currency_code: string
           icon: string | null
           id: string
           initial_balance: number
           is_archived: boolean
           name: string
+          payment_due_day: number | null
+          statement_closing_day: number | null
           type: Database["public"]["Enums"]["account_type"]
           updated_at: string
           user_id: string
@@ -37,12 +40,15 @@ export type Database = {
           bank_name?: string | null
           color?: string | null
           created_at?: string
+          credit_limit?: number | null
           currency_code?: string
           icon?: string | null
           id?: string
           initial_balance?: number
           is_archived?: boolean
           name: string
+          payment_due_day?: number | null
+          statement_closing_day?: number | null
           type: Database["public"]["Enums"]["account_type"]
           updated_at?: string
           user_id: string
@@ -53,12 +59,15 @@ export type Database = {
           bank_name?: string | null
           color?: string | null
           created_at?: string
+          credit_limit?: number | null
           currency_code?: string
           icon?: string | null
           id?: string
           initial_balance?: number
           is_archived?: boolean
           name?: string
+          payment_due_day?: number | null
+          statement_closing_day?: number | null
           type?: Database["public"]["Enums"]["account_type"]
           updated_at?: string
           user_id?: string
@@ -610,12 +619,15 @@ export type Database = {
           bank_name: string | null
           color: string | null
           created_at: string | null
+          credit_limit: number | null
           currency_code: string | null
           icon: string | null
           id: string | null
           initial_balance: number | null
           is_archived: boolean | null
           name: string | null
+          payment_due_day: number | null
+          statement_closing_day: number | null
           type: Database["public"]["Enums"]["account_type"] | null
           updated_at: string | null
           user_id: string | null

@@ -54,6 +54,9 @@ export function mapAccount(row: AccountBalanceRow): FinanceAccount {
     icon: iconForAccount(type),
     bank_name: row.bank_name ?? undefined,
     bank_custom_name: row.bank_custom_name ?? undefined,
+    statement_closing_day: row.statement_closing_day ?? undefined,
+    payment_due_day: row.payment_due_day ?? undefined,
+    credit_limit: row.credit_limit ? Number(row.credit_limit) : undefined,
   };
 }
 

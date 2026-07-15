@@ -44,6 +44,9 @@ export function useAccounts() {
         initial_balance: account.balance,
         bank_name: account.bank_name ?? null,
         bank_custom_name: account.bank_custom_name ?? null,
+        statement_closing_day: account.statement_closing_day ?? null,
+        payment_due_day: account.payment_due_day ?? null,
+        credit_limit: account.credit_limit ?? null,
         color: "bg-[var(--niva-color-foreground)]",
       };
       const mutation = current?.id

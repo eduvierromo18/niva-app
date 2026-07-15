@@ -7,7 +7,7 @@ import type { AccountFormValue, AccountType } from "@/lib/finance-types";
 
 export type { AccountFormValue } from "@/lib/finance-types";
 
-type AccountDialogErrors = Partial<Record<"name" | "balance" | "bankCustomName", string>>;
+type AccountDialogErrors = Partial<Record<"name" | "balance" | "bankCustomName" | "statementClosingDay" | "paymentDueDay" | "creditLimit", string>>;
 
 const accountTypeOptions: Array<{ label: string; value: AccountType }> = [
   { label: "Banco", value: "Banco" },
@@ -35,6 +35,9 @@ export function AccountDialog({
   const [balance, setBalance] = useState("0");
   const [bankName, setBankName] = useState("");
   const [bankCustomName, setBankCustomName] = useState("");
+  const [statementClosingDay, setStatementClosingDay] = useState("");
+  const [paymentDueDay, setPaymentDueDay] = useState("");
+  const [creditLimit, setCreditLimit] = useState("");
   const [errors, setErrors] = useState<AccountDialogErrors>({});
 
   useEffect(() => {
@@ -45,6 +48,9 @@ export function AccountDialog({
     setBalance(String(initialValue?.balance ?? 0));
     setBankName(initialValue?.bank_name ? findBank(initialValue.bank_name, initialValue.bank_custom_name).id : "");
     setBankCustomName(initialValue?.bank_custom_name ?? "");
+    setStatementClosingDay(initialValue?.statement_closing_day ? String(initialValue.statement_closing_day) : "");
+    setPaymentDueDay(initialValue?.payment_due_day ? String(initialValue.payment_due_day) : "");
+    setCreditLimit(initialValue?.credit_limit ? String(initialValue.credit_limit) : "");
     setErrors({});
   }, [initialValue, open]);
 
@@ -52,12 +58,25 @@ export function AccountDialog({
     event.preventDefault();
     const isBank = type === "Banco";
     const isCustomBank = isBank && bankName === "other";
+    const isCard = type === "Tarjeta";
     const parsedBalance = Number(balance);
+    const parsedClosingDay = statementClosingDay.trim() ? Number(statementClosingDay) : undefined;
+    const parsedDueDay = paymentDueDay.trim() ? Number(paymentDueDay) : undefined;
+    const parsedCreditLimit = creditLimit.trim() ? Number(creditLimit) : undefined;
     const nextErrors: AccountDialogErrors = {};
 
     if (!name.trim()) nextErrors.name = "El nombre de la cuenta es obligatorio.";
     if (!Number.isFinite(parsedBalance)) nextErrors.balance = "Ingresa un saldo válido.";
     if (isCustomBank && !bankCustomName.trim()) nextErrors.bankCustomName = "Ingresa el nombre del banco.";
+    if (isCard && parsedClosingDay !== undefined && (!Number.isInteger(parsedClosingDay) || parsedClosingDay < 1 || parsedClosingDay > 31)) {
+      nextErrors.statementClosingDay = "Ingresa un día entre 1 y 31.";
+    }
+    if (isCard && parsedDueDay !== undefined && (!Number.isInteger(parsedDueDay) || parsedDueDay < 1 || parsedDueDay > 31)) {
+      nextErrors.paymentDueDay = "Ingresa un día entre 1 y 31.";
+    }
+    if (isCard && parsedCreditLimit !== undefined && (!Number.isFinite(parsedCreditLimit) || parsedCreditLimit < 0)) {
+      nextErrors.creditLimit = "Ingresa un límite válido.";
+    }
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -69,6 +88,9 @@ export function AccountDialog({
       balance: parsedBalance,
       bank_name: isBank && bankName ? bankName : undefined,
       bank_custom_name: isCustomBank ? bankCustomName.trim() : undefined,
+      statement_closing_day: isCard ? parsedClosingDay : undefined,
+      payment_due_day: isCard ? parsedDueDay : undefined,
+      credit_limit: isCard ? parsedCreditLimit : undefined,
     });
 
     if (didSave === false) return;
@@ -79,6 +101,9 @@ export function AccountDialog({
     setBalance("0");
     setBankName("");
     setBankCustomName("");
+    setStatementClosingDay("");
+    setPaymentDueDay("");
+    setCreditLimit("");
     setErrors({});
     onClose();
   }
@@ -148,6 +173,41 @@ export function AccountDialog({
                 required
               />
             ) : null}
+          </div>
+        ) : null}
+        {type === "Tarjeta" ? (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <NivaInput
+              id={`${formId}-closing-day`}
+              label="Día de corte"
+              type="number"
+              min={1}
+              max={31}
+              value={statementClosingDay}
+              onChange={(event) => setStatementClosingDay(event.target.value)}
+              placeholder="Ej. 18"
+              error={errors.statementClosingDay}
+            />
+            <NivaInput
+              id={`${formId}-due-day`}
+              label="Día límite de pago"
+              type="number"
+              min={1}
+              max={31}
+              value={paymentDueDay}
+              onChange={(event) => setPaymentDueDay(event.target.value)}
+              placeholder="Ej. 5"
+              error={errors.paymentDueDay}
+            />
+            <NivaInput
+              id={`${formId}-credit-limit`}
+              label="Límite de crédito"
+              type="number"
+              value={creditLimit}
+              onChange={(event) => setCreditLimit(event.target.value)}
+              placeholder="Ej. 30000"
+              error={errors.creditLimit}
+            />
           </div>
         ) : null}
         <div className="flex justify-end gap-3 pt-2">

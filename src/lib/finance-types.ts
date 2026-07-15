@@ -17,6 +17,9 @@ export type FinanceAccount = {
   icon: LucideIcon;
   bank_name?: BankName | string;
   bank_custom_name?: string;
+  statement_closing_day?: number;
+  payment_due_day?: number;
+  credit_limit?: number;
 };
 
 export type AccountFormValue = {
@@ -26,6 +29,9 @@ export type AccountFormValue = {
   balance: number;
   bank_name?: string;
   bank_custom_name?: string;
+  statement_closing_day?: number;
+  payment_due_day?: number;
+  credit_limit?: number;
 };
 
 export type FinanceMovement = {
