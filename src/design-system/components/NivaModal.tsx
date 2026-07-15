@@ -90,7 +90,7 @@ export function NivaModal({
         // overlay anchors the panel to the bottom (items-end), so without this a
         // form taller than the screen overflows off the top and its first fields
         // (e.g. the amount input) become unreachable.
-        "max-h-[90dvh] w-full max-w-md overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-[var(--niva-radius-2xl)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] p-5 text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-xl)]",
+        "max-h-[90dvh] w-full max-w-md overflow-y-auto overscroll-none [-webkit-overflow-scrolling:touch] rounded-[var(--niva-radius-2xl)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] p-5 text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-xl)]",
         className,
       )}
     >
