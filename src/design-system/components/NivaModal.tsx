@@ -90,7 +90,7 @@ export function NivaModal({
         // overlay anchors the panel to the bottom (items-end), so without this a
         // form taller than the screen overflows off the top and its first fields
         // (e.g. the amount input) become unreachable.
-        "max-h-[90dvh] w-full max-w-md overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-[var(--niva-radius-2xl)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] p-5 text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-xl)]",
+        "max-h-[90dvh] w-full max-w-md overflow-y-auto overscroll-none [-webkit-overflow-scrolling:touch] rounded-[var(--niva-radius-2xl)] border border-[var(--niva-color-border)] bg-[var(--niva-color-surface)] p-5 text-[var(--niva-color-foreground)] shadow-[var(--niva-shadow-xl)]",
         className,
       )}
     >
@@ -123,5 +123,8 @@ export function NivaModal({
 
   if (preview) return panel;
 
-  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--niva-color-overlay)] p-4 backdrop-blur-sm sm:items-center">{panel}</div>;
+  // z-[70] (not z-50): the mobile bottom nav is also fixed at z-50, and with
+  // equal z-index DOM order wins -- its links end up hit-testing above this
+  // overlay's action buttons whenever the panel is scrolled to the bottom.
+  return <div className="fixed inset-0 z-[70] flex items-end justify-center bg-[var(--niva-color-overlay)] p-4 backdrop-blur-sm sm:items-center">{panel}</div>;
 }
