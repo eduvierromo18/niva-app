@@ -151,6 +151,12 @@ Enums clave: `account_type` (`cash`, `checking`, `savings`, `credit_card`,
 4. **Sin importación CSV/Excel, sin OCR de tickets, sin integración bancaria
    real (Plaid/Belvo/Open Finance)** — si alguna función nueva asume esto,
    confirmar que no existe antes de construir sobre ello.
+5. **`DashboardScreen` nunca renderiza `useMovements().error`**: llama
+   `useMovements()` sin destructurar `error` y no lo muestra en ningún lado
+   (a diferencia de `movements-screen.tsx`, que sí lo hace vía `NivaAlert`).
+   Cualquier registro creado desde el quick-add del Dashboard que falle en
+   el servidor (cuenta inválida, RPC de MSI rechazado, etc.) falla en
+   silencio — el diálogo se queda abierto sin explicación.
 
 ## Estados obligatorios en toda función nueva
 
