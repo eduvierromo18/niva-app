@@ -45,7 +45,9 @@ export function AccountDialog({
     setName(initialValue?.name ?? "");
     setAlias(initialValue?.alias ?? "");
     setType(initialValue?.type ?? "Banco");
-    setBalance(String(initialValue?.balance ?? 0));
+    // A Tarjeta's balance is stored as negative debt (see use-accounts.ts);
+    // show it here as the positive amount owed, matching how it's captured.
+    setBalance(String(initialValue?.type === "Tarjeta" ? Math.abs(initialValue.balance ?? 0) : initialValue?.balance ?? 0));
     setBankName(initialValue?.bank_name ? findBank(initialValue.bank_name, initialValue.bank_custom_name).id : "");
     setBankCustomName(initialValue?.bank_custom_name ?? "");
     setStatementClosingDay(initialValue?.statement_closing_day ? String(initialValue.statement_closing_day) : "");
@@ -136,7 +138,17 @@ export function AccountDialog({
             }}
             options={accountTypeOptions}
           />
-          <NivaInput id={`${formId}-balance`} label="Saldo inicial" type="number" value={balance} onChange={(event) => setBalance(event.target.value)} error={errors.balance} required />
+          <NivaInput
+            id={`${formId}-balance`}
+            label={type === "Tarjeta" ? "Saldo actual (lo que debes)" : "Saldo inicial"}
+            type="number"
+            min={type === "Tarjeta" ? 0 : undefined}
+            value={balance}
+            onChange={(event) => setBalance(event.target.value)}
+            placeholder={type === "Tarjeta" ? "Ej. 6300" : undefined}
+            error={errors.balance}
+            required
+          />
         </div>
         {type === "Banco" ? (
           <div className="grid gap-4 sm:grid-cols-2">

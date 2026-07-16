@@ -41,7 +41,10 @@ export function useAccounts() {
         name: account.name,
         alias: account.alias ?? null,
         type: uiToDbType[account.type],
-        initial_balance: account.balance,
+        // A Tarjeta's balance represents debt owed, stored as negative so it
+        // nets against cash accounts (dashboard net worth, creditImpact) and
+        // the linked liability's derived balance (see usePlanningData).
+        initial_balance: account.type === "Tarjeta" ? -Math.abs(account.balance) : account.balance,
         bank_name: account.bank_name ?? null,
         bank_custom_name: account.bank_custom_name ?? null,
         statement_closing_day: account.statement_closing_day ?? null,
