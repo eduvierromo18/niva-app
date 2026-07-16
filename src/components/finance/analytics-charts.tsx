@@ -1,44 +1,50 @@
 "use client";
 
 import { Area, AreaChart, Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { DailyFlowPoint } from "@/lib/analytics";
+import type { DailyFlowPoint, NetWorthTrendPoint } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const netWorthSeries = [
-  { day: "1 Jun", value: 62400 },
-  { day: "5 Jun", value: 65200 },
-  { day: "10 Jun", value: 64150 },
-  { day: "15 Jun", value: 68800 },
-  { day: "20 Jun", value: 70450 },
-  { day: "25 Jun", value: 72100 },
-  { day: "30 Jun", value: 74400 },
-];
+const monthLabelFormatter = new Intl.DateTimeFormat("es-MX", { month: "short", timeZone: "UTC" });
 
-export function NetWorthChart() {
+function formatTrendMonth(month: string) {
+  const label = monthLabelFormatter.format(new Date(`${month}-01T00:00:00Z`)).replace(".", "");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+export function NetWorthChart({ data, rangeLabel, hasAccounts }: { data: NetWorthTrendPoint[]; rangeLabel: string; hasAccounts: boolean }) {
+  const chartData = data.map((point) => ({ label: formatTrendMonth(point.month), value: point.netWorth }));
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Evolucion de tu dinero</CardTitle>
-        <span className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] px-3 py-1 text-xs font-semibold text-[var(--niva-color-muted)]">Este mes</span>
+        <CardTitle>Patrimonio histórico</CardTitle>
+        <span className="rounded-[var(--niva-radius-md)] border border-[var(--niva-color-border)] px-3 py-1 text-xs font-semibold text-[var(--niva-color-muted)]">{rangeLabel}</span>
       </CardHeader>
       <CardContent>
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={netWorthSeries}>
-              <defs>
-                <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1E7A4E" stopOpacity={0.24} />
-                  <stop offset="95%" stopColor="#1E7A4E" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} tickFormatter={(value) => `$${Number(value) / 1000}k`} />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Area type="monotone" dataKey="value" stroke="#1E7A4E" strokeWidth={3} fill="url(#netWorthGradient)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+        {hasAccounts ? (
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1E7A4E" stopOpacity={0.24} />
+                    <stop offset="95%" stopColor="#1E7A4E" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: "#6B7280", fontSize: 12 }} tickFormatter={(value) => `$${Number(value) / 1000}k`} />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Area type="monotone" dataKey="value" stroke="#1E7A4E" strokeWidth={3} fill="url(#netWorthGradient)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p className="py-10 text-center text-sm text-[var(--niva-color-muted)]">Aún no tienes cuentas registradas.</p>
+        )}
+        <p className="mt-3 text-xs text-[var(--niva-color-muted)]">
+          Este historial refleja solo tus cuentas. Las deudas personales sin cuenta vinculada se incluyen en tu patrimonio neto actual, pero no en esta tendencia.
+        </p>
       </CardContent>
     </Card>
   );

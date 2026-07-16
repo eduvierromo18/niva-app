@@ -48,6 +48,7 @@ export function mapAccount(row: AccountBalanceRow): FinanceAccount {
     type,
     balance: Number(row.balance ?? row.initial_balance ?? 0),
     initialBalance: Number(row.initial_balance ?? 0),
+    createdAt: row.created_at ?? undefined,
     currencyCode: row.currency_code ?? "MXN",
     isArchived: Boolean(row.is_archived),
     color: row.color ?? "bg-[var(--niva-color-foreground)]",

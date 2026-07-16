@@ -192,3 +192,66 @@ export function computeMonthOverMonth(movements: FinanceMovement[], reference: D
     savingsRate: metricDelta(rate(current.income, currentBalance), rate(previous.income, previousBalance), { directionOnly: true }),
   };
 }
+
+/** Minimal account shape needed to reconstruct a past balance: initial_balance is the
+ * anchor, created_at tells us when the account starts existing at all. */
+export type NetWorthAccountSnapshot = {
+  id: string;
+  initialBalance: number;
+  createdAt: string;
+};
+
+export type NetWorthTrendPoint = { month: string; netWorth: number };
+
+function buildMonthCutoffs(monthsBack: number, reference: Date): { month: string; cutoff: string }[] {
+  const currentMonth = currentMonthPrefix(reference);
+  const points: { month: string; cutoff: string }[] = [];
+  for (let i = monthsBack - 1; i >= 0; i--) {
+    const target = new Date(Date.UTC(reference.getUTCFullYear(), reference.getUTCMonth() - i, 1));
+    const month = target.toISOString().slice(0, 7);
+    const cutoff =
+      month === currentMonth
+        ? reference.toISOString().slice(0, 10)
+        : new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+    points.push({ month, cutoff });
+  }
+  return points;
+}
+
+/**
+ * Net worth trend by reconstructing each account's balance at each month's cutoff —
+ * initial_balance + every ledger movement up to that date — the same arithmetic
+ * account_balances uses for "today", just date-bounded instead of unbounded. An
+ * account contributes nothing to cutoffs before its own created_at (it didn't exist
+ * yet, so $0 is the correct historical value, not a gap to fill).
+ *
+ * Liabilities are intentionally out of scope here: unlinked liabilities have no
+ * ledger to reconstruct from (only a current principal_amount), so folding them in
+ * would silently misstate past months whenever a debt was paid down, increased, or
+ * didn't exist yet. The Análisis screen shows this trend as accounts-only and
+ * points to the current net worth (which does include liabilities) for the full
+ * picture.
+ */
+export function computeNetWorthTrend(
+  accounts: NetWorthAccountSnapshot[],
+  movements: FinanceMovement[],
+  monthsBack: number = 6,
+  reference: Date = new Date(),
+): NetWorthTrendPoint[] {
+  return buildMonthCutoffs(monthsBack, reference).map(({ month, cutoff }) => {
+    const netWorth = accounts.reduce((total, account) => {
+      if (account.createdAt.slice(0, 10) > cutoff) return total;
+      const balance = movements.reduce((sum, movement) => {
+        const occurred = (movement.occurredOn ?? movement.date).slice(0, 10);
+        if (occurred > cutoff) return sum;
+        if (movement.type === "Ingreso" && movement.accountId === account.id) return sum + movement.amount;
+        if (movement.type === "Gasto" && movement.accountId === account.id) return sum + movement.amount;
+        if (movement.type === "Transferencia" && movement.destinationAccountId === account.id) return sum + movement.amount;
+        if (movement.type === "Transferencia" && movement.accountId === account.id) return sum - movement.amount;
+        return sum;
+      }, account.initialBalance);
+      return total + balance;
+    }, 0);
+    return { month, netWorth };
+  });
+}

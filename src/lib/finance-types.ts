@@ -11,6 +11,7 @@ export type FinanceAccount = {
   type: AccountType;
   balance: number;
   initialBalance?: number;
+  createdAt?: string;
   currencyCode?: string;
   isArchived?: boolean;
   color: string;

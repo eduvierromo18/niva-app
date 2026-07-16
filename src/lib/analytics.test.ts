@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { computeCategoryBreakdown, computeDailyFlow, computeMonthlyKpis, computeMonthOverMonth, currentMonthStart, UNCATEGORIZED_KEY } from "@/lib/analytics";
+import {
+  computeCategoryBreakdown,
+  computeDailyFlow,
+  computeMonthlyKpis,
+  computeMonthOverMonth,
+  computeNetWorthTrend,
+  currentMonthStart,
+  UNCATEGORIZED_KEY,
+  type NetWorthAccountSnapshot,
+} from "@/lib/analytics";
 import type { FinanceMovement } from "@/lib/finance-types";
 
 describe("currentMonthStart", () => {
@@ -184,5 +193,66 @@ describe("computeMonthOverMonth", () => {
     ], reference);
     expect(result.balance).toEqual({ percent: null, favorable: true, direction: "up" });
     expect(result.savingsRate).toEqual({ percent: null, favorable: true, direction: "up" });
+  });
+});
+
+describe("computeNetWorthTrend", () => {
+  const reference = new Date("2026-07-15T12:00:00Z"); // through July 15
+
+  function acc(overrides: Partial<NetWorthAccountSnapshot> & { id: string }): NetWorthAccountSnapshot {
+    return { initialBalance: 0, createdAt: "2026-01-01", ...overrides };
+  }
+  function mv(overrides: Partial<FinanceMovement>): FinanceMovement {
+    return { date: "2026-07-10", occurredOn: "2026-07-10", description: "x", account: "A", category: "Comida", type: "Gasto", amount: -100, accountId: "acc-1", ...overrides };
+  }
+
+  it("reconstructs the balance at each month cutoff from initial balance + ledger", () => {
+    const accounts = [acc({ id: "acc-1", initialBalance: 1000, createdAt: "2026-01-01" })];
+    const movements = [
+      mv({ occurredOn: "2026-05-10", type: "Ingreso", amount: 500 }),
+      mv({ occurredOn: "2026-06-10", type: "Gasto", amount: -200 }),
+      mv({ occurredOn: "2026-07-10", type: "Ingreso", amount: 300 }),
+    ];
+    const trend = computeNetWorthTrend(accounts, movements, 3, reference);
+    expect(trend.map((point) => point.month)).toEqual(["2026-05", "2026-06", "2026-07"]);
+    expect(trend[0].netWorth).toBe(1500); // 1000 + 500
+    expect(trend[1].netWorth).toBe(1300); // 1500 - 200
+    expect(trend[2].netWorth).toBe(1600); // 1300 + 300, current month through today
+  });
+
+  it("excludes movements dated after each cutoff", () => {
+    const accounts = [acc({ id: "acc-1", initialBalance: 0, createdAt: "2026-01-01" })];
+    const movements = [
+      mv({ occurredOn: "2026-06-15", type: "Ingreso", amount: 1000 }), // within June cutoff (06-30)
+      mv({ occurredOn: "2026-07-20", type: "Ingreso", amount: 5000 }), // after both cutoffs (06-30 and 07-15)
+    ];
+    const trend = computeNetWorthTrend(accounts, movements, 2, reference);
+    expect(trend.map((point) => point.month)).toEqual(["2026-06", "2026-07"]);
+    expect(trend[0].netWorth).toBe(1000);
+    expect(trend[1].netWorth).toBe(1000); // unchanged: the 07-20 movement is after the 07-15 cutoff
+  });
+
+  it("excludes an account from cutoffs before it was created", () => {
+    const accounts = [
+      acc({ id: "old", initialBalance: 1000, createdAt: "2026-01-01" }),
+      acc({ id: "new", initialBalance: 500, createdAt: "2026-06-20" }),
+    ];
+    const trend = computeNetWorthTrend(accounts, [], 3, reference);
+    expect(trend.map((point) => point.month)).toEqual(["2026-05", "2026-06", "2026-07"]);
+    expect(trend[0].netWorth).toBe(1000); // May: "new" doesn't exist yet
+    expect(trend[1].netWorth).toBe(1500); // June: created 06-20, cutoff is 06-30
+    expect(trend[2].netWorth).toBe(1500);
+  });
+
+  it("nets a transfer between two accounts to zero in the total", () => {
+    const accounts = [
+      acc({ id: "checking", initialBalance: 1000, createdAt: "2026-01-01" }),
+      acc({ id: "savings", initialBalance: 0, createdAt: "2026-01-01" }),
+    ];
+    const movements = [
+      mv({ occurredOn: "2026-07-05", type: "Transferencia", amount: 300, accountId: "checking", destinationAccountId: "savings" }),
+    ];
+    const trend = computeNetWorthTrend(accounts, movements, 1, reference);
+    expect(trend[0].netWorth).toBe(1000);
   });
 });
