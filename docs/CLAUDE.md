@@ -106,13 +106,19 @@ se construyen. No tocar ni extender `aurora`.
 **Estado real en código**:
 - Tab bar mobile coincide en los 5 principales (`src/components/mobile/niva-mobile-experience.tsx`).
 - Objetivos, Programados, Presupuestos, Deudas y Configuración **no tienen
-  jerarquía visual única** — todos viven mezclados dentro de un sheet de
-  "Más opciones" (botón flotante). Esto es una divergencia pendiente de
-  resolver, no solo una simplificación temporal.
-- Desktop usa sidebar definido en `src/lib/navigation.ts`: Inicio
-  (`/dashboard`), Actividad (`/movements`), Cuentas (`/accounts`),
-  Programados (`/programados`), Análisis (`/categories`), Objetivos
-  (`/goals`).
+  jerarquía visual única en mobile** — todos viven mezclados dentro de un
+  sheet de "Más opciones" (botón flotante), como lista plana sin agrupar.
+  Esto es una divergencia pendiente de resolver, no solo una
+  simplificación temporal.
+- Desktop usa sidebar definido en `src/lib/navigation.ts`, 8 items en dos
+  grupos: `primary` — Inicio (`/dashboard`), Actividad (`/movements`),
+  Cuentas (`/accounts`), Programados (`/programados`) — y `workspace` —
+  Análisis (`/categories`), Objetivos (`/goals`), Presupuestos
+  (`/budgets`), Deudas (`/liabilities`). **Presupuestos y Deudas se
+  agregaron el 2026-07-16**: hasta entonces el sidebar solo tenía 6
+  items y esas dos rutas eran inalcanzables desde la UI de escritorio
+  (solo por URL directa) — no era cierto que desktop ya tuviera
+  jerarquía propia sin divergencia frente a mobile.
 
 ## Rutas y su estado real (no asumir "completo" sin verificar aquí)
 

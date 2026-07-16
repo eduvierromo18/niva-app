@@ -3,6 +3,8 @@ import {
   Flag,
   Gauge,
   CalendarClock,
+  Landmark,
+  PiggyBank,
   ReceiptText,
   WalletCards,
 } from "lucide-react";
@@ -14,4 +16,6 @@ export const appNavigation = [
   { title: "Programados", href: "/programados", icon: CalendarClock, group: "primary" },
   { title: "Análisis", href: "/categories", icon: ChartPie, group: "workspace" },
   { title: "Objetivos", href: "/goals", icon: Flag, group: "workspace" },
+  { title: "Presupuestos", href: "/budgets", icon: PiggyBank, group: "workspace" },
+  { title: "Deudas", href: "/liabilities", icon: Landmark, group: "workspace" },
 ];
