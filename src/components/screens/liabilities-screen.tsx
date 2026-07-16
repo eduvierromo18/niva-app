@@ -1,16 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
-import { usePlanningData } from "@/hooks/use-planning-data";
+import { usePlanningData, type LiabilityItem } from "@/hooks/use-planning-data";
 import { formatCurrency } from "@/lib/utils";
 import { PageScaffold } from "@/components/finance/page-scaffold";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { NivaEmptyState } from "@/design-system";
+import { NivaButton, NivaEmptyState } from "@/design-system";
+import { PayLiabilityDialog } from "@/components/finance/pay-liability-dialog";
 
 export function LiabilitiesScreen() {
-  const { liabilities, error, isLoading } = usePlanningData();
+  const { liabilities, accounts, payLiability, error, isLoading } = usePlanningData();
+  const [payingLiability, setPayingLiability] = useState<LiabilityItem | null>(null);
 
   return (
     <PageScaffold
@@ -51,6 +54,11 @@ export function LiabilitiesScreen() {
                       <p>Uso: <span className="font-semibold text-[var(--niva-color-body)]">{percent.toFixed(1)}%</span></p>
                       <p>Limite: <span className="font-semibold text-[var(--niva-color-body)]">{formatCurrency(item.limit)}</span></p>
                     </div>
+                    {item.accountId ? (
+                      <div className="mt-4 flex justify-end">
+                        <NivaButton type="button" size="sm" onClick={() => setPayingLiability(item)}>Pagar</NivaButton>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </CardContent>
@@ -59,6 +67,18 @@ export function LiabilitiesScreen() {
         })}
       </div>
       )}
+      <PayLiabilityDialog
+        open={payingLiability !== null}
+        liability={payingLiability}
+        accounts={accounts}
+        onClose={() => setPayingLiability(null)}
+        onSave={async (value) => {
+          if (!payingLiability) return false;
+          const saved = await payLiability(payingLiability, value);
+          if (saved) setPayingLiability(null);
+          return saved;
+        }}
+      />
     </PageScaffold>
   );
 }

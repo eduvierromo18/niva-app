@@ -36,9 +36,10 @@ import { MovementDialog, type MovementFormValue } from "@/components/finance/mov
 import { AccountDialog, type AccountFormValue } from "@/components/finance/account-dialog";
 import { QuickCreateDialog, type QuickCreateValue } from "@/components/finance/quick-create-dialog";
 import { ScheduledTransactionDialog } from "@/components/finance/ScheduledTransactionDialog";
+import { PayLiabilityDialog, type PayLiabilityValue } from "@/components/finance/pay-liability-dialog";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useMovements } from "@/hooks/use-movements";
-import { usePlanningData } from "@/hooks/use-planning-data";
+import { usePlanningData, type LiabilityItem } from "@/hooks/use-planning-data";
 import { getFeaturedGoalProgress } from "@/lib/dashboard";
 import { getSpendableSummary } from "@/lib/dashboard";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -74,6 +75,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
   const [editingAccountIndex, setEditingAccountIndex] = useState<number | null>(null);
   const [goalOpen, setGoalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<ReturnType<typeof usePlanningData>["goals"][number] | null>(null);
+  const [payingLiability, setPayingLiability] = useState<LiabilityItem | null>(null);
   const movementsData = useMovements();
   const accountsData = useAccounts();
   const planningData = usePlanningData();
@@ -111,6 +113,16 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
     return planningData.saveGoal(value, editingGoal ?? undefined);
   }
 
+  async function payLiability(value: PayLiabilityValue) {
+    if (!payingLiability) return false;
+    const saved = await planningData.payLiability(payingLiability, value);
+    if (saved) {
+      await Promise.all([accountsData.reload(), planningData.reload()]);
+      setPayingLiability(null);
+    }
+    return saved;
+  }
+
   if (locked) return <MobileSessionLock onUnlock={() => setLocked(false)} />;
 
   return (
@@ -122,7 +134,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
       {pathname === "/goals" ? <MobileGoals goals={planningData.goals} loading={planningData.isLoading} onCreate={() => { setEditingGoal(null); setGoalOpen(true); }} onEdit={(goal) => { setEditingGoal(goal); setGoalOpen(true); }} onDelete={(id) => planningData.remove("savings_goals", id)} /> : null}
       {pathname === "/programados" ? <MobileScheduled items={planningData.scheduled} loading={planningData.isLoading} error={planningData.error} onReload={planningData.reload} onCreate={() => openScheduled()} onEdit={openScheduled} onToggle={planningData.toggleScheduled} onConfirm={async (id) => { const saved = await planningData.confirmScheduled(id); if (saved) await Promise.all([movementsData.reload(), accountsData.reload()]); return saved; }} onDelete={(id) => planningData.remove("scheduled_transactions", id)} /> : null}
       {pathname === "/budgets" ? <MobileBudgets items={planningData.budgets} categories={planningData.expenseCategories} loading={planningData.isLoading} onSave={planningData.saveBudget} onDelete={(id) => planningData.remove("monthly_budgets", id)} /> : null}
-      {pathname === "/liabilities" ? <MobileLiabilities items={planningData.liabilities} loading={planningData.isLoading} /> : null}
+      {pathname === "/liabilities" ? <MobileLiabilities items={planningData.liabilities} loading={planningData.isLoading} onPay={setPayingLiability} /> : null}
       {pathname === "/settings" ? <MobileSettings user={user} /> : null}
 
       <MobileTabBar pathname={pathname} onCreate={() => setCreateOpen(true)} onMore={() => setMoreOpen(true)} />
@@ -132,6 +144,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
       <ScheduledTransactionDialog open={scheduledOpen} initialValue={editingScheduled} accounts={planningData.accounts} onClose={() => { setScheduledOpen(false); setEditingScheduled(null); }} onSave={planningData.saveScheduled} />
       <AccountDialog open={accountOpen} initialValue={editingAccountIndex === null ? null : accountsData.accounts[editingAccountIndex]} onClose={() => { setAccountOpen(false); setEditingAccountIndex(null); }} onSave={saveAccount} />
       <QuickCreateDialog open={goalOpen} title={editingGoal ? "Editar objetivo" : "Nuevo objetivo"} description="Define una cantidad y una fecha para tu meta." amountLabel="Meta" currentLabel="Ahorrado" secondaryLabel="Fecha objetivo" secondaryPlaceholder="AAAA-MM-DD" initialValue={editingGoal ? { name: editingGoal.name, amount: editingGoal.target, current: editingGoal.current, secondary: editingGoal.date === "Sin fecha" ? "" : editingGoal.date } : null} onClose={() => { setGoalOpen(false); setEditingGoal(null); }} onSave={saveGoal} />
+      <PayLiabilityDialog open={payingLiability !== null} liability={payingLiability} accounts={planningData.accounts} onClose={() => setPayingLiability(null)} onSave={payLiability} />
     </div>
   );
 }
@@ -511,12 +524,12 @@ function MobileBudgets({ items, categories, loading, onSave, onDelete }: { items
   return <><MobilePage title="Presupuestos" subtitle="Límites mensuales por categoría" action={<button type="button" onClick={() => { setEditing(null); setOpen(true); }} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nuevo</button>}>{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={`${formatCurrency(item.spent)} de ${formatCurrency(item.limit)}`} progress={item.limit ? Math.min((item.spent / item.limit) * 100, 100) : 0} onEdit={() => { setEditing(item); setOpen(true); }} onDelete={() => onDelete(item.id)} />)}{!items.length ? <MobileEmpty title="Sin presupuestos" /> : null}</div>}</MobilePage><QuickCreateDialog open={open} title={editing ? "Editar presupuesto" : "Nuevo presupuesto"} description="Define el límite mensual para una categoría." amountLabel="Límite" secondaryLabel="Mes" secondaryPlaceholder="Mes actual" categoryOptions={categories} categoryLabel="Categoría" requirePositiveAmount initialValue={editing ? { name: editing.name, amount: editing.limit, secondary: "", categoryId: editing.categoryId } : null} onClose={() => setOpen(false)} onSave={(value) => onSave(value, editing ?? undefined)} /></>;
 }
 
-function MobileLiabilities({ items, loading }: { items: ReturnType<typeof usePlanningData>["liabilities"]; loading: boolean }) {
-  return <MobilePage title="Deudas" subtitle="Tarjetas administradas desde Cuentas">{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={formatCurrency(item.balance)} subtitle={`${item.closing} · ${item.due}`} progress={item.limit ? Math.min((item.balance / item.limit) * 100, 100) : 0} readOnly />)}{!items.length ? <MobileEmpty title="Sin deudas activas" /> : null}</div>}</MobilePage>;
+function MobileLiabilities({ items, loading, onPay }: { items: ReturnType<typeof usePlanningData>["liabilities"]; loading: boolean; onPay: (item: ReturnType<typeof usePlanningData>["liabilities"][number]) => void }) {
+  return <MobilePage title="Deudas" subtitle="Tarjetas administradas desde Cuentas">{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={formatCurrency(item.balance)} subtitle={`${item.closing} · ${item.due}`} progress={item.limit ? Math.min((item.balance / item.limit) * 100, 100) : 0} onPay={item.accountId ? () => onPay(item) : undefined} readOnly />)}{!items.length ? <MobileEmpty title="Sin deudas activas" /> : null}</div>}</MobilePage>;
 }
 
-function PlanningCard({ title, value, subtitle, progress, onEdit, onDelete, readOnly }: { title: string; value: string; subtitle?: string; progress: number; onEdit?: () => void; onDelete?: () => void; readOnly?: boolean }) {
-  return <article className="rounded-3xl border border-[#E0E3E8] bg-white p-5"><h2 className="font-semibold">{title}</h2><p className="mt-2 text-xl font-light">{value}</p>{subtitle ? <p className="mt-1 text-xs text-[#8B95A7]">{subtitle}</p> : null}<div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${progress}%` }} /></div>{readOnly ? null : <div className="mt-4 flex gap-2"><button type="button" onClick={onEdit} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#F5F6F8] py-2 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Editar</button><button type="button" onClick={() => { if (window.confirm(`¿Eliminar ${title}?`)) onDelete?.(); }} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#FCF4F4] py-2 text-xs font-semibold text-[#A24A4A]"><Trash2 className="h-3.5 w-3.5" />Eliminar</button></div>}</article>;
+function PlanningCard({ title, value, subtitle, progress, onEdit, onDelete, onPay, readOnly }: { title: string; value: string; subtitle?: string; progress: number; onEdit?: () => void; onDelete?: () => void; onPay?: () => void; readOnly?: boolean }) {
+  return <article className="rounded-3xl border border-[#E0E3E8] bg-white p-5"><h2 className="font-semibold">{title}</h2><p className="mt-2 text-xl font-light">{value}</p>{subtitle ? <p className="mt-1 text-xs text-[#8B95A7]">{subtitle}</p> : null}<div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${progress}%` }} /></div>{readOnly && !onPay ? null : <div className="mt-4 flex gap-2">{onPay ? <button type="button" onClick={onPay} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#EAF5EF] py-2 text-xs font-semibold text-[#1E7A4E]">Pagar</button> : null}{readOnly ? null : <><button type="button" onClick={onEdit} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#F5F6F8] py-2 text-xs font-semibold"><Pencil className="h-3.5 w-3.5" />Editar</button><button type="button" onClick={() => { if (window.confirm(`¿Eliminar ${title}?`)) onDelete?.(); }} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#FCF4F4] py-2 text-xs font-semibold text-[#A24A4A]"><Trash2 className="h-3.5 w-3.5" />Eliminar</button></>}</div>}</article>;
 }
 
 function MobileSettings({ user }: NivaMobileExperienceProps) {

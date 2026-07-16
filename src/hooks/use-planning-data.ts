@@ -127,6 +127,21 @@ export function usePlanningData() {
     await load(); return true;
   }, [load]);
 
+  const payLiability = useCallback(async (liability: LiabilityItem, value: { amount: number; sourceAccountId: string }) => {
+    if (!liability.accountId) { setError("Esta deuda no esta vinculada a una cuenta de tarjeta."); return false; }
+    const supabase = createClient();
+    const auth = await supabase.auth.getUser();
+    if (!auth.data.user) return false;
+    const payload = {
+      user_id: auth.data.user.id, type: "transfer" as const, amount: Math.abs(value.amount),
+      occurred_on: new Date().toISOString().slice(0, 10), description: `Pago ${liability.name}`,
+      account_id: null, from_account_id: value.sourceAccountId, to_account_id: liability.accountId, category_id: null,
+    };
+    const result = await supabase.from("movements").insert(payload);
+    if (result.error) { setError(result.error.message); return false; }
+    await load(); return true;
+  }, [load]);
+
   const remove = useCallback(async (table: "monthly_budgets" | "savings_goals" | "liabilities" | "scheduled_transactions", id: string) => {
     const result = await createClient().from(table).delete().eq("id", id);
     if (result.error) setError(result.error.message); else await load();
@@ -164,6 +179,6 @@ export function usePlanningData() {
     await load(); return true;
   }, [load]);
 
-  return { budgets, goals, liabilities, scheduled, accounts, expenseCategories, error, isLoading, saveBudget, saveGoal, saveLiability, saveScheduled, toggleScheduled, confirmScheduled, remove, reload: load };
+  return { budgets, goals, liabilities, scheduled, accounts, expenseCategories, error, isLoading, saveBudget, saveGoal, saveLiability, payLiability, saveScheduled, toggleScheduled, confirmScheduled, remove, reload: load };
 }
 
