@@ -476,11 +476,15 @@ export type Database = {
           end_date: string | null
           frequency: string
           id: string
+          installment_number: number | null
+          is_informational: boolean
+          movement_id: string | null
           name: string
           next_due_date: string
           notes: string | null
           start_date: string
           status: string
+          total_installments: number | null
           type: string
           updated_at: string
           user_id: string
@@ -495,11 +499,15 @@ export type Database = {
           end_date?: string | null
           frequency: string
           id?: string
+          installment_number?: number | null
+          is_informational?: boolean
+          movement_id?: string | null
           name: string
           next_due_date: string
           notes?: string | null
           start_date: string
           status?: string
+          total_installments?: number | null
           type: string
           updated_at?: string
           user_id: string
@@ -514,11 +522,15 @@ export type Database = {
           end_date?: string | null
           frequency?: string
           id?: string
+          installment_number?: number | null
+          is_informational?: boolean
+          movement_id?: string | null
           name?: string
           next_due_date?: string
           notes?: string | null
           start_date?: string
           status?: string
+          total_installments?: number | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -557,6 +569,13 @@ export type Database = {
             columns: ["destination_account_id", "user_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id", "user_id"]
+          },
+          {
+            foreignKeyName: "scheduled_transactions_movement_owner_fkey"
+            columns: ["movement_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "movements"
             referencedColumns: ["id", "user_id"]
           },
         ]
@@ -691,6 +710,18 @@ export type Database = {
     Functions: {
       confirm_scheduled_transaction: {
         Args: { p_scheduled_id: string }
+        Returns: string
+      }
+      create_msi_expense: {
+        Args: {
+          p_account_id: string
+          p_category_id: string | null
+          p_amount: number
+          p_occurred_on: string
+          p_description: string
+          p_installments: number
+          p_notes?: string | null
+        }
         Returns: string
       }
     }

@@ -79,6 +79,22 @@ export function useMovements() {
     const category = categories.find((item) => item.id === value.categoryId || (item.name === value.category && item.type === type));
     if (!account?.id) { setError("Selecciona una cuenta valida."); return false; }
     if (type === "transfer" && !destination?.id) { setError("Selecciona una cuenta destino valida."); return false; }
+
+    if (value.msiInstallments && !editingId) {
+      const { error: rpcError } = await supabase.rpc("create_msi_expense", {
+        p_account_id: account.id,
+        p_category_id: category?.id ?? null,
+        p_amount: Math.abs(value.amount),
+        p_occurred_on: normalizeDate(value.date),
+        p_description: value.description,
+        p_installments: value.msiInstallments,
+        p_notes: null,
+      });
+      if (rpcError) { setError("No se pudo registrar el MSI: verifica el monto y el plazo elegido."); return false; }
+      await load();
+      return true;
+    }
+
     const payload: TablesInsert<"movements"> = {
       user_id: user.id,
       type,

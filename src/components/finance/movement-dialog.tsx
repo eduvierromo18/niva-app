@@ -17,6 +17,7 @@ export type MovementFormValue = {
   type: string;
   amount: number;
   merchant?: string;
+  msiInstallments?: number;
 };
 
 type CategoryOption = { id: string; name: string; type: "income" | "expense" };
@@ -24,6 +25,11 @@ const typeOptions = [
   { label: "Gasto", value: "Gasto" },
   { label: "Ingreso", value: "Ingreso" },
   { label: "Transferencia", value: "Transferencia" },
+];
+const msiTermOptions = [3, 6, 9, 12, 18, 24].map((months) => ({ label: `${months} meses`, value: String(months) }));
+const paymentModeOptions = [
+  { label: "Pago completo a la siguiente fecha de corte/pago", value: "full" },
+  { label: "Meses sin intereses (MSI)", value: "msi" },
 ];
 
 export function MovementDialog({ open, initialValue, defaultType = "Gasto", accounts = [], categories = [], onClose, onSave }: {
@@ -43,10 +49,14 @@ export function MovementDialog({ open, initialValue, defaultType = "Gasto", acco
   const [accountId, setAccountId] = useState("");
   const [destinationAccountId, setDestinationAccountId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentMode, setPaymentMode] = useState<"full" | "msi">("full");
+  const [msiInstallments, setMsiInstallments] = useState("3");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const categoryType = type === "Ingreso" ? "income" : "expense";
   const categoryOptions = categories.filter((item) => item.type === categoryType).map((item) => ({ label: item.name, value: item.id }));
+  const isCardAccount = accounts.find((item) => item.id === accountId)?.type === "Tarjeta";
+  const showMsiOption = !initialValue && type === "Gasto" && isCardAccount;
 
   useEffect(() => {
     if (!open) return;
@@ -59,8 +69,14 @@ export function MovementDialog({ open, initialValue, defaultType = "Gasto", acco
     setDestinationAccountId(initialValue?.destinationAccountId ?? accountOptions.find((item) => item.value !== initialAccountId)?.value ?? "");
     setCategoryId(initialValue?.categoryId ?? "");
     setDate(initialValue?.occurredOn ?? initialValue?.date ?? new Date().toISOString().slice(0, 10));
+    setPaymentMode("full");
+    setMsiInstallments("3");
     setError("");
   }, [accountOptions, accounts, defaultType, initialValue, open]);
+
+  useEffect(() => {
+    if (!showMsiOption) setPaymentMode("full");
+  }, [showMsiOption]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,6 +101,7 @@ export function MovementDialog({ open, initialValue, defaultType = "Gasto", acco
       category: type === "Transferencia" ? "Transferencia" : category?.name ?? "Sin categoria",
       type,
       amount: type === "Gasto" ? -Math.abs(Number(amount)) : Math.abs(Number(amount)),
+      msiInstallments: showMsiOption && paymentMode === "msi" ? Number(msiInstallments) : undefined,
     });
     setSaving(false);
     if (saved === false) return;
@@ -111,6 +128,14 @@ export function MovementDialog({ open, initialValue, defaultType = "Gasto", acco
             <NivaSelect label="Categoría" value={categoryId} onChange={(event) => setCategoryId(event.target.value)} options={[{ label: "Selecciona una categoria", value: "" }, ...categoryOptions]} />
           </div>
         )}
+        {showMsiOption ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <NivaSelect label="Forma de pago" value={paymentMode} onChange={(event) => setPaymentMode(event.target.value as "full" | "msi")} options={paymentModeOptions} />
+            {paymentMode === "msi" ? (
+              <NivaSelect label="Plazo" value={msiInstallments} onChange={(event) => setMsiInstallments(event.target.value)} options={msiTermOptions} />
+            ) : null}
+          </div>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <NivaInput label="Descripción" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Ej. Supermercado" />
           <NivaInput label="Fecha" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
