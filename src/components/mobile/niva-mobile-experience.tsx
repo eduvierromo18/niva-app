@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   BarChart3,
   CalendarClock,
+  ChevronDown,
   ChevronRight,
   CreditCard,
   Eye,
@@ -40,11 +41,13 @@ import { PayLiabilityDialog, type PayLiabilityValue } from "@/components/finance
 import { useAccounts } from "@/hooks/use-accounts";
 import { useMovements } from "@/hooks/use-movements";
 import { usePlanningData, type LiabilityItem } from "@/hooks/use-planning-data";
+import { useLiabilityStatement } from "@/hooks/use-liability-statement";
 import { getFeaturedGoalProgress } from "@/lib/dashboard";
 import { getSpendableSummary } from "@/lib/dashboard";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { computeCategoryBreakdown, computeDailyFlow, computeMonthOverMonth, currentMonthPrefix, type MetricDelta, type MonthlyKpis } from "@/lib/analytics";
-import type { FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
+import { getStatementPeriodForLiability } from "@/lib/liabilities";
+import type { FinanceAccount, FinanceMovement, ScheduledTransaction } from "@/lib/finance-types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/app/(app)/actions";
@@ -134,7 +137,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
       {pathname === "/goals" ? <MobileGoals goals={planningData.goals} loading={planningData.isLoading} onCreate={() => { setEditingGoal(null); setGoalOpen(true); }} onEdit={(goal) => { setEditingGoal(goal); setGoalOpen(true); }} onDelete={(id) => planningData.remove("savings_goals", id)} /> : null}
       {pathname === "/programados" ? <MobileScheduled items={planningData.scheduled} loading={planningData.isLoading} error={planningData.error} onReload={planningData.reload} onCreate={() => openScheduled()} onEdit={openScheduled} onToggle={planningData.toggleScheduled} onConfirm={async (id) => { const saved = await planningData.confirmScheduled(id); if (saved) await Promise.all([movementsData.reload(), accountsData.reload()]); return saved; }} onDelete={(id) => planningData.remove("scheduled_transactions", id)} /> : null}
       {pathname === "/budgets" ? <MobileBudgets items={planningData.budgets} categories={planningData.expenseCategories} loading={planningData.isLoading} onSave={planningData.saveBudget} onDelete={(id) => planningData.remove("monthly_budgets", id)} /> : null}
-      {pathname === "/liabilities" ? <MobileLiabilities items={planningData.liabilities} loading={planningData.isLoading} onPay={setPayingLiability} /> : null}
+      {pathname === "/liabilities" ? <MobileLiabilities items={planningData.liabilities} accounts={planningData.accounts} loading={planningData.isLoading} onPay={setPayingLiability} /> : null}
       {pathname === "/settings" ? <MobileSettings user={user} /> : null}
 
       <MobileTabBar pathname={pathname} onCreate={() => setCreateOpen(true)} onMore={() => setMoreOpen(true)} />
@@ -524,8 +527,50 @@ function MobileBudgets({ items, categories, loading, onSave, onDelete }: { items
   return <><MobilePage title="Presupuestos" subtitle="Límites mensuales por categoría" action={<button type="button" onClick={() => { setEditing(null); setOpen(true); }} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nuevo</button>}>{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={`${formatCurrency(item.spent)} de ${formatCurrency(item.limit)}`} progress={item.limit ? Math.min((item.spent / item.limit) * 100, 100) : 0} onEdit={() => { setEditing(item); setOpen(true); }} onDelete={() => onDelete(item.id)} />)}{!items.length ? <MobileEmpty title="Sin presupuestos" /> : null}</div>}</MobilePage><QuickCreateDialog open={open} title={editing ? "Editar presupuesto" : "Nuevo presupuesto"} description="Define el límite mensual para una categoría." amountLabel="Límite" secondaryLabel="Mes" secondaryPlaceholder="Mes actual" categoryOptions={categories} categoryLabel="Categoría" requirePositiveAmount initialValue={editing ? { name: editing.name, amount: editing.limit, secondary: "", categoryId: editing.categoryId } : null} onClose={() => setOpen(false)} onSave={(value) => onSave(value, editing ?? undefined)} /></>;
 }
 
-function MobileLiabilities({ items, loading, onPay }: { items: ReturnType<typeof usePlanningData>["liabilities"]; loading: boolean; onPay: (item: ReturnType<typeof usePlanningData>["liabilities"][number]) => void }) {
-  return <MobilePage title="Deudas" subtitle="Tarjetas administradas desde Cuentas">{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <PlanningCard key={item.id} title={item.name} value={formatCurrency(item.balance)} subtitle={`${item.closing} · ${item.due}`} progress={item.limit ? Math.min((item.balance / item.limit) * 100, 100) : 0} onPay={item.accountId ? () => onPay(item) : undefined} readOnly />)}{!items.length ? <MobileEmpty title="Sin deudas activas" /> : null}</div>}</MobilePage>;
+function MobileLiabilities({ items, accounts, loading, onPay }: { items: ReturnType<typeof usePlanningData>["liabilities"]; accounts: FinanceAccount[]; loading: boolean; onPay: (item: ReturnType<typeof usePlanningData>["liabilities"][number]) => void }) {
+  return <MobilePage title="Deudas" subtitle="Tarjetas administradas desde Cuentas">{loading ? <MobileListSkeleton /> : <div className="space-y-4">{items.map((item) => <MobileLiabilityCard key={item.id} item={item} accounts={accounts} onPay={() => onPay(item)} />)}{!items.length ? <MobileEmpty title="Sin deudas activas" /> : null}</div>}</MobilePage>;
+}
+
+function MobileLiabilityCard({ item, accounts, onPay }: { item: ReturnType<typeof usePlanningData>["liabilities"][number]; accounts: FinanceAccount[]; onPay: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const statement = useLiabilityStatement();
+  const percent = item.limit ? Math.min((item.balance / item.limit) * 100, 100) : 0;
+  const { isFallback } = getStatementPeriodForLiability(item.closingDay);
+
+  function toggle() {
+    if (expanded) { setExpanded(false); return; }
+    setExpanded(true);
+    if (item.accountId) {
+      const { period } = getStatementPeriodForLiability(item.closingDay);
+      void statement.load(item.accountId, period, accounts);
+    }
+  }
+
+  return (
+    <article className="rounded-3xl border border-[#E0E3E8] bg-white p-5">
+      <h2 className="font-semibold">{item.name}</h2>
+      <p className="mt-2 text-xl font-light">{formatCurrency(item.balance)}</p>
+      <p className="mt-1 text-xs text-[#8B95A7]">{item.closing} · {item.due}</p>
+      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#E8EBEF]"><div className="h-full bg-[#1E7A4E]" style={{ width: `${percent}%` }} /></div>
+      {item.accountId ? (
+        <div className="mt-4 flex gap-2">
+          <button type="button" onClick={toggle} className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-[#F5F6F8] py-2 text-xs font-semibold">
+            Ver movimientos <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
+          </button>
+          <button type="button" onClick={onPay} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#EAF5EF] py-2 text-xs font-semibold text-[#1E7A4E]">Pagar</button>
+        </div>
+      ) : null}
+      {item.accountId && expanded ? (
+        <div className="mt-4 border-t border-[#E0E3E8] pt-4">
+          {isFallback ? <p className="mb-2 text-[11px] text-[#8B95A7]">Agrega el día de corte en Cuentas para agrupar por periodo de facturación. Por ahora se muestra el mes en curso.</p> : null}
+          {statement.isLoading ? <p className="text-xs text-[#8B95A7]">Cargando movimientos...</p> : null}
+          {statement.error ? <p className="text-xs text-[#A24A4A]">{statement.error}</p> : null}
+          {!statement.isLoading && !statement.error && statement.items.length === 0 ? <p className="text-xs text-[#8B95A7]">Sin movimientos en este periodo.</p> : null}
+          {!statement.isLoading ? <div className="divide-y divide-[#E0E3E8]">{statement.items.map((movement) => <MobileMovementRow key={movement.id} movement={movement} muted="text-[#8B95A7]" />)}</div> : null}
+        </div>
+      ) : null}
+    </article>
+  );
 }
 
 function PlanningCard({ title, value, subtitle, progress, onEdit, onDelete, onPay, readOnly }: { title: string; value: string; subtitle?: string; progress: number; onEdit?: () => void; onDelete?: () => void; onPay?: () => void; readOnly?: boolean }) {
