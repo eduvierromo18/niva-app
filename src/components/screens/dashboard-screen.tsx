@@ -8,7 +8,7 @@ import { MovementDialog, type MovementFormValue } from "@/components/finance/mov
 import { usePlanningData } from "@/hooks/use-planning-data";
 import { useMovements } from "@/hooks/use-movements";
 import { useAccounts } from "@/hooks/use-accounts";
-import { getFeaturedGoalProgress, getSpendableSummary } from "@/lib/dashboard";
+import { getFeaturedGoalProgress, getNetWorth, getSpendableSummary } from "@/lib/dashboard";
 import { cn, formatCurrency } from "@/lib/utils";
 import { NivaBadge, NivaButton, NivaContentGrid, NivaLayoutSurface, NivaProgress, NivaSection } from "@/design-system";
 import { nivaFocusRing, nivaTransition } from "@/design-system/tokens";
@@ -51,9 +51,9 @@ export function DashboardScreen() {
   const [movementType, setMovementType] = useState("Gasto");
   const { accounts, categories, movements, saveMovement, reload } = useMovements();
   const { saveAccount } = useAccounts();
-  const { goals, scheduled: scheduledTransactions } = usePlanningData();
+  const { goals, liabilities, scheduled: scheduledTransactions } = usePlanningData();
 
-  const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const netWorth = getNetWorth(accounts, liabilities);
   const { reserved: reservedBalance, spendable: spendableToday, spendableRatio: availableRatio } = getSpendableSummary(accounts);
   const upcomingScheduled = scheduledTransactions
     .filter((item) => item.status === "active")

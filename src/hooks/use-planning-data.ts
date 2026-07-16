@@ -10,7 +10,7 @@ import { mapAccount } from "@/lib/finance-mappers";
 export type BudgetItem = { id: string; categoryId: string; name: string; spent: number; limit: number; icon: typeof ReceiptText };
 export type CategoryOption = { id: string; name: string };
 export type GoalItem = { id: string; name: string; current: number; target: number; date: string };
-export type LiabilityItem = { id: string; name: string; balance: number; limit: number; closing: string; due: string; icon: typeof CreditCard };
+export type LiabilityItem = { id: string; name: string; balance: number; limit: number; closing: string; due: string; accountId: string | null; icon: typeof CreditCard };
 
 function dayFromText(value?: string) {
   const match = value?.match(/\d{1,2}/);
@@ -69,7 +69,8 @@ export function usePlanningData() {
         id: item.id, name: item.name,
         balance: item.account_id ? Math.max(-(accountBalanceById.get(item.account_id) ?? 0), 0) : Number(item.principal_amount),
         limit: Number(item.credit_limit ?? item.principal_amount),
-        closing: item.statement_closing_day ? `Día ${item.statement_closing_day}` : "Sin corte", due: item.payment_due_day ? `Día ${item.payment_due_day}` : "Sin fecha", icon: CreditCard,
+        closing: item.statement_closing_day ? `Día ${item.statement_closing_day}` : "Sin corte", due: item.payment_due_day ? `Día ${item.payment_due_day}` : "Sin fecha",
+        accountId: item.account_id, icon: CreditCard,
       })));
       const mappedAccounts = (accountResult.data ?? []).map(mapAccount);
       setAccounts(mappedAccounts);

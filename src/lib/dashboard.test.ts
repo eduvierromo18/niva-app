@@ -1,6 +1,6 @@
 ﻿import { describe, expect, it } from "vitest";
 import { WalletCards } from "lucide-react";
-import { getFeaturedGoalProgress, getSpendableSummary } from "@/lib/dashboard";
+import { getFeaturedGoalProgress, getNetWorth, getSpendableSummary } from "@/lib/dashboard";
 import type { FinanceAccount } from "@/lib/finance-types";
 
 describe("getFeaturedGoalProgress", () => {
@@ -45,5 +45,38 @@ describe("getSpendableSummary", () => {
 
   it("returns zeroes with no accounts", () => {
     expect(getSpendableSummary([])).toEqual({ reserved: 0, availableCash: 0, spendable: 0, spendableRatio: 0 });
+  });
+});
+
+function liability(overrides: Partial<{ accountId: string | null; balance: number }>) {
+  return { accountId: null, balance: 0, ...overrides };
+}
+
+describe("getNetWorth", () => {
+  it("subtracts liabilities without a linked account", () => {
+    const netWorth = getNetWorth(
+      [account({ id: "checking", balance: 12000 })],
+      [liability({ accountId: null, balance: 5000 })],
+    );
+    expect(netWorth).toBe(7000); // 12000 - 5000
+  });
+
+  it("ignores liabilities linked to an account to avoid double-counting", () => {
+    const netWorth = getNetWorth(
+      [
+        account({ id: "checking", balance: 12000 }),
+        account({ id: "card", type: "Tarjeta", balance: -2000 }),
+      ],
+      [liability({ accountId: "card", balance: 2000 })],
+    );
+    expect(netWorth).toBe(10000); // card debt already reflected in the account balance
+  });
+
+  it("matches the plain sum of account balances when there are no liabilities", () => {
+    const accounts = [
+      account({ id: "checking", balance: 12000 }),
+      account({ id: "card", type: "Tarjeta", balance: -2000 }),
+    ];
+    expect(getNetWorth(accounts, [])).toBe(accounts.reduce((sum, item) => sum + item.balance, 0));
   });
 });

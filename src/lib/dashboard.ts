@@ -37,3 +37,21 @@ export function getSpendableSummary(accounts: FinanceAccount[]): SpendableSummar
   const spendableRatio = availableCash > 0 ? Math.round((spendable / availableCash) * 100) : 0;
   return { reserved, availableCash, spendable, spendableRatio };
 }
+
+type NetWorthLiabilityInput = {
+  accountId: string | null;
+  balance: number;
+};
+
+/**
+ * Liabilities linked to an account (accountId set, e.g. credit cards) already
+ * show up as that account's negative balance, so only unlinked liabilities
+ * (loan / personal_debt / other) are subtracted here to avoid double-counting.
+ */
+export function getNetWorth(accounts: FinanceAccount[], liabilities: NetWorthLiabilityInput[]): number {
+  const accountsTotal = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const unlinkedLiabilitiesTotal = liabilities
+    .filter((liability) => !liability.accountId)
+    .reduce((sum, liability) => sum + liability.balance, 0);
+  return accountsTotal - unlinkedLiabilitiesTotal;
+}
