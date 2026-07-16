@@ -9,6 +9,7 @@ import {
   BarChart3,
   CalendarClock,
   ChevronRight,
+  CreditCard,
   Eye,
   Flag,
   Home,
@@ -457,8 +458,52 @@ function MobileGoals({ goals, loading, onCreate, onEdit, onDelete }: { goals: Re
 function MobileScheduled({ items, loading, error, onReload, onCreate, onEdit, onToggle, onConfirm, onDelete }: { items: ScheduledTransaction[]; loading: boolean; error: string; onReload: () => Promise<void>; onCreate: () => void; onEdit: (item: ScheduledTransaction) => void; onToggle: (item: ScheduledTransaction) => void; onConfirm: (id: string) => Promise<boolean>; onDelete: (id: string) => void }) {
   return <MobilePage title="Programados" subtitle="Pagos e ingresos recurrentes" action={<button type="button" onClick={onCreate} className="flex h-10 items-center gap-2 rounded-full bg-[#1E7A4E] px-4 text-xs font-semibold text-white"><Plus className="h-4 w-4" />Nuevo</button>}>
     {loading ? <MobileListSkeleton /> : null}{error ? <MobileError message="No pudimos sincronizar tus programados." onRetry={() => void onReload()} /> : null}
-    {!loading && !error ? <div className="space-y-4">{items.map((item) => <article key={item.id} className="rounded-3xl border border-[#E0E3E8] bg-white p-5"><div className="flex items-start gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF5EF] text-[#1E7A4E]"><CalendarClock className="h-5 w-5" /></span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div><h2 className="font-semibold">{item.name}</h2><p className="mt-1 text-xs text-[#8B95A7]">{item.account} · {item.frequency}</p></div><p className="shrink-0 font-medium">{formatCurrency(item.amount)}</p></div><div className="mt-3 flex items-center justify-between"><span className={cn("rounded-full px-2.5 py-1 text-[10px] font-semibold", item.status === "active" ? "bg-[#EAF5EF] text-[#1E7A4E]" : "bg-[#F2F3F5] text-[#6B7280]")}>{item.status === "active" ? "Activo" : item.status === "paused" ? "Pausado" : "Finalizado"}</span><span className="text-xs text-[#6B7280]">Próximo: {item.nextDueDate}</span></div></div></div><div className="mt-4 grid grid-cols-4 gap-2 border-t border-[#E8EBEF] pt-4"><button type="button" aria-label="Editar" onClick={() => onEdit(item)} className="grid place-items-center rounded-xl bg-[#F5F6F8] py-2.5"><Pencil className="h-4 w-4" /></button><button type="button" aria-label={item.status === "paused" ? "Reactivar" : "Pausar"} onClick={() => onToggle(item)} className="grid place-items-center rounded-xl bg-[#F5F6F8] py-2.5">{item.status === "paused" ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}</button><button type="button" aria-label="Confirmar pago" disabled={item.status !== "active"} onClick={() => void onConfirm(item.id)} className="grid place-items-center rounded-xl bg-[#EAF5EF] py-2.5 text-[#1E7A4E] disabled:opacity-40"><ReceiptText className="h-4 w-4" /></button><button type="button" aria-label="Eliminar" onClick={() => { if (window.confirm(`¿Eliminar ${item.name}?`)) onDelete(item.id); }} className="grid place-items-center rounded-xl bg-[#FCF4F4] py-2.5 text-[#A24A4A]"><Trash2 className="h-4 w-4" /></button></div></article>)}{!items.length ? <MobileEmpty title="No tienes pagos programados" /> : null}</div> : null}
+    {!loading && !error ? <div className="space-y-4">{items.map((item) => <MobileScheduledItem key={item.id} item={item} onEdit={() => onEdit(item)} onToggle={() => onToggle(item)} onConfirm={() => void onConfirm(item.id)} onDelete={() => { if (window.confirm(`¿Eliminar ${item.name}?`)) onDelete(item.id); }} />)}{!items.length ? <MobileEmpty title="No tienes pagos programados" /> : null}</div> : null}
   </MobilePage>;
+}
+
+function MobileScheduledItem({ item, onEdit, onToggle, onConfirm, onDelete }: { item: ScheduledTransaction; onEdit: () => void; onToggle: () => void; onConfirm: () => void; onDelete: () => void }) {
+  const isMsi = item.type === "msi_installment";
+  const title = isMsi && item.installmentNumber && item.totalInstallments ? `Cuota ${item.installmentNumber} de ${item.totalInstallments} — ${item.account}` : item.name;
+  const subtitle = item.isInformational ? "Esta cuota es informativa: el gasto ya se registró completo el día de la compra." : `${item.account} · ${item.frequency}`;
+  return (
+    <article className="rounded-3xl border border-[#E0E3E8] bg-white p-5">
+      <div className="flex items-start gap-3">
+        <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl", isMsi ? "bg-[#F1EAFB] text-[#6D4FC2]" : "bg-[#EAF5EF] text-[#1E7A4E]")}>
+          {isMsi ? <CreditCard className="h-5 w-5" /> : <CalendarClock className="h-5 w-5" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">{title}</h2>
+              <p className="mt-1 text-xs text-[#8B95A7]">{subtitle}</p>
+            </div>
+            <p className="shrink-0 font-medium">{formatCurrency(item.amount)}</p>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-semibold", item.status === "active" ? "bg-[#EAF5EF] text-[#1E7A4E]" : "bg-[#F2F3F5] text-[#6B7280]")}>
+              {item.status === "active" ? "Activo" : item.status === "paused" ? "Pausado" : "Finalizado"}
+            </span>
+            <span className="text-xs text-[#6B7280]">Próximo: {item.nextDueDate}</span>
+          </div>
+        </div>
+      </div>
+      <div className={cn("mt-4 grid gap-2 border-t border-[#E8EBEF] pt-4", item.isInformational ? "grid-cols-2" : "grid-cols-4")}>
+        {item.isInformational ? null : (
+          <button type="button" aria-label="Editar" onClick={onEdit} className="grid place-items-center rounded-xl bg-[#F5F6F8] py-2.5"><Pencil className="h-4 w-4" /></button>
+        )}
+        <button type="button" aria-label={item.status === "paused" ? "Reactivar" : "Pausar"} onClick={onToggle} className="grid place-items-center rounded-xl bg-[#F5F6F8] py-2.5">
+          {item.status === "paused" ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </button>
+        <button type="button" aria-label={item.isInformational ? "Marcar cuota como vista" : "Confirmar pago"} disabled={item.status !== "active"} onClick={onConfirm} className="grid place-items-center rounded-xl bg-[#EAF5EF] py-2.5 text-[#1E7A4E] disabled:opacity-40">
+          {item.isInformational ? <Eye className="h-4 w-4" /> : <ReceiptText className="h-4 w-4" />}
+        </button>
+        {item.isInformational ? null : (
+          <button type="button" aria-label="Eliminar" onClick={onDelete} className="grid place-items-center rounded-xl bg-[#FCF4F4] py-2.5 text-[#A24A4A]"><Trash2 className="h-4 w-4" /></button>
+        )}
+      </div>
+    </article>
+  );
 }
 
 function MobileBudgets({ items, categories, loading, onSave, onDelete }: { items: ReturnType<typeof usePlanningData>["budgets"]; categories: ReturnType<typeof usePlanningData>["expenseCategories"]; loading: boolean; onSave: ReturnType<typeof usePlanningData>["saveBudget"]; onDelete: (id: string) => void }) {

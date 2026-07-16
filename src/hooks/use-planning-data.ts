@@ -81,6 +81,7 @@ export function usePlanningData() {
         category: categories.find((category) => category.id === item.category_id)?.name,
         frequency: item.frequency as ScheduledTransaction["frequency"], startDate: item.start_date, nextDueDate: item.next_due_date,
         endDate: item.end_date ?? undefined, status: item.status as ScheduledTransaction["status"], notes: item.notes ?? undefined, autoCreate: item.auto_create,
+        isInformational: item.is_informational, installmentNumber: item.installment_number ?? undefined, totalInstallments: item.total_installments ?? undefined,
       })));
       setError("");
     }

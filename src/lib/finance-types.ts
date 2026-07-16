@@ -59,7 +59,7 @@ export type FinanceMetric = {
   percent?: boolean;
 };
 
-export type ScheduledTransactionType = "expense" | "income" | "transfer" | "debt_payment" | "subscription";
+export type ScheduledTransactionType = "expense" | "income" | "transfer" | "debt_payment" | "subscription" | "msi_installment";
 export type ScheduledFrequency = "weekly" | "biweekly" | "monthly" | "yearly" | "custom";
 export type ScheduledStatus = "active" | "paused" | "finished";
 
@@ -78,4 +78,7 @@ export type ScheduledTransaction = {
   status: ScheduledStatus;
   notes?: string;
   autoCreate: boolean;
+  isInformational?: boolean;
+  installmentNumber?: number;
+  totalInstallments?: number;
 };

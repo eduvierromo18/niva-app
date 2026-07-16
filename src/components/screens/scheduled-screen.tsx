@@ -39,6 +39,7 @@ const typeLabel: Record<ScheduledTransactionType, string> = {
   transfer: "Transferencia",
   debt_payment: "Pago de deuda",
   subscription: "Suscripción",
+  msi_installment: "Cuota MSI",
 };
 
 const frequencyLabel: Record<ScheduledFrequency, string> = {
@@ -74,7 +75,7 @@ function formatDueText(days: number) {
 function scheduledIcon(type: ScheduledTransactionType) {
   if (type === "income") return RefreshCw;
   if (type === "transfer") return ArrowRightLeft;
-  if (type === "debt_payment") return CreditCard;
+  if (type === "debt_payment" || type === "msi_installment") return CreditCard;
   if (type === "subscription") return BellRing;
   return ReceiptText;
 }
@@ -83,7 +84,10 @@ function badgeTone(item: ScheduledTransaction) {
   if (item.status === "paused") return "warning" as const;
   if (item.status === "finished") return "neutral" as const;
   if (item.type === "income") return "success" as const;
-  if (item.type === "transfer" || item.type === "debt_payment") return "info" as const;
+  // msi_installment shares "info" with transfer/debt_payment (both card-related) rather than
+  // "accent" — accent and success resolve to the exact same green in globals.css, so tagging
+  // it accent would make an MSI reminder look like an income row at a glance.
+  if (item.type === "transfer" || item.type === "debt_payment" || item.type === "msi_installment") return "info" as const;
   return "neutral" as const;
 }
 
@@ -91,6 +95,13 @@ function amountColor(type: ScheduledTransactionType) {
   if (type === "income") return "text-[var(--niva-color-success)]";
   if (type === "transfer" || type === "debt_payment") return "text-[var(--niva-color-info)]";
   return "text-[var(--niva-color-foreground)]";
+}
+
+function scheduledTitle(item: ScheduledTransaction) {
+  if (item.type === "msi_installment" && item.installmentNumber && item.totalInstallments) {
+    return `Cuota ${item.installmentNumber} de ${item.totalInstallments} — ${item.account}`;
+  }
+  return item.name;
 }
 
 function movementFromScheduled(item: ScheduledTransaction): FinanceMovement {
@@ -139,7 +150,7 @@ function ScheduledItem({
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-semibold tracking-[-0.02em] text-[var(--niva-color-foreground)]">{item.name}</h3>
+              <h3 className="font-semibold tracking-[-0.02em] text-[var(--niva-color-foreground)]">{scheduledTitle(item)}</h3>
               <NivaBadge tone={badgeTone(item)}>{typeLabel[item.type]}</NivaBadge>
               <NivaBadge tone={item.status === "active" ? "success" : item.status === "paused" ? "warning" : "neutral"}>
                 {statusLabel}
@@ -177,11 +188,13 @@ function ScheduledItem({
       </div>
       <div className="mt-5 flex flex-wrap gap-2 border-t border-[var(--niva-color-border)] pt-4">
         <NivaButton type="button" size="sm" iconLeft={<CheckCircle2 className="h-4 w-4" />} onClick={onPaid} disabled={item.status !== "active"}>
-          Marcar como pagado
+          {item.isInformational ? "Marcar cuota como vista" : "Marcar como pagado"}
         </NivaButton>
-        <NivaButton type="button" variant="secondary" size="sm" onClick={onEdit}>
-          Editar
-        </NivaButton>
+        {item.isInformational ? null : (
+          <NivaButton type="button" variant="secondary" size="sm" onClick={onEdit}>
+            Editar
+          </NivaButton>
+        )}
         <NivaButton
           type="button"
           variant="secondary"
@@ -191,10 +204,17 @@ function ScheduledItem({
         >
           {item.status === "paused" ? "Reactivar" : "Pausar"}
         </NivaButton>
-        <NivaButton type="button" variant="danger" size="sm" iconLeft={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
-          Eliminar
-        </NivaButton>
+        {item.isInformational ? null : (
+          <NivaButton type="button" variant="danger" size="sm" iconLeft={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
+            Eliminar
+          </NivaButton>
+        )}
       </div>
+      {item.isInformational ? (
+        <p className="mt-3 text-xs leading-5 text-[var(--niva-color-muted)]">
+          Esta cuota es informativa: el gasto ya se registró completo el día de la compra.
+        </p>
+      ) : null}
     </NivaCard>
   );
 }
@@ -235,7 +255,9 @@ export function ScheduledScreen() {
 
   async function markPaid(item: ScheduledTransaction) {
     const saved = await confirmScheduled(item.id);
-    if (saved) setMovementsCreated((current) => [movementFromScheduled(item), ...current]);
+    // MSI installments don't create a new movement on confirm (see 4a) — showing one here would
+    // misleadingly suggest the purchase was registered twice.
+    if (saved && !item.isInformational) setMovementsCreated((current) => [movementFromScheduled(item), ...current]);
   }
 
   return (
