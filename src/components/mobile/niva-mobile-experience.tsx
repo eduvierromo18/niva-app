@@ -105,7 +105,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
 
   async function saveAccount(value: AccountFormValue) {
     const saved = await accountsData.saveAccount(value, editingAccountIndex);
-    if (saved) await movementsData.reload();
+    if (saved) await Promise.all([movementsData.reload(), planningData.reload()]);
     return saved;
   }
 
