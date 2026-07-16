@@ -117,7 +117,7 @@ export function NivaMobileExperience({ user }: NivaMobileExperienceProps) {
     if (!payingLiability) return false;
     const saved = await planningData.payLiability(payingLiability, value);
     if (saved) {
-      await Promise.all([accountsData.reload(), planningData.reload()]);
+      await Promise.all([movementsData.reload(), accountsData.reload(), planningData.reload()]);
       setPayingLiability(null);
     }
     return saved;
