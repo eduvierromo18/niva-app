@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: { default: "Niva", template: "%s · Niva" },
   description: "Tu centro personal de control financiero.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
