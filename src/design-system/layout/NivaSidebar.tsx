@@ -87,7 +87,7 @@ export function NivaSidebar({ brand, items, activeHref, groupOrder = ["primary",
                     {Icon ? (
                       <Icon
                         aria-hidden={true}
-                        className={cn("h-4 w-4 shrink-0 text-[var(--niva-color-inverse-muted)]", active && "text-[var(--niva-color-inverse-foreground)]")}
+                        className={cn("h-4 w-4 shrink-0 text-[var(--niva-color-inverse-muted)]", active && "text-[var(--niva-color-accent)]")}
                       />
                     ) : null}
                     <span className="truncate">{item.title}</span>
