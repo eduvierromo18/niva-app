@@ -163,6 +163,16 @@ Enums clave: `account_type` (`cash`, `checking`, `savings`, `credit_card`,
    Cualquier registro creado desde el quick-add del Dashboard que falle en
    el servidor (cuenta inválida, RPC de MSI rechazado, etc.) falla en
    silencio — el diálogo se queda abierto sin explicación.
+6. **Campo "Mes" de `BudgetsScreen` es decorativo**: `QuickCreateDialog` en
+   `budgets-screen.tsx` sigue mostrando `secondaryLabel="Mes"` con texto
+   libre, pero `saveBudget` (`use-planning-data.ts`) ignora `value.secondary`
+   por completo y siempre calcula el mes con `new Date()` — el input nunca
+   se guarda ni afecta a qué mes va el presupuesto. Es el mismo tipo de bug
+   que tenía "Fecha objetivo" en Goals (campo de texto libre que un
+   validador estricto o una lógica fija terminaba descartando en silencio),
+   ya resuelto ahí con `type="date"` nativo — aplicar el mismo arreglo aquí,
+   o quitar el campo si no se va a soportar presupuestos por mes distinto
+   al actual.
 
 ## Estados obligatorios en toda función nueva
 

@@ -9,7 +9,7 @@ import { mapAccount } from "@/lib/finance-mappers";
 
 export type BudgetItem = { id: string; categoryId: string; name: string; spent: number; limit: number; icon: typeof ReceiptText };
 export type CategoryOption = { id: string; name: string };
-export type GoalItem = { id: string; name: string; current: number; target: number; date: string };
+export type GoalItem = { id: string; name: string; current: number; target: number; date: string; accountId: string | null };
 export type LiabilityItem = { id: string; name: string; balance: number; limit: number; closing: string; due: string; closingDay: number | null; accountId: string | null; icon: typeof CreditCard };
 
 function dayFromText(value?: string) {
@@ -60,7 +60,7 @@ export function usePlanningData() {
         limit: Number(item.amount),
         icon: ReceiptText,
       })));
-      setGoals((goalResult.data ?? []).map((item) => ({ id: item.id, name: item.name, current: Number(item.current_amount), target: Number(item.target_amount), date: item.target_date ?? "Sin fecha" })));
+      setGoals((goalResult.data ?? []).map((item) => ({ id: item.id, name: item.name, current: Number(item.current_amount), target: Number(item.target_amount), date: item.target_date ?? "Sin fecha", accountId: item.account_id ?? null })));
       // Credit-card-linked liabilities (account_id set) derive their balance from the
       // linked account's real balance instead of the manually captured principal_amount,
       // which stays authoritative only for manual liabilities (loan/personal_debt/other).
@@ -111,7 +111,7 @@ export function usePlanningData() {
     const supabase = createClient();
     const auth = await supabase.auth.getUser();
     if (!auth.data.user) return false;
-    const payload = { user_id: auth.data.user.id, name: value.name, target_amount: value.amount, current_amount: value.current ?? 0, target_date: dateOrNull(value.secondary) };
+    const payload = { user_id: auth.data.user.id, name: value.name, target_amount: value.amount, current_amount: value.current ?? 0, target_date: dateOrNull(value.secondary), account_id: value.accountId ?? null };
     const result = editing ? await supabase.from("savings_goals").update(payload).eq("id", editing.id) : await supabase.from("savings_goals").insert(payload);
     if (result.error) { setError(result.error.message); return false; }
     await load(); return true;

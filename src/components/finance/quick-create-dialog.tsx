@@ -12,9 +12,11 @@ export type QuickCreateValue = {
   extra?: string;
   extraAmount?: number;
   categoryId?: string;
+  accountId?: string;
 };
 
 export type CategoryOption = { id: string; name: string };
+export type AccountOption = { id: string; name: string };
 
 export function QuickCreateDialog({
   open,
@@ -24,11 +26,14 @@ export function QuickCreateDialog({
   currentLabel,
   secondaryLabel,
   secondaryPlaceholder,
+  secondaryType = "text",
   extraLabel,
   extraPlaceholder,
   extraAmountLabel,
   categoryOptions,
   categoryLabel,
+  accountOptions,
+  accountLabel,
   requirePositiveAmount = false,
   initialValue,
   onClose,
@@ -41,11 +46,16 @@ export function QuickCreateDialog({
   currentLabel?: string;
   secondaryLabel: string;
   secondaryPlaceholder: string;
+  secondaryType?: "text" | "date";
   extraLabel?: string;
   extraPlaceholder?: string;
   extraAmountLabel?: string;
   categoryOptions?: CategoryOption[];
   categoryLabel?: string;
+  // Optional, informational-only link to an existing account — does not
+  // affect any derived amount (unlike liabilities' account-derived balance).
+  accountOptions?: AccountOption[];
+  accountLabel?: string;
   // Opt-in: reject amount <= 0 with a visible error. Off by default so records
   // that legitimately allow $0 (e.g. a paid-off liability) keep working.
   requirePositiveAmount?: boolean;
@@ -60,6 +70,7 @@ export function QuickCreateDialog({
   const [extra, setExtra] = useState("");
   const [extraAmount, setExtraAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [accountId, setAccountId] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -71,6 +82,7 @@ export function QuickCreateDialog({
     setExtra(initialValue?.extra ?? "");
     setExtraAmount(initialValue?.extraAmount !== undefined ? String(initialValue.extraAmount) : "");
     setCategoryId(initialValue?.categoryId ?? "");
+    setAccountId(initialValue?.accountId ?? "");
     setError("");
   }, [initialValue, open]);
 
@@ -97,6 +109,7 @@ export function QuickCreateDialog({
       extra,
       extraAmount: Number(extraAmount) || 0,
       categoryId: categoryOptions ? categoryId : undefined,
+      accountId: accountOptions ? (accountId || undefined) : undefined,
     });
     if (saved === false) return;
     setName("");
@@ -106,6 +119,7 @@ export function QuickCreateDialog({
     setExtra("");
     setExtraAmount("");
     setCategoryId("");
+    setAccountId("");
     setError("");
     onClose();
   }
@@ -137,8 +151,18 @@ export function QuickCreateDialog({
             </Field>
           ) : null}
           <Field label={secondaryLabel}>
-            <input className={inputClass} value={secondary} onChange={(event) => setSecondary(event.target.value)} placeholder={secondaryPlaceholder} />
+            <input className={inputClass} type={secondaryType} value={secondary} onChange={(event) => setSecondary(event.target.value)} placeholder={secondaryType === "date" ? undefined : secondaryPlaceholder} />
           </Field>
+          {accountOptions ? (
+            <Field label={accountLabel ?? "Cuenta"}>
+              <select className={inputClass} value={accountId} onChange={(event) => setAccountId(event.target.value)}>
+                <option value="">Sin cuenta vinculada</option>
+                {accountOptions.map((option) => (
+                  <option key={option.id} value={option.id}>{option.name}</option>
+                ))}
+              </select>
+            </Field>
+          ) : null}
           {extraLabel ? (
             <Field label={extraLabel}>
               <input className={inputClass} value={extra} onChange={(event) => setExtra(event.target.value)} placeholder={extraPlaceholder} />

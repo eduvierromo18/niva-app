@@ -12,8 +12,9 @@ import { NivaEmptyState } from "@/design-system";
 
 export function GoalsScreen() {
   const [open, setOpen] = useState(false);
-  const { goals, error, isLoading, saveGoal, remove } = usePlanningData();
+  const { goals, accounts, error, isLoading, saveGoal, remove } = usePlanningData();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const accountOptions = accounts.filter((account) => account.id).map((account) => ({ id: account.id!, name: account.name }));
 
   function openNewGoal() {
     setEditingIndex(null);
@@ -45,10 +46,12 @@ export function GoalsScreen() {
       ) : (
       <div className="grid gap-4 xl:grid-cols-3">
         {goals.map((goal, index) => {
+          const accountName = goal.accountId ? accounts.find((account) => account.id === goal.accountId)?.name : null;
           return (
             <Card key={goal.id}>
               <CardContent>
                 <p className="text-sm font-semibold text-[var(--niva-color-muted)]">Objetivo: {goal.date}</p>
+                {accountName ? <p className="text-sm text-[var(--niva-color-muted)]">Cuenta: {accountName}</p> : null}
                 <h3 className="mt-2 text-lg font-bold">{goal.name}</h3>
                 <GoalProgress current={goal.current} target={goal.target} />
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -74,12 +77,16 @@ export function GoalsScreen() {
         amountLabel="Monto objetivo"
         currentLabel="Ahorrado inicial"
         secondaryLabel="Fecha objetivo"
-        secondaryPlaceholder="Ej. Dic 2026"
+        secondaryPlaceholder=""
+        secondaryType="date"
+        accountOptions={accountOptions}
+        accountLabel="Cuenta"
         initialValue={editingIndex !== null ? {
           name: goals[editingIndex].name,
           amount: goals[editingIndex].target,
           current: goals[editingIndex].current,
-          secondary: goals[editingIndex].date,
+          secondary: goals[editingIndex].date === "Sin fecha" ? "" : goals[editingIndex].date,
+          accountId: goals[editingIndex].accountId ?? undefined,
         } : null}
         onClose={() => {
           setOpen(false);
